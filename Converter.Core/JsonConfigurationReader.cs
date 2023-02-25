@@ -122,8 +122,13 @@ public class JsonConfigurationReader
             throw new Exception("Use Read before Validating!");
 
         var recreatedJsonText = GetJsonOutput();
-        var jsonDiff = JsonDiffPatcher.Diff(RawJsonString, recreatedJsonText, new JsonDeltaFormatter(), JsonUtil.GetDiffOptions());
-        var isError = jsonDiff is not null || (jsonDiff is JsonArray jsonArray && jsonArray.Count > 0);
+        var jsonDiff = JsonDiffPatcher.Diff(
+            JsonUtil.NormalizeText(RawJsonString),
+            recreatedJsonText,
+            new JsonDeltaFormatter(),
+            JsonUtil.GetDiffOptions()
+        );
+        var isError = jsonDiff is null || (jsonDiff is JsonArray jsonArray && jsonArray.Count > 0);
 
         XmlDocument originalXml = ParseOriginalXml();
         var recreatedXml = TaskInfo!.Preferences![0].XmlConfig;
