@@ -16,13 +16,18 @@ public class JsonConfigurationReader
     private string? RawJsonString;
     public TaskInfo? TaskInfo { get; private set; }
 
-    public void Read(FileInfo inputFile)
+    public JsonConfigurationReader(FileInfo inputFile)
     {
         var jsonString = inputFile.FullName.EndsWith(".zip") ? inputFile.ReadFromZip() : File.ReadAllText(inputFile.FullName);
         Read(jsonString);
     }
 
-    public void Read(string jsonString)
+    public JsonConfigurationReader(string jsonString)
+    {
+        Read(jsonString);
+    }
+
+    private void Read(string jsonString)
     {
         RawJsonString = jsonString;
         JsonSerializerOptions options = InitSerializerOptions();

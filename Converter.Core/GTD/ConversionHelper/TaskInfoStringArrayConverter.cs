@@ -5,8 +5,6 @@ namespace Converter.Core.GTD.ConversionHelper;
 
 public class TaskInfoStringArrayConverter : JsonConverter<string[]>
 {
-    //public override bool HandleNull => true;
-
     public override string[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         var stringValue = reader.GetString();

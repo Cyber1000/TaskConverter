@@ -2,7 +2,8 @@ using Converter.Core;
 
 enum Command
 {
-    CheckFile
+    CheckFile,
+    Convert
 }
 
 class Programm
@@ -14,25 +15,43 @@ class Programm
     /// <param name="file">File to read</param>
     static int Main(Command commandType, FileInfo file)
     {
-        if (commandType == Command.CheckFile)
+        //TODO HH: JsonConfigurationReader rausziehen?
+        if (file is null || !file.Exists)
         {
-            if (file is null || !file.Exists)
+            var info = file is null ? "Filename is mandatory." : $"File {file.FullName} not valid.";
+            TextWriter errorWriter = Console.Error;
+            errorWriter.WriteLine(info);
+            return 1;
+        }
+        switch (commandType)
+        {
+            case Command.CheckFile:
             {
-                var info = file is null ? "Filename is mandatory." : $"File {file.FullName} not valid.";
-                TextWriter errorWriter = Console.Error;
-                errorWriter.WriteLine(info);
-                return 1;
+                CheckFile(file);
+                break;
             }
-            CheckFile(file);
+
+            case Command.Convert:
+                Convert(file);
+                break;
         }
         return 0;
     }
 
+    private static void Convert(FileInfo fileInfo)
+    {
+        var jsonReader = new JsonConfigurationReader(fileInfo);
+        //TODO HH: duedate ist schon hier nicht null
+        var taskInfo = jsonReader.TaskInfo;
+        if (taskInfo == null)
+            return;
+        var mappedItems = Converter.Core.Mapper.Converter.MapToModel(taskInfo);
+        //TODO HH: Fehlende Mappings erkennen
+    }
+
     private static void CheckFile(FileInfo fileInfo)
     {
-        var jsonReader = new JsonConfigurationReader();
-        var inputFile = fileInfo;
-        jsonReader.Read(inputFile);
+        var jsonReader = new JsonConfigurationReader(fileInfo);
         try
         {
             var (isError, jsonDiff, xmlDiff) = jsonReader.Validate();

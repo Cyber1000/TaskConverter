@@ -120,8 +120,7 @@ public class JsonConverterTests
 
     private static JsonConfigurationReader AssertJson(string originalJson)
     {
-        var jsonReader = new JsonConfigurationReader();
-        jsonReader.Read(originalJson);
+        var jsonReader = new JsonConfigurationReader(originalJson);
         var recreatedJson = jsonReader.GetJsonOutput();
         JsonAssert.Equal(JsonUtil.NormalizeText(originalJson), recreatedJson, JsonUtil.GetDiffOptions(), true);
         return jsonReader;

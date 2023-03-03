@@ -23,8 +23,7 @@ namespace Converter.Tests
 
             File.WriteAllText(originalFilePath, originalJson);
 
-            var jsonReader = new JsonConfigurationReader();
-            jsonReader.Read(originalFile);
+            var jsonReader = new JsonConfigurationReader(originalFile);
             jsonReader.Write(resultFile);
         }
 
@@ -43,8 +42,7 @@ namespace Converter.Tests
 
             zipFile.WriteToZip(originalJson);
 
-            var jsonReader = new JsonConfigurationReader();
-            jsonReader.Read(zipFile);
+            var jsonReader = new JsonConfigurationReader(zipFile);
             jsonReader.Write(resultFile);
         }
     }

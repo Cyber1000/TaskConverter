@@ -44,6 +44,12 @@ namespace Converter.Core.GTD.Model
             throw new NotImplementedException($"Cannot cast \"{repeatInfo}\" to RepeatInfo");
         }
 
+        public RepeatInfo(int interval, Period period)
+        {
+            Interval = interval;
+            Period = period;
+        }
+
         private static (bool Success, int Interval, Period Period) GetIntervalPeriod(
             string repeatInfo,
             string searchPattern,
