@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Converter.Core.GTD.ConversionHelper;
+using NodaTime;
 
 namespace Converter.Core.GTD.Model;
 
@@ -82,14 +83,14 @@ public class TaskInfoTaskEntry : TaskInfoEntryBase
 {
     [JsonPropertyOrder(-850)]
     public int Parent { get; set; }
-    public DateTime? StartDate { get; set; }
+    public LocalDateTime? StartDate { get; set; }
     public bool StartTimeSet { get; set; }
 
-    [JsonDateTimeConverter("yyyy-MM-dd HH:mm")]
-    public DateTime? DueDate { get; set; }
+    [JsonConverter(typeof(ExactToMinuteLocalDateTimeConverter<LocalDateTime?>))]
+    public LocalDateTime? DueDate { get; set; }
 
-    [JsonDateTimeConverter("yyyy-MM-dd HH:mm")]
-    public DateTime? DueDateProject { get; set; }
+    [JsonConverter(typeof(ExactToMinuteLocalDateTimeConverter<LocalDateTime?>))]
+    public LocalDateTime? DueDateProject { get; set; }
     public bool DueTimeSet { get; set; }
 
     [JsonConverter(typeof(TaskInfoEnumConverter))]
@@ -98,8 +99,8 @@ public class TaskInfoTaskEntry : TaskInfoEntryBase
     //TODO HH: Reminder seems to be a unixtimestamp or minutes before DueDate
     public long Reminder { get; set; }
 
-    [JsonDateTimeConverter("yyyy-MM-dd HH:mm")]
-    public DateTime? Alarm { get; set; }
+    [JsonConverter(typeof(ExactToMinuteLocalDateTimeConverter<LocalDateTime?>))]
+    public LocalDateTime? Alarm { get; set; }
 
     [JsonConverter(typeof(TaskInfoJsonRepeatConverter))]
     public RepeatInfo? RepeatNew { get; set; }
@@ -115,7 +116,7 @@ public class TaskInfoTaskEntry : TaskInfoEntryBase
 
     [JsonConverter(typeof(TaskInfoStringArrayConverter))]
     public string[]? Note { get; set; }
-    public DateTime? Completed { get; set; }
+    public LocalDateTime? Completed { get; set; }
     public TaskType Type { get; set; }
     public string TrashBin { get; set; } = string.Empty;
     public int Importance { get; set; }
@@ -125,6 +126,6 @@ public class TaskInfoTaskEntry : TaskInfoEntryBase
     public bool Floating { get; set; }
     public Hide Hide { get; set; }
 
-    [JsonConverter(typeof(TaskInfoUnixTimeStampConverter))]
-    public DateTime? HideUntil { get; set; }
+    //TODO HH: Instant
+    public long HideUntil { get; set; }
 }

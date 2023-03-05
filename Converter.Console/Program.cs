@@ -15,7 +15,7 @@ class Programm
     /// <param name="file">File to read</param>
     static int Main(Command commandType, FileInfo file)
     {
-        //TODO HH: JsonConfigurationReader rausziehen?
+        //TODO HH: JsonConfigurationReader rausziehen? - wird in Checkfile und Convert gebraucht
         if (file is null || !file.Exists)
         {
             var info = file is null ? "Filename is mandatory." : $"File {file.FullName} not valid.";

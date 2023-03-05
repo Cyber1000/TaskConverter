@@ -2,6 +2,8 @@ using System.Drawing;
 using AutoMapper;
 using Converter.Core.GTD.InternalModel;
 using Converter.Core.GTD.Model;
+using Converter.Core.Utils;
+using NodaTime;
 
 namespace Converter.Core.Mapper
 {
@@ -11,6 +13,9 @@ namespace Converter.Core.Mapper
 
         static GTDMapper()
         {
+            var timeZone =
+                DateTimeZoneProviders.Tzdb.GetZoneOrNull(SettingsHelper.GetAppSetting("TimeZoneId", ""))
+                ?? DateTimeZoneProviders.Tzdb.GetSystemDefault();
             var config = new MapperConfiguration(cfg =>
             {
                 //Map to Model
@@ -52,11 +57,19 @@ namespace Converter.Core.Mapper
                                             new RepeatInfoModel(src.RepeatNew!.Value.Interval, src.RepeatNew.Value.Period, src.RepeatFrom)
                             )
                     )
+                    .ForMember(
+                        dest => dest.HideUntil,
+                        opt => opt.MapFrom(src => src.HideUntil == 0 ? (Instant?)null : Instant.FromUnixTimeMilliseconds(src.HideUntil))
+                    )
                     .ReverseMap()
                     .ForMember(dest => dest.Parent, opt => opt.MapFrom(src => src.Parent == null ? 0 : src.Parent.Id))
                     .ForMember(dest => dest.Context, opt => opt.MapFrom(src => src.Context == null ? 0 : src.Context.Id))
                     .ForMember(dest => dest.Folder, opt => opt.MapFrom(src => src.Folder == null ? 0 : src.Folder.Id))
                     .ForMember(dest => dest.Tag, opt => opt.MapFrom(src => src.Tags == null ? new List<int>() : src.Tags.Select(t => t.Id)))
+                    .ForMember(
+                        dest => dest.HideUntil,
+                        opt => opt.MapFrom(src => src.HideUntil.HasValue ? src.HideUntil.Value.ToUnixTimeMilliseconds() : 0)
+                    )
                     .ForMember(
                         dest => dest.RepeatFrom,
                         opt => opt.MapFrom(src => src.RepeatInfo == null ? RepeatFrom.FromDueDate : src.RepeatInfo.Value.RepeatFrom)
@@ -85,6 +98,9 @@ namespace Converter.Core.Mapper
 
                 cfg.CreateMap<NotebookModel, TaskInfoNotebook>()
                     .ForMember(dest => dest.FolderId, opt => opt.MapFrom(src => src.Folder == null ? 0 : src.Folder.Id));
+
+                cfg.CreateMap<LocalDateTime, Instant>().ConvertUsing(s => s.InZoneLeniently(timeZone).ToInstant());
+                cfg.CreateMap<Instant, LocalDateTime>().ConvertUsing(s => s.InZone(timeZone).LocalDateTime);
             });
             Mapper = config.CreateMapper();
         }

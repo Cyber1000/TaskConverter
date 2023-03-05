@@ -8,6 +8,7 @@ using System.Xml;
 using Converter.Core.GTD.ConversionHelper;
 using Converter.Core.GTD.Model;
 using Converter.Core.Utils;
+using NodaTime;
 
 namespace Converter.Core;
 
@@ -43,12 +44,15 @@ public class JsonConfigurationReader
             PropertyNameCaseInsensitive = true,
             PropertyNamingPolicy = new TaskInfoJsonNamingPolicy(),
             WriteIndented = true,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            Converters =
+            {
+                new ExactLocalDateTimeConverter<LocalDateTime?>(),
+                new ExactLocalDateTimeConverter<LocalDateTime>(),
+                new TaskInfoBoolConverter()
+            }
         };
 
-        options.Converters.Add(new TaskInfoDateTimeConverter());
-        options.Converters.Add(new TaskInfoDateTimeNullableConverter());
-        options.Converters.Add(new TaskInfoBoolConverter());
         return options;
     }
 

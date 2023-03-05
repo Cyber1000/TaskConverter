@@ -2,6 +2,8 @@ using System.Drawing;
 using System.Xml;
 using Converter.Core.GTD.InternalModel;
 using Converter.Core.GTD.Model;
+using Converter.Tests.Extensions;
+using NodaTime;
 
 namespace Converter.Tests
 {
@@ -35,8 +37,8 @@ namespace Converter.Tests
                         Uuid = "",
                         Parent = 0,
                         Children = 0,
-                        Created = new DateTime(2023, 02, 20),
-                        Modified = new DateTime(2023, 02, 21),
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                         Title = "Test",
                         Color = -694050399,
                         Visible = false,
@@ -50,8 +52,8 @@ namespace Converter.Tests
             var folderFromModel = taskInfoFromModel?.Folder?[0]!;
 
             Assert.Equal(folder.Id, folderModel.Id);
-            Assert.Equal(folder.Created, folderModel.Created);
-            Assert.Equal(folder.Modified, folderModel.Modified);
+            Assert.Equal(folder.Created, folderModel.Created.GetLocalDateTime());
+            Assert.Equal(folder.Modified, folderModel.Modified.GetLocalDateTime());
             Assert.Equal(folder.Title, folderModel.Title);
             Assert.Equal(Color.FromArgb(folder.Color), folderModel.Color);
             Assert.Equal(folder.Visible, folderModel.Visible);
@@ -81,8 +83,8 @@ namespace Converter.Tests
                         Uuid = "",
                         Parent = 0,
                         Children = 0,
-                        Created = new DateTime(2023, 02, 20),
-                        Modified = new DateTime(2023, 02, 21),
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                         Title = "Test",
                         Color = -694050399,
                         Visible = false
@@ -95,8 +97,8 @@ namespace Converter.Tests
             var contextFromModel = taskInfoFromModel?.Context?[0]!;
 
             Assert.Equal(context.Id, contextModel.Id);
-            Assert.Equal(context.Created, contextModel.Created);
-            Assert.Equal(context.Modified, contextModel.Modified);
+            Assert.Equal(context.Created, contextModel.Created.GetLocalDateTime());
+            Assert.Equal(context.Modified, contextModel.Modified.GetLocalDateTime());
             Assert.Equal(context.Title, contextModel.Title);
             Assert.Equal(Color.FromArgb(context.Color), contextModel.Color);
             Assert.Equal(context.Visible, contextModel.Visible);
@@ -123,8 +125,8 @@ namespace Converter.Tests
                     {
                         Id = 1,
                         Uuid = "",
-                        Created = new DateTime(2023, 02, 20),
-                        Modified = new DateTime(2023, 02, 21),
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                         Title = "Test",
                         Color = -694050399,
                         Visible = false
@@ -137,8 +139,8 @@ namespace Converter.Tests
             var tagFromModel = taskInfoFromModel?.Tag?[0]!;
 
             Assert.Equal(tag.Id, tagModel.Id);
-            Assert.Equal(tag.Created, tagModel.Created);
-            Assert.Equal(tag.Modified, tagModel.Modified);
+            Assert.Equal(tag.Created, tagModel.Created.GetLocalDateTime());
+            Assert.Equal(tag.Modified, tagModel.Modified.GetLocalDateTime());
             Assert.Equal(tag.Title, tagModel.Title);
             Assert.Equal(Color.FromArgb(tag.Color), tagModel.Color);
             Assert.Equal(tag.Visible, tagModel.Visible);
@@ -164,17 +166,17 @@ namespace Converter.Tests
                         Id = 2,
                         Uuid = "",
                         Parent = 1,
-                        Created = new DateTime(2023, 02, 20),
-                        Modified = new DateTime(2023, 02, 21),
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                         Title = "Test",
                         StartDate = null,
                         StartTimeSet = false,
-                        DueDate = new DateTime(2023, 02, 23),
-                        DueDateProject = new DateTime(2023, 02, 24),
+                        DueDate = new LocalDateTime(2023, 02, 23, 10, 0, 0),
+                        DueDateProject = new LocalDateTime(2023, 02, 24, 10, 0, 0),
                         DueTimeSet = false,
                         DueDateModifier = DueDateModifier.DueBy,
                         Reminder = -1,
-                        Alarm = new DateTime(2023, 02, 24),
+                        Alarm = new LocalDateTime(2023, 02, 24, 10, 0, 0),
                         RepeatNew = new RepeatInfo("every 1 week"),
                         RepeatFrom = RepeatFrom.FromDueDate,
                         Duration = 0,
@@ -186,22 +188,22 @@ namespace Converter.Tests
                         Starred = true,
                         Priority = Priority.Low,
                         Note = new string[] { "Note" },
-                        Completed = new DateTime(2023, 02, 25),
+                        Completed = new LocalDateTime(2023, 02, 25, 10, 0, 0),
                         Type = TaskType.Task,
                         TrashBin = "",
                         Importance = 0,
                         MetaInformation = "",
                         Floating = true,
                         Hide = Hide.DontHide,
-                        HideUntil = new DateTime(2023, 02, 26)
+                        HideUntil = 1677402000000
                     },
                     new TaskInfoTaskEntry
                     {
                         Id = 1,
                         Uuid = "",
                         Parent = 0,
-                        Created = new DateTime(2023, 02, 20),
-                        Modified = new DateTime(2023, 02, 21),
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                         Title = "Test"
                     }
                 },
@@ -213,8 +215,8 @@ namespace Converter.Tests
                         Uuid = "",
                         Parent = 0,
                         Children = 0,
-                        Created = new DateTime(2023, 02, 20),
-                        Modified = new DateTime(2023, 02, 21),
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                         Title = "Context",
                         Color = -694050399,
                         Visible = false
@@ -228,8 +230,8 @@ namespace Converter.Tests
                         Uuid = "",
                         Parent = 0,
                         Children = 0,
-                        Created = new DateTime(2023, 02, 20),
-                        Modified = new DateTime(2023, 02, 21),
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                         Title = "Folder",
                         Color = -694050399,
                         Visible = false,
@@ -242,8 +244,8 @@ namespace Converter.Tests
                     {
                         Id = 10,
                         Uuid = "",
-                        Created = new DateTime(2023, 02, 20),
-                        Modified = new DateTime(2023, 02, 21),
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                         Title = "Tag1",
                         Color = -694050399,
                         Visible = false
@@ -252,8 +254,8 @@ namespace Converter.Tests
                     {
                         Id = 11,
                         Uuid = "",
-                        Created = new DateTime(2023, 02, 20),
-                        Modified = new DateTime(2023, 02, 21),
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                         Title = "Tag2",
                         Color = -694050399,
                         Visible = false
@@ -270,8 +272,8 @@ namespace Converter.Tests
 
             Assert.Equal(task.Id, taskModel.Id);
             Assert.Equal(task.Parent, taskModel.Parent!.Id);
-            Assert.Equal(task.Created, taskModel.Created);
-            Assert.Equal(task.Modified, taskModel.Modified);
+            Assert.Equal(task.Created, taskModel.Created.GetLocalDateTime());
+            Assert.Equal(task.Modified, taskModel.Modified.GetLocalDateTime());
             Assert.Equal(task.Title, taskModel.Title);
             Assert.Equal(task.DueDate, taskModel.DueDate);
             Assert.Equal(task.DueDateProject, taskModel.DueDateProject);
@@ -293,7 +295,7 @@ namespace Converter.Tests
             Assert.Equal(task.Type, taskModel.Type);
             Assert.Equal(task.Floating, taskModel.Floating);
             Assert.Equal(task.Hide, taskModel.Hide);
-            Assert.Equal(task.HideUntil, taskModel.HideUntil);
+            Assert.Equal(task.HideUntil, taskModel.HideUntil!.Value.ToUnixTimeMilliseconds());
 
             Assert.Null(taskModelWithoutParent.Parent);
             Assert.Equal(0, taskFromModelWithoutParent.Parent);
@@ -345,8 +347,8 @@ namespace Converter.Tests
                     {
                         Id = 1,
                         Uuid = "",
-                        Created = new DateTime(2023, 02, 20),
-                        Modified = new DateTime(2023, 02, 21),
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                         Title = "Test",
                         Color = -694050399,
                         Visible = false
@@ -359,8 +361,8 @@ namespace Converter.Tests
             var taskNoteFromModel = taskInfoFromModel?.TaskNote?[0]!;
 
             Assert.Equal(taskNote.Id, taskNoteModel.Id);
-            Assert.Equal(taskNote.Created, taskNoteModel.Created);
-            Assert.Equal(taskNote.Modified, taskNoteModel.Modified);
+            Assert.Equal(taskNote.Created, taskNoteModel.Created.GetLocalDateTime());
+            Assert.Equal(taskNote.Modified, taskNoteModel.Modified.GetLocalDateTime());
             Assert.Equal(taskNote.Title, taskNoteModel.Title);
             Assert.Equal(Color.FromArgb(taskNote.Color), taskNoteModel.Color);
             Assert.Equal(taskNote.Visible, taskNoteModel.Visible);
@@ -385,8 +387,8 @@ namespace Converter.Tests
                     {
                         Id = 1,
                         Uuid = "",
-                        Created = new DateTime(2023, 02, 20),
-                        Modified = new DateTime(2023, 02, 21),
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                         Private = 0,
                         Title = "Test",
                         Note = new string[] { "abc", "def" },
@@ -403,8 +405,8 @@ namespace Converter.Tests
                         Uuid = "",
                         Parent = 0,
                         Children = 0,
-                        Created = new DateTime(2023, 02, 20),
-                        Modified = new DateTime(2023, 02, 21),
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                         Title = "Folder",
                         Color = -694050399,
                         Visible = false,
@@ -418,8 +420,8 @@ namespace Converter.Tests
             var notebookFromModel = taskInfoFromModel?.Notebook?[0]!;
 
             Assert.Equal(notebook.Id, notebookModel.Id);
-            Assert.Equal(notebook.Created, notebookModel.Created);
-            Assert.Equal(notebook.Modified, notebookModel.Modified);
+            Assert.Equal(notebook.Created, notebookModel.Created.GetLocalDateTime());
+            Assert.Equal(notebook.Modified, notebookModel.Modified.GetLocalDateTime());
             Assert.Equal(notebook.Title, notebookModel.Title);
             Assert.Equal(notebook.Note, notebookModel.Note);
             Assert.Equal(notebook.FolderId, notebookModel.Folder?.Id);

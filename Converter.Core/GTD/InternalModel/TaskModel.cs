@@ -1,4 +1,5 @@
 using Converter.Core.GTD.Model;
+using NodaTime;
 
 namespace Converter.Core.GTD.InternalModel
 {
@@ -27,8 +28,8 @@ namespace Converter.Core.GTD.InternalModel
         }
 
         public TaskModel? Parent => ParentId == 0 ? null : TasksFunc.Invoke()[ParentId];
-        public DateTime? DueDate { get; set; }
-        public DateTime? DueDateProject { get; set; }
+        public LocalDateTime? DueDate { get; set; }
+        public LocalDateTime? DueDateProject { get; set; }
 
         //TODO HH: extra testen (und entfernen) -> nur gesetzt wenn Zeit DueDate ein Datum mit Zeit
         public bool DueTimeSet { get; set; }
@@ -38,7 +39,7 @@ namespace Converter.Core.GTD.InternalModel
         public long Reminder { get; set; }
 
         //TODO HH: generieren -> wenn Reminder vor aktueller Uhrzeit
-        public DateTime? Alarm { get; set; }
+        public LocalDateTime? Alarm { get; set; }
 
         //TODO HH: anpassen
         //TODO HH: testen, wenn null (RepeatFrom mappen)
@@ -51,12 +52,12 @@ namespace Converter.Core.GTD.InternalModel
         public bool Starred { get; set; }
         public Priority Priority { get; set; }
         public string[]? Note { get; set; }
-        public DateTime? Completed { get; set; }
+        public LocalDateTime? Completed { get; set; }
         public TaskType Type { get; set; }
         public bool Floating { get; set; }
 
         //TODO HH: eventuell anpassen
         public Hide Hide { get; set; }
-        public DateTime? HideUntil { get; set; }
+        public Instant? HideUntil { get; set; }
     }
 }

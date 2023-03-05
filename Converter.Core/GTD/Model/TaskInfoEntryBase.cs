@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using NodaTime;
 
 namespace Converter.Core.GTD.Model;
 
@@ -11,10 +12,10 @@ public abstract class TaskInfoEntryBase
     public string? Uuid { get; set; }
 
     [JsonPropertyOrder(-800)]
-    public DateTime Created { get; set; }
+    public LocalDateTime Created { get; set; }
 
     [JsonPropertyOrder(-700)]
-    public DateTime Modified { get; set; }
+    public LocalDateTime Modified { get; set; }
 
     [JsonPropertyOrder(-600)]
     public string? Title { get; set; }
