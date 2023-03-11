@@ -15,7 +15,7 @@ class Programm
     /// <param name="file">File to read</param>
     static int Main(Command commandType, FileInfo file)
     {
-        //TODO HH: JsonConfigurationReader rausziehen? - wird in Checkfile und Convert gebraucht
+        //TODO HH: improvement - JsonConfigurationReader rausziehen? - wird in Checkfile und Convert gebraucht
         if (file is null || !file.Exists)
         {
             var info = file is null ? "Filename is mandatory." : $"File {file.FullName} not valid.";
@@ -41,12 +41,11 @@ class Programm
     private static void Convert(FileInfo fileInfo)
     {
         var jsonReader = new JsonConfigurationReader(fileInfo);
-        //TODO HH: duedate ist schon hier nicht null
         var taskInfo = jsonReader.TaskInfo;
         if (taskInfo == null)
             return;
         var mappedItems = Converter.Core.Mapper.Converter.MapToModel(taskInfo);
-        //TODO HH: Fehlende Mappings erkennen
+        //TODO HH: improvement - Fehlende Mappings erkennen
     }
 
     private static void CheckFile(FileInfo fileInfo)

@@ -13,6 +13,7 @@ namespace Converter.Core.Mapper
 
         static GTDMapper()
         {
+            //TODO HH: improvement - Inject DateTimeZone
             var timeZone =
                 DateTimeZoneProviders.Tzdb.GetZoneOrNull(SettingsHelper.GetAppSetting("TimeZoneId", ""))
                 ?? DateTimeZoneProviders.Tzdb.GetSystemDefault();
@@ -61,6 +62,7 @@ namespace Converter.Core.Mapper
                         dest => dest.HideUntil,
                         opt => opt.MapFrom(src => src.HideUntil == 0 ? (Instant?)null : Instant.FromUnixTimeMilliseconds(src.HideUntil))
                     )
+                    .ForMember(dest => dest.Reminder, opt => opt.MapFrom(new ReminderInstantResolver(timeZone)))
                     .ReverseMap()
                     .ForMember(dest => dest.Parent, opt => opt.MapFrom(src => src.Parent == null ? 0 : src.Parent.Id))
                     .ForMember(dest => dest.Context, opt => opt.MapFrom(src => src.Context == null ? 0 : src.Context.Id))
@@ -75,6 +77,14 @@ namespace Converter.Core.Mapper
                         opt => opt.MapFrom(src => src.RepeatInfo == null ? RepeatFrom.FromDueDate : src.RepeatInfo.Value.RepeatFrom)
                     )
                     .ForMember(
+                        dest => dest.DueTimeSet,
+                        opt => opt.MapFrom(src => src.DueDate.HasValue && (src.DueDate.Value.TimeOfDay > new LocalTime()))
+                    )
+                    .ForMember(
+                        dest => dest.DueDateModifier,
+                        opt => opt.MapFrom(src => src.Floating ? DueDateModifier.OptionallyOn : DueDateModifier.DueBy)
+                    )
+                    .ForMember(
                         dest => dest.RepeatNew,
                         opt =>
                             opt.MapFrom(
@@ -83,7 +93,10 @@ namespace Converter.Core.Mapper
                                         ? null
                                         : (RepeatInfo?)new RepeatInfo(src.RepeatInfo.Value.Interval, src.RepeatInfo.Value.Period)
                             )
-                    );
+                    )
+                    .ForMember(dest => dest.Reminder, opt => opt.MapFrom(new ReminderResolver(timeZone)))
+                    .ForMember(dest => dest.Alarm, opt => opt.MapFrom(new AlarmResolver(timeZone)))
+                    .ForMember(dest => dest.Hide, opt => opt.MapFrom(new HideResolver(timeZone)));
                 cfg.CreateMap<TaskInfoTaskNote, NoteModel>().ReverseMap();
                 cfg.CreateMap<TaskInfoNotebook, NotebookModel>();
 

@@ -96,7 +96,6 @@ public class TaskInfoTaskEntry : TaskInfoEntryBase
     [JsonConverter(typeof(TaskInfoEnumConverter))]
     public DueDateModifier DueDateModifier { get; set; }
 
-    //TODO HH: Reminder seems to be a unixtimestamp or minutes before DueDate
     public long Reminder { get; set; }
 
     [JsonConverter(typeof(ExactToMinuteLocalDateTimeConverter<LocalDateTime?>))]
@@ -126,6 +125,5 @@ public class TaskInfoTaskEntry : TaskInfoEntryBase
     public bool Floating { get; set; }
     public Hide Hide { get; set; }
 
-    //TODO HH: Instant
     public long HideUntil { get; set; }
 }

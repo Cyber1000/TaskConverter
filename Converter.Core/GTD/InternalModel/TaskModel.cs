@@ -31,18 +31,8 @@ namespace Converter.Core.GTD.InternalModel
         public LocalDateTime? DueDate { get; set; }
         public LocalDateTime? DueDateProject { get; set; }
 
-        //TODO HH: extra testen (und entfernen) -> nur gesetzt wenn Zeit DueDate ein Datum mit Zeit
-        public bool DueTimeSet { get; set; }
+        public ReminderInstant? Reminder { get; set; }
 
-        //TODO HH: generieren -> 3 wenn floating, 0 sonst
-        public DueDateModifier DueDateModifier { get; set; }
-        public long Reminder { get; set; }
-
-        //TODO HH: generieren -> wenn Reminder vor aktueller Uhrzeit
-        public LocalDateTime? Alarm { get; set; }
-
-        //TODO HH: anpassen
-        //TODO HH: testen, wenn null (RepeatFrom mappen)
         public RepeatInfoModel? RepeatInfo { get; set; }
         public Status Status { get; set; }
         public ContextModel? Context => ContextId == 0 ? null : ContextsFunc.Invoke()[ContextId];
@@ -55,9 +45,6 @@ namespace Converter.Core.GTD.InternalModel
         public LocalDateTime? Completed { get; set; }
         public TaskType Type { get; set; }
         public bool Floating { get; set; }
-
-        //TODO HH: eventuell anpassen
-        public Hide Hide { get; set; }
         public Instant? HideUntil { get; set; }
     }
 }

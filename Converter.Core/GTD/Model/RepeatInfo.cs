@@ -57,7 +57,7 @@ namespace Converter.Core.GTD.Model
             Period? setPeriod = null
         )
         {
-            var match = Regex.Match(repeatInfo, searchPattern);
+            var match = Regex.Match(repeatInfo, searchPattern, RegexOptions.IgnoreCase);
             var interval = setInterval ?? 1;
             var period = setPeriod ?? Period.Day;
             if (match.Success)

@@ -171,13 +171,13 @@ namespace Converter.Tests
                         Title = "Test",
                         StartDate = null,
                         StartTimeSet = false,
-                        DueDate = new LocalDateTime(2023, 02, 23, 10, 0, 0),
-                        DueDateProject = new LocalDateTime(2023, 02, 24, 10, 0, 0),
+                        DueDate = new LocalDateTime(2023, 02, 23, 0, 0, 0),
+                        DueDateProject = new LocalDateTime(2023, 02, 24, 0, 0, 0),
                         DueTimeSet = false,
                         DueDateModifier = DueDateModifier.DueBy,
                         Reminder = -1,
-                        Alarm = new LocalDateTime(2023, 02, 24, 10, 0, 0),
-                        RepeatNew = new RepeatInfo("every 1 week"),
+                        Alarm = null,
+                        RepeatNew = new RepeatInfo("Every 1 week"),
                         RepeatFrom = RepeatFrom.FromDueDate,
                         Duration = 0,
                         Status = Status.NextAction,
@@ -193,8 +193,8 @@ namespace Converter.Tests
                         TrashBin = "",
                         Importance = 0,
                         MetaInformation = "",
-                        Floating = true,
-                        Hide = Hide.DontHide,
+                        Floating = false,
+                        Hide = Hide.GivenDate,
                         HideUntil = 1677402000000
                     },
                     new TaskInfoTaskEntry
@@ -277,10 +277,7 @@ namespace Converter.Tests
             Assert.Equal(task.Title, taskModel.Title);
             Assert.Equal(task.DueDate, taskModel.DueDate);
             Assert.Equal(task.DueDateProject, taskModel.DueDateProject);
-            Assert.Equal(task.DueTimeSet, taskModel.DueTimeSet);
-            Assert.Equal(task.DueDateModifier, taskModel.DueDateModifier);
-            Assert.Equal(task.Reminder, taskModel.Reminder);
-            Assert.Equal(task.Alarm, taskModel.Alarm);
+            Assert.Null(taskModel.Reminder);
             Assert.Equal(task.RepeatNew?.Interval, taskModel.RepeatInfo?.Interval);
             Assert.Equal(task.RepeatNew?.Period, taskModel.RepeatInfo?.Period);
             Assert.Equal(task.RepeatFrom, taskModel.RepeatInfo?.RepeatFrom);
@@ -294,7 +291,6 @@ namespace Converter.Tests
             Assert.Equal(task.Completed, taskModel.Completed);
             Assert.Equal(task.Type, taskModel.Type);
             Assert.Equal(task.Floating, taskModel.Floating);
-            Assert.Equal(task.Hide, taskModel.Hide);
             Assert.Equal(task.HideUntil, taskModel.HideUntil!.Value.ToUnixTimeMilliseconds());
 
             Assert.Null(taskModelWithoutParent.Parent);
@@ -457,6 +453,274 @@ namespace Converter.Tests
             Assert.Equal(preferenceModel, preference);
 
             Assert.Equal(preferenceFromModel, preference);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Map_TaskWithDueDate_ShouldBeValid(bool hasTime)
+        {
+            var taskInfo = new TaskInfo
+            {
+                Task = new List<TaskInfoTaskEntry>
+                {
+                    new TaskInfoTaskEntry
+                    {
+                        Id = 1,
+                        Uuid = "",
+                        Parent = 0,
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
+                        Title = "Test",
+                        DueDate = hasTime ? new LocalDateTime(2023, 02, 20, 10, 0, 0) : new LocalDateTime(2023, 02, 20, 0, 0, 0)
+                    }
+                }
+            };
+            var (_, taskInfoFromModel) = GetMappedInfo(taskInfo);
+
+            var taskFromModel = taskInfoFromModel?.Task?[0]!;
+
+            Assert.Equal(hasTime, taskFromModel.DueTimeSet);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Map_TaskWithDueDateModifier_ShouldBeValid(bool isFloating)
+        {
+            var taskInfo = new TaskInfo
+            {
+                Task = new List<TaskInfoTaskEntry>
+                {
+                    new TaskInfoTaskEntry
+                    {
+                        Id = 1,
+                        Uuid = "",
+                        Parent = 0,
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
+                        Title = "Test",
+                        DueDate = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Floating = isFloating
+                    }
+                }
+            };
+            var (_, taskInfoFromModel) = GetMappedInfo(taskInfo);
+
+            var taskFromModel = taskInfoFromModel?.Task?[0]!;
+
+            Assert.Equal(isFloating ? DueDateModifier.OptionallyOn : DueDateModifier.DueBy, taskFromModel.DueDateModifier);
+        }
+
+        [Theory]
+        [InlineData(-1, true, null)]
+        [InlineData(0, true, BaseDateOfReminderInstant.FromDueDate)]
+        [InlineData(180, true, BaseDateOfReminderInstant.FromDueDate)]
+        [InlineData(1080, true, BaseDateOfReminderInstant.FromDueDate)]
+        [InlineData(43200, true, BaseDateOfReminderInstant.FromDueDate)]
+        [InlineData(1608541200000, true, BaseDateOfReminderInstant.FromUnixEpoch)]
+        [InlineData(43201, true, BaseDateOfReminderInstant.FromUnixEpoch)]
+        [InlineData(43199, false, BaseDateOfReminderInstant.FromDueDate)]
+        [InlineData(1081, false, BaseDateOfReminderInstant.FromDueDate)]
+        public void Map_TaskWithReminder_ShouldBeValid(long reminder, bool expectOriginalValue, BaseDateOfReminderInstant? expectedBase)
+        {
+            var dueDateInstant = Instant.FromUnixTimeMilliseconds(1608541200000);
+            var dueDate = dueDateInstant.GetLocalDateTime();
+            var taskInfo = new TaskInfo
+            {
+                Task = new List<TaskInfoTaskEntry>
+                {
+                    new TaskInfoTaskEntry
+                    {
+                        Id = 1,
+                        Uuid = "",
+                        Parent = 0,
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
+                        Title = "Test",
+                        DueDate = dueDate,
+                        Reminder = reminder
+                    }
+                }
+            };
+            var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
+
+            var taskModel = taskInfoModel?.Tasks?[0]!;
+            var taskFromModel = taskInfoFromModel?.Task?[0]!;
+
+            Assert.Equal(expectedBase, taskModel.Reminder?.ReminderInstantType);
+            var expectedReminder = expectOriginalValue
+                ? reminder
+                : dueDateInstant.Plus(-Duration.FromMinutes(reminder)).ToUnixTimeMilliseconds();
+            Assert.Equal(expectedReminder, taskFromModel.Reminder);
+        }
+
+        [Fact]
+        public void Map_TaskWithReminderWithDueDAteBasedReminderWithoutDueDate_ShouldReturnMinusOne()
+        {
+            var taskInfo = new TaskInfo
+            {
+                Task = new List<TaskInfoTaskEntry>
+                {
+                    new TaskInfoTaskEntry
+                    {
+                        Id = 1,
+                        Uuid = "",
+                        Parent = 0,
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
+                        Title = "Test",
+                        DueDate = null,
+                        Reminder = 30000
+                    }
+                }
+            };
+            var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
+
+            var taskModel = taskInfoModel?.Tasks?[0]!;
+            var taskFromModel = taskInfoFromModel?.Task?[0]!;
+
+            Assert.Equal(BaseDateOfReminderInstant.FromDueDate, taskModel.Reminder?.ReminderInstantType);
+            Assert.Null(taskModel.Reminder?.AbsoluteInstant);
+            Assert.Equal(-1, taskFromModel.Reminder);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Map_TaskWithAlarm_ShouldBeValid(bool hasAlarm)
+        {
+            var currentDateTime = SystemClock.Instance.GetCurrentInstant();
+            var addDirection = hasAlarm ? -1 : 1;
+            var reminder = currentDateTime.Plus(Duration.FromMinutes(addDirection * 5)).ToUnixTimeMilliseconds();
+            var timeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+
+            var taskInfo = new TaskInfo
+            {
+                Task = new List<TaskInfoTaskEntry>
+                {
+                    new TaskInfoTaskEntry
+                    {
+                        Id = 1,
+                        Uuid = "",
+                        Parent = 0,
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
+                        Title = "Test",
+                        DueDate = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Reminder = reminder
+                    }
+                }
+            };
+            var (_, taskInfoFromModel) = GetMappedInfo(taskInfo);
+
+            var taskFromModel = taskInfoFromModel?.Task?[0]!;
+
+            if (hasAlarm)
+                Assert.Equal(reminder, taskFromModel.Alarm!.Value.InZoneLeniently(timeZone).ToInstant().ToUnixTimeMilliseconds());
+            else
+                Assert.Null(taskFromModel.Alarm);
+        }
+
+        [Theory]
+        [InlineData("Every 1 day", RepeatFrom.FromDueDate, 1, Core.GTD.Model.Period.Day, true)]
+        [InlineData("Every 2 weeks", RepeatFrom.FromDueDate, 2, Core.GTD.Model.Period.Week, true)]
+        [InlineData("Every 3 months", RepeatFrom.FromDueDate, 3, Core.GTD.Model.Period.Month, true)]
+        [InlineData("Every 4 years", RepeatFrom.FromDueDate, 4, Core.GTD.Model.Period.Year, true)]
+        [InlineData("Every 1 day", RepeatFrom.FromCompletion, 1, Core.GTD.Model.Period.Day, true)]
+        [InlineData("every 1 day", RepeatFrom.FromDueDate, 1, Core.GTD.Model.Period.Day, true)]
+        [InlineData(null, RepeatFrom.FromDueDate, 1, Core.GTD.Model.Period.Day, false)]
+        [InlineData(null, RepeatFrom.FromCompletion, 1, Core.GTD.Model.Period.Day, false)]
+        public void Map_Repeat_ShouldBeValid(
+            string repeatInfoString,
+            RepeatFrom repeatFrom,
+            int expectedInterval,
+            Core.GTD.Model.Period expectedPeriod,
+            bool expectRepeatInfo
+        )
+        {
+            var taskInfo = new TaskInfo
+            {
+                Task = new List<TaskInfoTaskEntry>
+                {
+                    new TaskInfoTaskEntry
+                    {
+                        Id = 1,
+                        Uuid = "",
+                        Parent = 0,
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
+                        Title = "Test",
+                        RepeatFrom = repeatFrom,
+                        RepeatNew = expectRepeatInfo ? new RepeatInfo(repeatInfoString) : null
+                    }
+                }
+            };
+            var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
+
+            var taskModel = taskInfoModel?.Tasks?[0]!;
+            var taskFromModel = taskInfoFromModel?.Task?[0]!;
+
+            if (expectRepeatInfo)
+            {
+                Assert.Equal(expectedInterval, taskModel.RepeatInfo!.Value.Interval);
+                Assert.Equal(expectedPeriod, taskModel.RepeatInfo!.Value.Period);
+                Assert.Equal(repeatFrom, taskModel.RepeatInfo!.Value.RepeatFrom);
+
+                Assert.Equal(repeatFrom, taskFromModel.RepeatFrom);
+                Assert.Equal(repeatInfoString.ToLowerInvariant(), taskFromModel.RepeatNew!.Value.ToString().ToLowerInvariant());
+            }
+            else
+            {
+                Assert.Null(taskModel.RepeatInfo);
+                Assert.Equal(RepeatFrom.FromDueDate, taskFromModel.RepeatFrom);
+                Assert.Null(taskFromModel.RepeatNew);
+            }
+        }
+
+        [Theory]
+        [InlineData(Hide.SixMonthsBeforeDue)]
+        [InlineData(Hide.GivenDate)]
+        [InlineData(Hide.DontHide)]
+        public void Map_Hide_ShouldBeValid(Hide hide)
+        {
+            var timeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+            var hideUntil = hide switch
+            {
+                Hide.SixMonthsBeforeDue => (Instant?)new LocalDateTime(2022, 08, 20, 10, 0, 0).InZoneLeniently(timeZone).ToInstant(),
+                Hide.GivenDate => (Instant?)new LocalDateTime(2022, 05, 10, 10, 0, 0).InZoneLeniently(timeZone).ToInstant(),
+                Hide.DontHide => null,
+                _ => throw new NotImplementedException($"HideInfo {hide} not implemented"),
+            };
+            var hideInMilliseconds = hideUntil.HasValue ? hideUntil.Value.ToUnixTimeMilliseconds() : 0;
+
+            var taskInfo = new TaskInfo
+            {
+                Task = new List<TaskInfoTaskEntry>
+                {
+                    new TaskInfoTaskEntry
+                    {
+                        Id = 1,
+                        Uuid = "",
+                        Parent = 0,
+                        Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
+                        Title = "Test",
+                        DueDate = new LocalDateTime(2023, 02, 20, 10, 0, 0),
+                        Hide = Hide.SixMonthsBeforeDue,
+                        HideUntil = hideInMilliseconds
+                    }
+                }
+            };
+            var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
+
+            var taskModel = taskInfoModel?.Tasks?[0]!;
+            var taskFromModel = taskInfoFromModel?.Task?[0]!;
+
+            Assert.Equal(hideUntil, taskModel.HideUntil);
+
+            Assert.Equal(hideInMilliseconds, taskFromModel.HideUntil);
+            Assert.Equal(hide, taskFromModel.Hide);
         }
 
         private static (TaskInfoModel? model, TaskInfo? fromModel) GetMappedInfo(TaskInfo taskInfo)
