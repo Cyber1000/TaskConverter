@@ -2,7 +2,7 @@ using System.Drawing;
 
 namespace Converter.Core.GTD.InternalModel
 {
-    public class ExtendedModel : BaseModel
+    public abstract class ExtendedModel : BaseModel
     {
         public Color Color { get; set; }
 

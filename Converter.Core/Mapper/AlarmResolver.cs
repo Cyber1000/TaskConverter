@@ -8,16 +8,17 @@ namespace Converter.Core.Mapper;
 public class AlarmResolver : IValueResolver<TaskModel, TaskInfoTaskEntry, LocalDateTime?>
 {
     public DateTimeZone DateTimeZone { get; }
+    private readonly IClock Clock;
 
-    public AlarmResolver(DateTimeZone dateTimeZone)
+    public AlarmResolver(IClock clock, DateTimeZone dateTimeZone)
     {
+        Clock = clock;
         DateTimeZone = dateTimeZone;
     }
 
     public LocalDateTime? Resolve(TaskModel source, TaskInfoTaskEntry destination, LocalDateTime? destMember, ResolutionContext context)
     {
-        //TODO HH: improvement - Inject Fake-SystemClock for better Testing, adjust Map_TaskWithAlarm_ShouldBeValid
-        var currentDateTime = SystemClock.Instance.GetCurrentInstant();
+        var currentDateTime = Clock.GetCurrentInstant();
         var reminder = source.Reminder;
         if (reminder == null)
             return null;

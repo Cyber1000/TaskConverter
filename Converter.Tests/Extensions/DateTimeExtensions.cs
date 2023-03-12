@@ -4,9 +4,7 @@ namespace Converter.Tests.Extensions
 {
     public static class DateTimeExtensions
     {
-        private static readonly DateTimeZone currentTimeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
-
-        public static LocalDateTime GetLocalDateTime(this Instant instant)
+        public static LocalDateTime GetLocalDateTime(this Instant instant, DateTimeZone currentTimeZone)
         {
             return instant.InZone(currentTimeZone).LocalDateTime;
         }

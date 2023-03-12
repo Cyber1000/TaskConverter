@@ -19,7 +19,7 @@ public class ReminderInstantResolver : IValueResolver<TaskInfoTaskEntry, TaskMod
         if (source.Reminder > 43200)
             return new ReminderInstant(destination, DateTimeZone, BaseDateOfReminderInstant.FromUnixEpoch, source.Reminder);
         else if (source.Reminder >= 0)
-            return new ReminderInstant(destination, DateTimeZone, BaseDateOfReminderInstant.FromDueDate, source.Reminder * 60 * 1000);
+            return new ReminderInstant(destination, DateTimeZone, BaseDateOfReminderInstant.FromDueDate, -(source.Reminder * 60 * 1000));
 
         return null;
     }

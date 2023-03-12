@@ -37,9 +37,8 @@ namespace Converter.Core.GTD.InternalModel
                     return Instant.FromUnixTimeMilliseconds(MillisecondsFromBaseDate);
                 else if (taskModel.DueDate.HasValue)
                 {
-                    //TODO HH: improvement - hier mit duration negativ werden oder außerhalb?
                     var duration = Duration.FromMilliseconds(MillisecondsFromBaseDate);
-                    return taskModel.DueDate.Value.InZoneLeniently(dateTimeZone).ToInstant().Plus(-duration);
+                    return taskModel.DueDate.Value.InZoneLeniently(dateTimeZone).ToInstant().Plus(duration);
                 }
                 return null;
             }

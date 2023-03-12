@@ -2,6 +2,7 @@ using System.Drawing;
 using System.Xml;
 using Converter.Core.GTD.InternalModel;
 using Converter.Core.GTD.Model;
+using Converter.Core.Mapper;
 using Converter.Tests.Extensions;
 using NodaTime;
 
@@ -9,6 +10,12 @@ namespace Converter.Tests
 {
     public class MappingTests
     {
+        private readonly IConverter Converter;
+
+        private DateTimeZone CurrentDateTimeZone => Converter.DateTimeZoneProvider.CurrentDateTimeZone;
+
+        public MappingTests(IConverter converter) => Converter = converter;
+
         [Fact]
         public void Map_Version_ShouldBeValid()
         {
@@ -52,8 +59,8 @@ namespace Converter.Tests
             var folderFromModel = taskInfoFromModel?.Folder?[0]!;
 
             Assert.Equal(folder.Id, folderModel.Id);
-            Assert.Equal(folder.Created, folderModel.Created.GetLocalDateTime());
-            Assert.Equal(folder.Modified, folderModel.Modified.GetLocalDateTime());
+            Assert.Equal(folder.Created, folderModel.Created.GetLocalDateTime(CurrentDateTimeZone));
+            Assert.Equal(folder.Modified, folderModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
             Assert.Equal(folder.Title, folderModel.Title);
             Assert.Equal(Color.FromArgb(folder.Color), folderModel.Color);
             Assert.Equal(folder.Visible, folderModel.Visible);
@@ -97,8 +104,8 @@ namespace Converter.Tests
             var contextFromModel = taskInfoFromModel?.Context?[0]!;
 
             Assert.Equal(context.Id, contextModel.Id);
-            Assert.Equal(context.Created, contextModel.Created.GetLocalDateTime());
-            Assert.Equal(context.Modified, contextModel.Modified.GetLocalDateTime());
+            Assert.Equal(context.Created, contextModel.Created.GetLocalDateTime(CurrentDateTimeZone));
+            Assert.Equal(context.Modified, contextModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
             Assert.Equal(context.Title, contextModel.Title);
             Assert.Equal(Color.FromArgb(context.Color), contextModel.Color);
             Assert.Equal(context.Visible, contextModel.Visible);
@@ -139,8 +146,8 @@ namespace Converter.Tests
             var tagFromModel = taskInfoFromModel?.Tag?[0]!;
 
             Assert.Equal(tag.Id, tagModel.Id);
-            Assert.Equal(tag.Created, tagModel.Created.GetLocalDateTime());
-            Assert.Equal(tag.Modified, tagModel.Modified.GetLocalDateTime());
+            Assert.Equal(tag.Created, tagModel.Created.GetLocalDateTime(CurrentDateTimeZone));
+            Assert.Equal(tag.Modified, tagModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
             Assert.Equal(tag.Title, tagModel.Title);
             Assert.Equal(Color.FromArgb(tag.Color), tagModel.Color);
             Assert.Equal(tag.Visible, tagModel.Visible);
@@ -272,8 +279,8 @@ namespace Converter.Tests
 
             Assert.Equal(task.Id, taskModel.Id);
             Assert.Equal(task.Parent, taskModel.Parent!.Id);
-            Assert.Equal(task.Created, taskModel.Created.GetLocalDateTime());
-            Assert.Equal(task.Modified, taskModel.Modified.GetLocalDateTime());
+            Assert.Equal(task.Created, taskModel.Created.GetLocalDateTime(CurrentDateTimeZone));
+            Assert.Equal(task.Modified, taskModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
             Assert.Equal(task.Title, taskModel.Title);
             Assert.Equal(task.DueDate, taskModel.DueDate);
             Assert.Equal(task.DueDateProject, taskModel.DueDateProject);
@@ -357,8 +364,8 @@ namespace Converter.Tests
             var taskNoteFromModel = taskInfoFromModel?.TaskNote?[0]!;
 
             Assert.Equal(taskNote.Id, taskNoteModel.Id);
-            Assert.Equal(taskNote.Created, taskNoteModel.Created.GetLocalDateTime());
-            Assert.Equal(taskNote.Modified, taskNoteModel.Modified.GetLocalDateTime());
+            Assert.Equal(taskNote.Created, taskNoteModel.Created.GetLocalDateTime(CurrentDateTimeZone));
+            Assert.Equal(taskNote.Modified, taskNoteModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
             Assert.Equal(taskNote.Title, taskNoteModel.Title);
             Assert.Equal(Color.FromArgb(taskNote.Color), taskNoteModel.Color);
             Assert.Equal(taskNote.Visible, taskNoteModel.Visible);
@@ -416,8 +423,8 @@ namespace Converter.Tests
             var notebookFromModel = taskInfoFromModel?.Notebook?[0]!;
 
             Assert.Equal(notebook.Id, notebookModel.Id);
-            Assert.Equal(notebook.Created, notebookModel.Created.GetLocalDateTime());
-            Assert.Equal(notebook.Modified, notebookModel.Modified.GetLocalDateTime());
+            Assert.Equal(notebook.Created, notebookModel.Created.GetLocalDateTime(CurrentDateTimeZone));
+            Assert.Equal(notebook.Modified, notebookModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
             Assert.Equal(notebook.Title, notebookModel.Title);
             Assert.Equal(notebook.Note, notebookModel.Note);
             Assert.Equal(notebook.FolderId, notebookModel.Folder?.Id);
@@ -525,7 +532,7 @@ namespace Converter.Tests
         public void Map_TaskWithReminder_ShouldBeValid(long reminder, bool expectOriginalValue, BaseDateOfReminderInstant? expectedBase)
         {
             var dueDateInstant = Instant.FromUnixTimeMilliseconds(1608541200000);
-            var dueDate = dueDateInstant.GetLocalDateTime();
+            var dueDate = dueDateInstant.GetLocalDateTime(CurrentDateTimeZone);
             var taskInfo = new TaskInfo
             {
                 Task = new List<TaskInfoTaskEntry>
@@ -586,14 +593,13 @@ namespace Converter.Tests
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void Map_TaskWithAlarm_ShouldBeValid(bool hasAlarm)
+        [InlineData(-1, true)]
+        [InlineData(0, true)]
+        [InlineData(1, false)]
+        public void Map_TaskWithAlarm_ShouldBeValid(int addMinutes, bool shouldHaveAlarm)
         {
-            var currentDateTime = SystemClock.Instance.GetCurrentInstant();
-            var addDirection = hasAlarm ? -1 : 1;
-            var reminder = currentDateTime.Plus(Duration.FromMinutes(addDirection * 5)).ToUnixTimeMilliseconds();
-            var timeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+            var currentDateTime = Converter.Clock.GetCurrentInstant();
+            var reminder = currentDateTime.Plus(Duration.FromMinutes(addMinutes)).ToUnixTimeMilliseconds();
 
             var taskInfo = new TaskInfo
             {
@@ -616,8 +622,11 @@ namespace Converter.Tests
 
             var taskFromModel = taskInfoFromModel?.Task?[0]!;
 
-            if (hasAlarm)
-                Assert.Equal(reminder, taskFromModel.Alarm!.Value.InZoneLeniently(timeZone).ToInstant().ToUnixTimeMilliseconds());
+            if (shouldHaveAlarm)
+                Assert.Equal(
+                    reminder,
+                    taskFromModel.Alarm!.Value.InZoneLeniently(CurrentDateTimeZone).ToInstant().ToUnixTimeMilliseconds()
+                );
             else
                 Assert.Null(taskFromModel.Alarm);
         }
@@ -684,11 +693,11 @@ namespace Converter.Tests
         [InlineData(Hide.DontHide)]
         public void Map_Hide_ShouldBeValid(Hide hide)
         {
-            var timeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
             var hideUntil = hide switch
             {
-                Hide.SixMonthsBeforeDue => (Instant?)new LocalDateTime(2022, 08, 20, 10, 0, 0).InZoneLeniently(timeZone).ToInstant(),
-                Hide.GivenDate => (Instant?)new LocalDateTime(2022, 05, 10, 10, 0, 0).InZoneLeniently(timeZone).ToInstant(),
+                Hide.SixMonthsBeforeDue
+                    => (Instant?)new LocalDateTime(2022, 08, 20, 10, 0, 0).InZoneLeniently(CurrentDateTimeZone).ToInstant(),
+                Hide.GivenDate => (Instant?)new LocalDateTime(2022, 05, 10, 10, 0, 0).InZoneLeniently(CurrentDateTimeZone).ToInstant(),
                 Hide.DontHide => null,
                 _ => throw new NotImplementedException($"HideInfo {hide} not implemented"),
             };
@@ -723,12 +732,12 @@ namespace Converter.Tests
             Assert.Equal(hide, taskFromModel.Hide);
         }
 
-        private static (TaskInfoModel? model, TaskInfo? fromModel) GetMappedInfo(TaskInfo taskInfo)
+        private (TaskInfoModel? model, TaskInfo? fromModel) GetMappedInfo(TaskInfo taskInfo)
         {
             if (taskInfo == null)
                 return (null, null);
-            var taskInfoModel = Core.Mapper.Converter.MapToModel(taskInfo);
-            var taskInfoFromModel = Core.Mapper.Converter.MapFromModel(taskInfoModel);
+            var taskInfoModel = Converter.MapToModel(taskInfo);
+            var taskInfoFromModel = Converter.MapFromModel(taskInfoModel);
 
             return (taskInfoModel, taskInfoFromModel);
         }

@@ -1,9 +1,12 @@
+using Converter.Console;
 using Converter.Core;
+using Converter.Core.Utils;
+using NodaTime;
 
 enum Command
 {
     CheckFile,
-    Convert
+    CanMap
 }
 
 class Programm
@@ -15,52 +18,63 @@ class Programm
     /// <param name="file">File to read</param>
     static int Main(Command commandType, FileInfo file)
     {
-        //TODO HH: improvement - JsonConfigurationReader rausziehen? - wird in Checkfile und Convert gebraucht
+        TextWriter errorWriter = Console.Error;
         if (file is null || !file.Exists)
         {
             var info = file is null ? "Filename is mandatory." : $"File {file.FullName} not valid.";
-            TextWriter errorWriter = Console.Error;
             errorWriter.WriteLine(info);
             return 1;
         }
+        var jsonReader = new JsonConfigurationReader(file);
         switch (commandType)
         {
             case Command.CheckFile:
             {
-                CheckFile(file);
+                CheckFile(jsonReader, errorWriter);
                 break;
             }
 
-            case Command.Convert:
-                Convert(file);
+            case Command.CanMap:
+                CanMap(jsonReader, errorWriter);
                 break;
         }
         return 0;
     }
 
-    private static void Convert(FileInfo fileInfo)
+    private static void CanMap(JsonConfigurationReader jsonReader, TextWriter errorConsole)
     {
-        var jsonReader = new JsonConfigurationReader(fileInfo);
         var taskInfo = jsonReader.TaskInfo;
         if (taskInfo == null)
+        {
+            errorConsole.WriteLine("There are no tasks in this file!");
             return;
-        var mappedItems = Converter.Core.Mapper.Converter.MapToModel(taskInfo);
-        //TODO HH: improvement - Fehlende Mappings erkennen
+        }
+        try
+        {
+            var clock = SystemClock.Instance;
+            var converterDateTimeZoneProvider = new ConverterDateTimeZoneProvider();
+            var converter = new Converter.Core.Mapper.Converter(clock, converterDateTimeZoneProvider);
+            converter.MapToModel(taskInfo);
+            Console.WriteLine("File can be mapped to intermediate format!");
+        }
+        catch (Exception ex)
+        {
+            errorConsole.WriteLine($"Error while mapping to intermediate format: {ex.Message}");
+        }
     }
 
-    private static void CheckFile(FileInfo fileInfo)
+    private static void CheckFile(JsonConfigurationReader jsonReader, TextWriter errorConsole)
     {
-        var jsonReader = new JsonConfigurationReader(fileInfo);
         try
         {
             var (isError, jsonDiff, xmlDiff) = jsonReader.Validate();
             if (isError)
             {
-                Console.WriteLine($"Output not equal to input - data doesn't match!");
+                errorConsole.WriteLine($"Output not equal to input - data doesn't match!");
                 if (jsonDiff != null)
-                    Console.WriteLine($"Json: {jsonDiff}");
+                    errorConsole.WriteLine($"Json: {jsonDiff}");
                 if (!string.IsNullOrEmpty(xmlDiff))
-                    Console.WriteLine($"Xml: {xmlDiff}");
+                    errorConsole.WriteLine($"Xml: {xmlDiff}");
             }
             else
             {
@@ -69,7 +83,7 @@ class Programm
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in validating: {ex.Message}");
+            errorConsole.WriteLine($"Error in validating: {ex.Message}");
         }
     }
 }

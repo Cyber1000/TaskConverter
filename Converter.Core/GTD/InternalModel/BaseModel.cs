@@ -2,7 +2,7 @@ using NodaTime;
 
 namespace Converter.Core.GTD.InternalModel
 {
-    public class BaseModel
+    public abstract class BaseModel
     {
         public int Id { get; set; }
 
