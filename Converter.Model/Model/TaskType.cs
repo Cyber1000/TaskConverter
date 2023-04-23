@@ -1,16 +1,15 @@
-namespace Converter.Model.Model
+namespace Converter.Model.Model;
+
+//TODO HH: shorten here
+public enum TaskType
 {
-    //TODO HH: shorten here
-    public enum TaskType
-    {
-        Task,
-        Project,
-        Checklist,
-        ChecklistItem,
-        Note,
-        Call,
-        Email,
-        Sms,
-        ReturnCall
-    }
+    Task,
+    Project,
+    Checklist,
+    ChecklistItem,
+    Note,
+    Call,
+    Email,
+    Sms,
+    ReturnCall
 }

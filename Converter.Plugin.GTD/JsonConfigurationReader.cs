@@ -19,7 +19,6 @@ public class JsonConfigurationReader
     private string? RawJsonString;
     public TaskInfo? TaskInfo { get; private set; }
 
-    //TODO HH: Inmemory?
     public JsonConfigurationReader(FileInfo inputFile)
     {
         if (!inputFile.Exists)

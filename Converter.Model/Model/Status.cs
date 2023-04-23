@@ -1,17 +1,16 @@
-namespace Converter.Model.Model
+namespace Converter.Model.Model;
+
+public enum Status
 {
-    public enum Status
-    {
-        None,
-        NextAction,
-        Active,
-        Planning,
-        Delegated,
-        Waiting,
-        Hold,
-        Postponed,
-        Someday,
-        Canceled,
-        Reference
-    }
+    None,
+    NextAction,
+    Active,
+    Planning,
+    Delegated,
+    Waiting,
+    Hold,
+    Postponed,
+    Someday,
+    Canceled,
+    Reference
 }

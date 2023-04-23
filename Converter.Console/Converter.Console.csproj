@@ -6,13 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Converter.Core\Converter.Core.csproj" />
     <ProjectReference Include="..\Converter.Plugin.Base\Converter.Plugin.Base.csproj" />
     <ProjectReference Include="..\Converter.Model\Converter.Model.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="McMaster.NETCore.Plugins" Version="1.4.0" />
     <PackageReference Include="System.CommandLine.DragonFruit" Version="0.4.0-alpha.22272.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
   </ItemGroup>
 
   <Target Name="BuildPlugin" BeforeTargets="Build">

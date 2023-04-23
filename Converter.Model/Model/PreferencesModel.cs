@@ -1,7 +1,6 @@
-namespace Converter.Model.Model
+namespace Converter.Model.Model;
+
+//TODO HH: needed?
+public class PreferencesModel
 {
-    //TODO HH: needed?
-    public class PreferencesModel
-    {
-    }
 }

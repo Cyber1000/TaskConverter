@@ -1,11 +1,10 @@
-namespace Converter.Model.Model
+namespace Converter.Model.Model;
+
+public enum Priority
 {
-    public enum Priority
-    {
-        Top = 3,
-        High = 2,
-        Med = 1,
-        Low = 0,
-        None = -1
-    }
+    Top = 3,
+    High = 2,
+    Med = 1,
+    Low = 0,
+    None = -1
 }

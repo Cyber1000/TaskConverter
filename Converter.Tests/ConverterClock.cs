@@ -1,12 +1,11 @@
 using NodaTime;
 
-namespace Converter.Tests
+namespace Converter.Tests;
+
+public class ConverterClock : IClock
 {
-    public class ConverterClock : IClock
+    public Instant GetCurrentInstant()
     {
-        public Instant GetCurrentInstant()
-        {
-            return Instant.FromUnixTimeMilliseconds(1601244000000);
-        }
+        return Instant.FromUnixTimeMilliseconds(1601244000000);
     }
 }

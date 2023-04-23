@@ -1,6 +1,5 @@
-namespace Converter.Model.Model
+namespace Converter.Model.Model;
+
+public class TagModel: ExtendedModel
 {
-    public class TagModel: ExtendedModel
-    {
-    }
 }

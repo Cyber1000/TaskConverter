@@ -1,8 +1,7 @@
-namespace Converter.Model.Model
+namespace Converter.Model.Model;
+
+public enum RepeatFrom
 {
-    public enum RepeatFrom
-    {
-        FromDueDate,
-        FromCompletion
-    }
+    FromDueDate,
+    FromCompletion
 }

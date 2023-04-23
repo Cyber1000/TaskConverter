@@ -1,4 +1,3 @@
-namespace Converter.Model.Model
-{
-    public class FolderModel : ExtendedModel { }
-}
+namespace Converter.Model.Model;
+
+public class FolderModel : ExtendedModel { }

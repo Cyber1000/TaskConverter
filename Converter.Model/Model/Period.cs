@@ -1,10 +1,9 @@
-namespace Converter.Model.Model
+namespace Converter.Model.Model;
+
+public enum Period
 {
-    public enum Period
-    {
-        Day,
-        Week,
-        Month,
-        Year
-    }
+    Day,
+    Week,
+    Month,
+    Year
 }
