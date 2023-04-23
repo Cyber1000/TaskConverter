@@ -1,7 +1,7 @@
 using System.Text.Json.JsonDiffPatch.Xunit;
 using System.Xml;
-using Converter.Core;
-using Converter.Core.Utils;
+using Converter.Plugin.GTD;
+using Converter.Plugin.GTD.Utils;
 
 namespace Converter.Tests;
 

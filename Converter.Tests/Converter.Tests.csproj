@@ -25,5 +25,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Converter.Core\Converter.Core.csproj" />
+    <ProjectReference Include="..\Converter.Plugin.GTD\Converter.Plugin.GTD.csproj" />
+    <ProjectReference Include="..\Converter.Commons\Converter.Commons.csproj" />
+    <ProjectReference Include="..\Converter.Model\Converter.Model.csproj" />
   </ItemGroup>
 </Project>

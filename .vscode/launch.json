@@ -13,7 +13,7 @@
       "program": "${workspaceFolder}/Converter.Console/bin/Debug/net7.0/Converter.Console.dll",
       "args": [
         "--command-type",
-        "Convert",
+        "CanMap",
         "--file",
         "${workspaceFolder}/../GTD.json"
       ],

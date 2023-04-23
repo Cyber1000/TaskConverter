@@ -1,84 +1,95 @@
 using Converter.Console;
-using Converter.Core;
-using Converter.Core.Utils;
-using NodaTime;
+using Converter.Console.PluginHandling;
+using Converter.Plugin.Base;
 
 enum Command
 {
-    CheckFile,
+    CheckSource,
     CanMap
 }
 
 class Programm
 {
     /// <summary>
-    /// Command to parse data from DGT GTD
+    /// Command to parse data
     /// </summary>
     /// <param name="commandType">Execute different commands</param>
-    /// <param name="file">File to read</param>
-    static int Main(Command commandType, FileInfo file)
+    /// <param name="fromModel">Convert from Model</param>
+    /// <param name="fromLocation">File or Url to interact</param>
+    static int Main(Command commandType, string fromModel, string fromLocation)
     {
         TextWriter errorWriter = Console.Error;
-        if (file is null || !file.Exists)
+        fromModel = fromModel.ToLowerInvariant();
+
+        var commands = LoadPluginsAndGetCommands();
+        if (string.IsNullOrEmpty(fromModel) || !commands.ContainsKey(fromModel))
         {
-            var info = file is null ? "Filename is mandatory." : $"File {file.FullName} not valid.";
-            errorWriter.WriteLine(info);
+            errorWriter.WriteLine(
+                $"FromModel is mandatory and must be a valid plugin. Valid plugins are: {string.Join(',', GetAvailablePlugins(commands))}"
+            );
             return 1;
         }
-        var jsonReader = new JsonConfigurationReader(file);
+        var fromCommand = commands[fromModel];
+        if (string.IsNullOrEmpty(fromLocation) || !fromCommand.SetLocation(fromLocation))
+        {
+            errorWriter.WriteLine("FromLocation is mandatory and must be a valid location.");
+            return 1;
+        }
+
         switch (commandType)
         {
-            case Command.CheckFile:
+            case Command.CheckSource:
             {
-                CheckFile(jsonReader, errorWriter);
+                CheckSource(fromCommand, errorWriter);
                 break;
             }
 
             case Command.CanMap:
-                CanMap(jsonReader, errorWriter);
+                CanMap(fromCommand, errorWriter);
                 break;
         }
         return 0;
     }
 
-    private static void CanMap(JsonConfigurationReader jsonReader, TextWriter errorConsole)
+    private static IList<string> GetAvailablePlugins(IDictionary<string, IConverterPlugin> commands)
     {
-        var taskInfo = jsonReader.TaskInfo;
-        if (taskInfo == null)
-        {
-            errorConsole.WriteLine("There are no tasks in this file!");
-            return;
-        }
-        try
-        {
-            var clock = SystemClock.Instance;
-            var converterDateTimeZoneProvider = new ConverterDateTimeZoneProvider();
-            var converter = new Converter.Core.Mapper.Converter(clock, converterDateTimeZoneProvider);
-            converter.MapToModel(taskInfo);
-            Console.WriteLine("File can be mapped to intermediate format!");
-        }
-        catch (Exception ex)
-        {
-            errorConsole.WriteLine($"Error while mapping to intermediate format: {ex.Message}");
-        }
+        return commands.Select(c => c.Key).ToList();
     }
 
-    private static void CheckFile(JsonConfigurationReader jsonReader, TextWriter errorConsole)
+    private static IDictionary<string, IConverterPlugin> LoadPluginsAndGetCommands()
+    {
+        var pluginBaseDir = Path.Combine(AppContext.BaseDirectory, "plugins");
+        var pluginLoader = new PluginHandler(pluginBaseDir);
+        return pluginLoader.GetAllCommands<IConverterPlugin>(SettingsHelper.GetAppSettings()).ToDictionary(c => c.Name.ToLowerInvariant(), c => c);
+    }
+
+    private static void CanMap(IConverterPlugin command, TextWriter errorConsole)
+    {
+        var (canConvert, exception) = command.CanConvertToTaskInfoModel();
+        if (canConvert.HasValue)
+        {
+            if (canConvert.Value)
+                Console.WriteLine("File can be mapped to intermediate format.");
+            else
+                errorConsole.WriteLine($"Error while mapping to intermediate format;{exception}");
+            return;
+        }
+        else
+            errorConsole.WriteLine("There are no tasks in this file!");
+    }
+
+    private static void CheckSource(IConverterPlugin command, TextWriter errorConsole)
     {
         try
         {
-            var (isError, jsonDiff, xmlDiff) = jsonReader.Validate();
+            var (isError, validationError) = command.ValidateSource();
             if (isError)
             {
-                errorConsole.WriteLine($"Output not equal to input - data doesn't match!");
-                if (jsonDiff != null)
-                    errorConsole.WriteLine($"Json: {jsonDiff}");
-                if (!string.IsNullOrEmpty(xmlDiff))
-                    errorConsole.WriteLine($"Xml: {xmlDiff}");
+                errorConsole.WriteLine($"Output not equal to input - data doesn't match:{System.Environment.NewLine}{validationError}");
             }
             else
             {
-                Console.WriteLine("Filecheck successful!");
+                Console.WriteLine("Validation successful!");
             }
         }
         catch (Exception ex)

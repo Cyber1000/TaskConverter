@@ -1,4 +1,4 @@
-using Converter.Core.Mapper;
+using Converter.Model.Mapper;
 using NodaTime;
 
 namespace Converter.Tests;

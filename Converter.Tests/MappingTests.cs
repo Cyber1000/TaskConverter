@@ -1,8 +1,8 @@
 using System.Drawing;
 using System.Xml;
-using Converter.Core.GTD.InternalModel;
-using Converter.Core.GTD.Model;
-using Converter.Core.Mapper;
+using Converter.Model.Model;
+using Converter.Plugin.GTD.Mapper;
+using Converter.Plugin.GTD.Model;
 using Converter.Tests.Extensions;
 using NodaTime;
 
@@ -10,11 +10,11 @@ namespace Converter.Tests
 {
     public class MappingTests
     {
-        private readonly IConverter Converter;
+        private readonly IConverter TestConverter;
 
-        private DateTimeZone CurrentDateTimeZone => Converter.DateTimeZoneProvider.CurrentDateTimeZone;
+        private DateTimeZone CurrentDateTimeZone => TestConverter.DateTimeZoneProvider.CurrentDateTimeZone;
 
-        public MappingTests(IConverter converter) => Converter = converter;
+        public MappingTests(IConverter converter) => TestConverter = converter;
 
         [Fact]
         public void Map_Version_ShouldBeValid()
@@ -187,16 +187,16 @@ namespace Converter.Tests
                         RepeatNew = new RepeatInfo("Every 1 week"),
                         RepeatFrom = RepeatFrom.FromDueDate,
                         Duration = 0,
-                        Status = Status.NextAction,
+                        Status = Plugin.GTD.Model.Status.NextAction,
                         Context = 5,
                         Goal = 0,
                         Folder = 8,
                         Tag = new List<int> { 10, 11 },
                         Starred = true,
-                        Priority = Priority.Low,
+                        Priority = Plugin.GTD.Model.Priority.Low,
                         Note = new string[] { "Note" },
                         Completed = new LocalDateTime(2023, 02, 25, 10, 0, 0),
-                        Type = TaskType.Task,
+                        Type = Plugin.GTD.Model.TaskType.Task,
                         TrashBin = "",
                         Importance = 0,
                         MetaInformation = "",
@@ -288,15 +288,15 @@ namespace Converter.Tests
             Assert.Equal(task.RepeatNew?.Interval, taskModel.RepeatInfo?.Interval);
             Assert.Equal(task.RepeatNew?.Period, taskModel.RepeatInfo?.Period);
             Assert.Equal(task.RepeatFrom, taskModel.RepeatInfo?.RepeatFrom);
-            Assert.Equal(task.Status, taskModel.Status);
+            Assert.Equal(Model.Model.Status.NextAction, taskModel.Status);
             Assert.Equal(task.Context, taskModel.Context!.Id);
             Assert.Equal(task.Folder, taskModel.Folder!.Id);
             Assert.Equal(task.Tag, taskModel.Tags.Select(t => t.Id));
             Assert.Equal(task.Starred, taskModel.Starred);
-            Assert.Equal(task.Priority, taskModel.Priority);
+            Assert.Equal(Model.Model.Priority.Low, taskModel.Priority);
             Assert.Equal(task.Note, taskModel.Note);
             Assert.Equal(task.Completed, taskModel.Completed);
-            Assert.Equal(task.Type, taskModel.Type);
+            Assert.Equal(Model.Model.TaskType.Task, taskModel.Type);
             Assert.Equal(task.Floating, taskModel.Floating);
             Assert.Equal(task.HideUntil, taskModel.HideUntil!.Value.ToUnixTimeMilliseconds());
 
@@ -598,7 +598,7 @@ namespace Converter.Tests
         [InlineData(1, false)]
         public void Map_TaskWithAlarm_ShouldBeValid(int addMinutes, bool shouldHaveAlarm)
         {
-            var currentDateTime = Converter.Clock.GetCurrentInstant();
+            var currentDateTime = TestConverter.Clock.GetCurrentInstant();
             var reminder = currentDateTime.Plus(Duration.FromMinutes(addMinutes)).ToUnixTimeMilliseconds();
 
             var taskInfo = new TaskInfo
@@ -632,19 +632,19 @@ namespace Converter.Tests
         }
 
         [Theory]
-        [InlineData("Every 1 day", RepeatFrom.FromDueDate, 1, Core.GTD.Model.Period.Day, true)]
-        [InlineData("Every 2 weeks", RepeatFrom.FromDueDate, 2, Core.GTD.Model.Period.Week, true)]
-        [InlineData("Every 3 months", RepeatFrom.FromDueDate, 3, Core.GTD.Model.Period.Month, true)]
-        [InlineData("Every 4 years", RepeatFrom.FromDueDate, 4, Core.GTD.Model.Period.Year, true)]
-        [InlineData("Every 1 day", RepeatFrom.FromCompletion, 1, Core.GTD.Model.Period.Day, true)]
-        [InlineData("every 1 day", RepeatFrom.FromDueDate, 1, Core.GTD.Model.Period.Day, true)]
-        [InlineData(null, RepeatFrom.FromDueDate, 1, Core.GTD.Model.Period.Day, false)]
-        [InlineData(null, RepeatFrom.FromCompletion, 1, Core.GTD.Model.Period.Day, false)]
+        [InlineData("Every 1 day", RepeatFrom.FromDueDate, 1, Model.Model.Period.Day, true)]
+        [InlineData("Every 2 weeks", RepeatFrom.FromDueDate, 2, Model.Model.Period.Week, true)]
+        [InlineData("Every 3 months", RepeatFrom.FromDueDate, 3, Model.Model.Period.Month, true)]
+        [InlineData("Every 4 years", RepeatFrom.FromDueDate, 4, Model.Model.Period.Year, true)]
+        [InlineData("Every 1 day", RepeatFrom.FromCompletion, 1, Model.Model.Period.Day, true)]
+        [InlineData("every 1 day", RepeatFrom.FromDueDate, 1, Model.Model.Period.Day, true)]
+        [InlineData(null, RepeatFrom.FromDueDate, 1, Model.Model.Period.Day, false)]
+        [InlineData(null, RepeatFrom.FromCompletion, 1, Model.Model.Period.Day, false)]
         public void Map_Repeat_ShouldBeValid(
             string repeatInfoString,
             RepeatFrom repeatFrom,
             int expectedInterval,
-            Core.GTD.Model.Period expectedPeriod,
+            Model.Model.Period expectedPeriod,
             bool expectRepeatInfo
         )
         {
@@ -736,8 +736,8 @@ namespace Converter.Tests
         {
             if (taskInfo == null)
                 return (null, null);
-            var taskInfoModel = Converter.MapToModel(taskInfo);
-            var taskInfoFromModel = Converter.MapFromModel(taskInfoModel);
+            var taskInfoModel = TestConverter.MapToModel(taskInfo);
+            var taskInfoFromModel = TestConverter.MapFromModel(taskInfoModel);
 
             return (taskInfoModel, taskInfoFromModel);
         }

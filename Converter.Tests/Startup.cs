@@ -1,4 +1,5 @@
-using Converter.Core.Mapper;
+using Converter.Model.Mapper;
+using Converter.Plugin.GTD.Mapper;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 
@@ -9,7 +10,7 @@ public class Startup
     public static void ConfigureServices(IServiceCollection services)
     {
         services.AddTransient<IClock, ConverterClock>();
-        services.AddTransient<IConverter, Core.Mapper.Converter>();
+        services.AddTransient<IConverter, Plugin.GTD.Mapper.Converter>();
         services.AddTransient<IConverterDateTimeZoneProvider, TestDateTimeZoneProvider>();
     }
 }

@@ -1,5 +1,5 @@
-using Converter.Core;
-using Converter.Core.Utils;
+using Converter.Commons.Utils;
+using Converter.Plugin.GTD;
 
 namespace Converter.Tests
 {
