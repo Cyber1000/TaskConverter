@@ -3,7 +3,7 @@
 - Work in progress, for now I'm only able to convert GTD (an uncontinued android app) to an intermediate format
   -- planned: convert to different task apps and or csvs
 
-# About Converter
+# About TaskConverter
 
 - There are many (FOSS) task/project management - apps around
 - The core of these apps is mostly quite similar: Having a task with notes, attachments and sometimes they are nested deeper within projects, epics, ...
@@ -12,10 +12,10 @@
 
 # Usage
 
-- Get information, which plugins can be used: Converter.Console.exe
-- Get help on available parameters: Converter.Console.exe --help
-- Check if your source is valid or something neeeds to be done at the example of gtd: Converter.Console.exe --command-type CheckSource --from-model gtd --from-location /home/workspace/openproject/GTD.json
-- Check if your source can be mapped to the intermediate format at the example of gtd: Converter.Console.exe --command-type CanMap --from-model gtd --from-location /home/workspace/openproject/GTD.json
+- Get information, which plugins can be used: TaskConverter.Console.exe
+- Get help on available parameters: TaskConverter.Console.exe --help
+- Check if your source is valid or something neeeds to be done at the example of gtd: TaskConverter.Console.exe --command-type CheckSource --from-model gtd --from-location /home/workspace/openproject/GTD.json
+- Check if your source can be mapped to the intermediate format at the example of gtd: TaskConverter.Console.exe --command-type CanMap --from-model gtd --from-location /home/workspace/openproject/GTD.json
 
 ## Current Plugins
 
@@ -23,7 +23,7 @@
 
 # Info for Devs
 
-- a plugin is inherited from IConverterPlugin (for reference see Converter.Plugin.GTD) and converts to/from an intermediate format in Converter.Model
+- a plugin is inherited from IConverterPlugin (for reference see TaskConverter.Plugin.GTD) and converts to/from an intermediate format in TaskConverter.Model
 - for now the console only supports a --from-model and --from-location, a --to-model and --to-location will follow
   -- so the plan is following path: todo-app-1 -> plugin for todo-app-1 converts to -> intermediate format -> plugin for todo-app-2 converts to -> todo-app-2
 
@@ -35,4 +35,4 @@
 - https://github.com/weichch/system-text-json-jsondiffpatch: MIT
 - https://github.com/xunit/xunit: Apache-2.0
 
-See more 3rd-party licences in individual plugins, named Converter.Plugin.{PluginName}
+See more 3rd-party licences in individual plugins, named TaskConverter.Plugin.{PluginName}
