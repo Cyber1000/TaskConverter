@@ -23,12 +23,13 @@ sync
    - --from-location {location}: location can be a (REST-)URL or a filename, depending on the used from-model
 
 ## Examples
-- Check if your source is valid or something neeeds to be done at the example of gtd: TaskConverter.Console.exe --command-type CheckSource --from-model gtd --from-location /home/workspace/openproject/GTD.json
-- Check if your source can be mapped to the intermediate format at the example of gtd: TaskConverter.Console.exe --command-type CanMap --from-model gtd --from-location /home/workspace/openproject/GTD.json
+- Check if your source is valid or something neeeds to be done at the example of gtd: TaskConverter.Console.exe --command-type CheckSource --from-model gtd --from-location /home/workspace/openproject/GTD_20221217_030000432.json.zip
+- Check if your source can be mapped to the intermediate format at the example of gtd: TaskConverter.Console.exe --command-type CanMap --from-model gtd --from-location /home/workspace/openproject/GTD_20221217_030000432.json.zip
 
 ## Current Plugins
 
 - GTD: discontinued Android-App (https://play.google.com/store/apps/details?id=com.dg.gtd.android.lite&hl=de&gl=US)
+   - --from-location: can be the original backup file named GTD_{date}_{time}.json.zip or the unzipped version
 
 # Info for Devs
 

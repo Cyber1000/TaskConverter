@@ -34,10 +34,10 @@ jobs:
         shell: bash
         run: |
           tag=$(git describe --tags --abbrev=0)
-          release_name="App-$tag-${{ matrix.target }}"
+          release_name="TaskConverter-$tag-${{ matrix.target }}"
 
           # Build everything
-          dotnet publish src/App/App.csproj --framework netcoreapp7.0 --runtime "${{ matrix.target }}" -c Release -o "$release_name"
+          dotnet publish TaskConverter.Console/TaskConverter.Console.csproj --framework netcoreapp7.0 --runtime "${{ matrix.target }}" -c Release -o "$release_name"
 
           # Pack files
           if [ "${{ matrix.target }}" == "win-x64" ]; then
@@ -53,6 +53,6 @@ jobs:
       - name: Publish
         uses: softprops/action-gh-release@v1
         with:
-          files: "App*"
+          files: "TaskConverter*"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
