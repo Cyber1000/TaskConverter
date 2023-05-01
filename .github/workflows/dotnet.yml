@@ -9,7 +9,7 @@ jobs:
     name: Release
     strategy:
       matrix:
-        kind: ['linux', 'windows', 'macOS']
+        kind: ["linux", "windows", "macOS"]
         include:
           - kind: linux
             os: ubuntu-latest
@@ -37,7 +37,7 @@ jobs:
           release_name="TaskConverter-$tag-${{ matrix.target }}"
 
           # Build everything
-          dotnet publish TaskConverter.Console/TaskConverter.Console.csproj --framework netcoreapp7.0 --runtime "${{ matrix.target }}" -c Release -o "$release_name"
+          dotnet publish TaskConverter.Console/TaskConverter.Console.csproj --framework net7.0 --runtime "${{ matrix.target }}" -c Release -o "$release_name"
 
           # Pack files
           if [ "${{ matrix.target }}" == "win-x64" ]; then
