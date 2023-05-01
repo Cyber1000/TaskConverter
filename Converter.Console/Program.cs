@@ -11,15 +11,16 @@ enum Command
 class Programm
 {
     /// <summary>
-    /// Command to parse data
+    /// Command to map data between different todo/planning apps
     /// </summary>
     /// <param name="commandType">Execute different commands</param>
     /// <param name="fromModel">Convert from Model</param>
     /// <param name="fromLocation">File or Url to interact</param>
     static int Main(Command commandType, string fromModel, string fromLocation)
     {
+        //TODO HH: Maybe we can change fromModel from string to some dynamic enum (for better help)
         TextWriter errorWriter = Console.Error;
-        fromModel = fromModel.ToLowerInvariant();
+        fromModel = fromModel?.ToLowerInvariant() ?? "";
 
         var commands = LoadPluginsAndGetCommands();
         if (string.IsNullOrEmpty(fromModel) || !commands.ContainsKey(fromModel))
@@ -60,7 +61,9 @@ class Programm
     {
         var pluginBaseDir = Path.Combine(AppContext.BaseDirectory, "plugins");
         var pluginLoader = new PluginHandler(pluginBaseDir);
-        return pluginLoader.GetAllCommands<IConverterPlugin>(SettingsHelper.GetAppSettings()).ToDictionary(c => c.Name.ToLowerInvariant(), c => c);
+        return pluginLoader
+            .GetAllCommands<IConverterPlugin>(SettingsHelper.GetAppSettings())
+            .ToDictionary(c => c.Name.ToLowerInvariant(), c => c);
     }
 
     private static void CanMap(IConverterPlugin command, TextWriter errorConsole)
