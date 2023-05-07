@@ -2,8 +2,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
+    <RuntimeIdentifiers>linux-x64;win-x64;osx-x64</RuntimeIdentifiers>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\TaskConverter.Plugin.Base\TaskConverter.Plugin.Base.csproj" />
@@ -16,6 +19,6 @@
   </ItemGroup>
 
   <Target Name="BuildPlugin" BeforeTargets="Build">
-      <MSBuild Projects="..\TaskConverter.Plugin.GTD\TaskConverter.Plugin.GTD.csproj" Targets="Publish" Properties="Configuration=$(Configuration);PublishDir=../TaskConverter.Console/bin/$(Configuration)/$(TargetFramework)/plugins/TaskConverter.Plugin.GTD/" />
+      <MSBuild Projects="..\TaskConverter.Plugin.GTD\TaskConverter.Plugin.GTD.csproj" Targets="Restore;Publish" Properties="Configuration=$(Configuration);PublishDir=$(MSBuildThisFileDirectory)/bin/$(Configuration)/plugins/TaskConverter.Plugin.GTD/" />
   </Target>
 </Project>

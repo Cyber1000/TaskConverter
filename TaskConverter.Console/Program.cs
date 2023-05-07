@@ -25,6 +25,7 @@ class Programm
         var commands = LoadPluginsAndGetCommands();
         if (string.IsNullOrEmpty(fromModel) || !commands.ContainsKey(fromModel))
         {
+            //TODO HH: better message, when there are no plugins
             errorWriter.WriteLine(
                 $"FromModel is mandatory and must be a valid plugin. Valid plugins are: {string.Join(',', GetAvailablePlugins(commands))}"
             );
@@ -60,6 +61,10 @@ class Programm
     private static IDictionary<string, IConverterPlugin> LoadPluginsAndGetCommands()
     {
         var pluginBaseDir = Path.Combine(AppContext.BaseDirectory, "plugins");
+        if (!Directory.Exists(pluginBaseDir))
+        {
+            return new Dictionary<string, IConverterPlugin>();
+        }
         var pluginLoader = new PluginHandler(pluginBaseDir);
         return pluginLoader
             .GetAllCommands<IConverterPlugin>(SettingsHelper.GetAppSettings())
