@@ -10,11 +10,13 @@
       "request": "launch",
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/TaskConverter.Console/bin/Debug/net7.0/TaskConverter.Console.dll",
+      "program": "${workspaceFolder}/TaskConverter.Console/bin/Debug/TaskConverter.Console.dll",
       "args": [
         "--command-type",
         "CanMap",
-        "--file",
+        "--from-model",
+        "gtd",
+        "--from-location",
         "${workspaceFolder}/../GTD.json"
       ],
       "cwd": "${workspaceFolder}/TaskConverter.Console",
