@@ -5,7 +5,6 @@
 
 # About TaskConverter
 
-- ![Tests](https://github.com/cyber1000/TaskConverter/workflows/Build%20and%20Test/badge.svg)
 - There are many (FOSS) task/project management - apps around
 - The core of these apps is mostly quite similar: Having a task with notes, attachments and sometimes they are nested deeper within projects, epics, ...
 - Purpose of this converter is to convert between different task/project-management-apps
