@@ -18,5 +18,5 @@ public class NotebookModelResolver : IValueResolver<TaskInfo, TaskInfoModel, Lis
                 var model = new NotebookModel(destination, s.FolderId);
                 return context.Mapper.Map(s, model);
             })
-            .ToList() ?? new List<NotebookModel>();
+            .ToList() ?? [];
 }

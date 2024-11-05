@@ -13,5 +13,5 @@ public class TaskModelResolver : IValueResolver<TaskInfo, TaskInfoModel, List<Ta
                 var model = new TaskModel(destination, s.Parent, s.Context, s.Folder, s.Tag);
                 return context.Mapper.Map(s, model);
             })
-            .ToList() ?? new List<TaskModel>();
+            .ToList() ?? [];
 }

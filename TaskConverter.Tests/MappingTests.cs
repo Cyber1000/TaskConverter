@@ -188,7 +188,7 @@ public class MappingTests(IConverter converter)
                     Tag = [10, 11],
                     Starred = true,
                     Priority = Plugin.GTD.Model.Priority.Low,
-                    Note = new string[] { "Note" },
+                    Note = ["Note"],
                     Completed = new LocalDateTime(2023, 02, 25, 10, 0, 0),
                     Type = Plugin.GTD.Model.TaskType.Task,
                     TrashBin = "",
@@ -381,7 +381,7 @@ public class MappingTests(IConverter converter)
                     Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                     Private = 0,
                     Title = "Test",
-                    Note = new string[] { "abc", "def" },
+                    Note = ["abc", "def"],
                     FolderId = 2,
                     Color = -694050399,
                     Visible = false

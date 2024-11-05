@@ -5,20 +5,13 @@ using NodaTime;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
-public class AlarmResolver : IValueResolver<TaskModel, TaskInfoTaskEntry, LocalDateTime?>
+public class AlarmResolver(IClock clock, DateTimeZone dateTimeZone) : IValueResolver<TaskModel, TaskInfoTaskEntry, LocalDateTime?>
 {
-    public DateTimeZone DateTimeZone { get; }
-    private readonly IClock Clock;
-
-    public AlarmResolver(IClock clock, DateTimeZone dateTimeZone)
-    {
-        Clock = clock;
-        DateTimeZone = dateTimeZone;
-    }
+    public DateTimeZone DateTimeZone { get; } = dateTimeZone;
 
     public LocalDateTime? Resolve(TaskModel source, TaskInfoTaskEntry destination, LocalDateTime? destMember, ResolutionContext context)
     {
-        var currentDateTime = Clock.GetCurrentInstant();
+        var currentDateTime = clock.GetCurrentInstant();
         var reminder = source.Reminder;
         if (reminder == null)
             return null;

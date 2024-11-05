@@ -6,24 +6,19 @@ using Period = TaskConverter.Model.Model.Period;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
-public class HideResolver : IValueResolver<TaskModel, TaskInfoTaskEntry, Hide>
+public class HideResolver(DateTimeZone dateTimeZone) : IValueResolver<TaskModel, TaskInfoTaskEntry, Hide>
 {
     public enum HideBase
     {
         FromDueDate
     }
 
-    private (int Interval, Period Period, (Hide Type, HideBase Base)[] BaseInfo)[] hideMapper =
-    {
+    private readonly (int Interval, Period Period, (Hide Type, HideBase Base)[] BaseInfo)[] hideMapper =
+    [
         (6, Period.Month, new[] { (Hide.SixMonthsBeforeDue, HideBase.FromDueDate) })
-    };
+    ];
 
-    public DateTimeZone DateTimeZone { get; }
-
-    public HideResolver(DateTimeZone dateTimeZone)
-    {
-        DateTimeZone = dateTimeZone;
-    }
+    public DateTimeZone DateTimeZone { get; } = dateTimeZone;
 
     public Hide Resolve(TaskModel source, TaskInfoTaskEntry destination, Hide destMember, ResolutionContext context)
     {

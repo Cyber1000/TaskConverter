@@ -10,7 +10,7 @@ public class Startup
     public static void ConfigureServices(IServiceCollection services)
     {
         services.AddTransient<IClock, ConverterClock>();
-        services.AddTransient<IConverter, Plugin.GTD.Mapper.Converter>();
+        services.AddTransient<IConverter, Converter>();
         services.AddTransient<IConverterDateTimeZoneProvider, TestDateTimeZoneProvider>();
     }
 }

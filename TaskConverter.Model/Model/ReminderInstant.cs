@@ -8,26 +8,15 @@ public enum BaseDateOfReminderInstant
     FromDueDate
 }
 
-public class ReminderInstant
-{
-    private readonly TaskModel taskModel;
-    private readonly DateTimeZone dateTimeZone;
-
-    public BaseDateOfReminderInstant ReminderInstantType { get; }
-    public long MillisecondsFromBaseDate { get; }
-
-    public ReminderInstant(
-        TaskModel taskModel,
-        DateTimeZone dateTimeZone,
-        BaseDateOfReminderInstant reminderInstantType,
-        long millisecondsFromBaseDate
+public class ReminderInstant(TaskModel taskModel,
+    DateTimeZone dateTimeZone,
+    BaseDateOfReminderInstant reminderInstantType,
+    long millisecondsFromBaseDate
     )
-    {
-        this.taskModel = taskModel;
-        this.dateTimeZone = dateTimeZone;
-        ReminderInstantType = reminderInstantType;
-        MillisecondsFromBaseDate = millisecondsFromBaseDate;
-    }
+{
+
+    public BaseDateOfReminderInstant ReminderInstantType { get; } = reminderInstantType;
+    public long MillisecondsFromBaseDate { get; } = millisecondsFromBaseDate;
 
     public Instant? AbsoluteInstant
     {

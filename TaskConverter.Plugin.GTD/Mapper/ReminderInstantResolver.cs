@@ -5,14 +5,9 @@ using NodaTime;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
-public class ReminderInstantResolver : IValueResolver<TaskInfoTaskEntry, TaskModel, ReminderInstant?>
+public class ReminderInstantResolver(DateTimeZone dateTimeZone) : IValueResolver<TaskInfoTaskEntry, TaskModel, ReminderInstant?>
 {
-    private DateTimeZone DateTimeZone { get; }
-
-    public ReminderInstantResolver(DateTimeZone dateTimeZone)
-    {
-        DateTimeZone = dateTimeZone;
-    }
+    private DateTimeZone DateTimeZone { get; } = dateTimeZone;
 
     public ReminderInstant? Resolve(TaskInfoTaskEntry source, TaskModel destination, ReminderInstant? destMember, ResolutionContext context)
     {

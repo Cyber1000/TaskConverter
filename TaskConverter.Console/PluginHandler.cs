@@ -2,15 +2,8 @@ using McMaster.NETCore.Plugins;
 
 namespace TaskConverter.Console.PluginHandling;
 
-class PluginHandler
+class PluginHandler(string pluginBaseDir)
 {
-    private readonly string pluginBaseDir;
-
-    public PluginHandler(string pluginBaseDir)
-    {
-        this.pluginBaseDir = pluginBaseDir;
-    }
-
     public IEnumerable<T> GetAllCommands<T>(params object[] args)
     {
         foreach (var dir in Directory.GetDirectories(pluginBaseDir))
@@ -19,7 +12,7 @@ class PluginHandler
             var pluginDll = Path.Combine(dir, dirName + ".dll");
             if (File.Exists(pluginDll))
             {
-                var loader = PluginLoader.CreateFromAssemblyFile(pluginDll, sharedTypes: new[] { typeof(T) });
+                var loader = PluginLoader.CreateFromAssemblyFile(pluginDll, sharedTypes: [typeof(T)]);
                 var commands = GetPluginCommands<T>(loader, args);
                 foreach (var command in commands)
                 {

@@ -13,26 +13,13 @@ public interface IConverter
     TaskInfo MapFromModel(TaskInfoModel model);
 }
 
-public class Converter : IConverter
+public class Converter(IClock clock, IConverterDateTimeZoneProvider dateTimeZoneProvider) : IConverter
 {
-    private readonly GTDMapper GTDMapper;
-    public IClock Clock { get; }
-    public IConverterDateTimeZoneProvider DateTimeZoneProvider { get; set; }
+    private readonly GTDMapper GTDMapper = new(clock, dateTimeZoneProvider);
+    public IClock Clock { get; } = clock;
+    public IConverterDateTimeZoneProvider DateTimeZoneProvider { get; set; } = dateTimeZoneProvider;
 
-    public Converter(IClock clock, IConverterDateTimeZoneProvider dateTimeZoneProvider)
-    {
-        DateTimeZoneProvider = dateTimeZoneProvider;
-        Clock = clock;
-        GTDMapper = new GTDMapper(clock, dateTimeZoneProvider);
-    }
+    public TaskInfoModel MapToModel(TaskInfo taskInfo) => GTDMapper.Mapper.Map<TaskInfoModel>(taskInfo);
 
-    public TaskInfoModel MapToModel(TaskInfo taskInfo)
-    {
-        return GTDMapper.Mapper.Map<TaskInfoModel>(taskInfo);
-    }
-
-    public TaskInfo MapFromModel(TaskInfoModel model)
-    {
-        return GTDMapper.Mapper.Map<TaskInfo>(model);
-    }
+    public TaskInfo MapFromModel(TaskInfoModel model) => GTDMapper.Mapper.Map<TaskInfo>(model);
 }

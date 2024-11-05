@@ -3,20 +3,17 @@ using TaskConverter.Model.Model;
 
 namespace TaskConverter.Plugin.GTD.Model;
 
-public struct RepeatInfo
+public readonly struct RepeatInfo
 {
-    private Func<string, (bool Success, int Interval, Period Period)>[] searchFunctions = new Func<
-        string,
-        (bool Success, int Interval, Period Period)
-    >[]
-    {
+    private readonly Func<string, (bool Success, int Interval, Period Period)>[] searchFunctions =
+    [
         (repeatInfo) => GetIntervalPeriod(repeatInfo, @"every (?<interval>\d+) (?<period>[^s]*)"),
         (repeatInfo) => GetIntervalPeriod(repeatInfo, @"(?<period>[^s]+)ly"),
         (repeatInfo) => GetIntervalPeriod(repeatInfo, @"daily", 1, Period.Day),
         (repeatInfo) => GetIntervalPeriod(repeatInfo, @"bi(?<period>[^s]+)ly", 2),
         (repeatInfo) => GetIntervalPeriod(repeatInfo, @"quarterly", 3, Period.Month),
         (repeatInfo) => GetIntervalPeriod(repeatInfo, @"semiannually", 6, Period.Month)
-    };
+    ];
     public int Interval { get; }
 
     public Period Period { get; }

@@ -1,17 +1,10 @@
 namespace TaskConverter.Model.Model;
 
-public class NotebookModel : ExtendedModel
+public class NotebookModel(TaskInfoModel taskInfoModel, int folderId) : ExtendedModel
 {
-    private readonly Func<Dictionary<int, FolderModel>> FoldersFunc;
-    private readonly int FolderId;
-
-    public NotebookModel(TaskInfoModel taskInfoModel, int folderId)
-    {
-        FoldersFunc = () => taskInfoModel.Folders?.ToDictionary(f => f.Id) ?? new Dictionary<int, FolderModel>();
-        FolderId = folderId;
-    }
+    private readonly Func<Dictionary<int, FolderModel>> FoldersFunc = () => taskInfoModel.Folders?.ToDictionary(f => f.Id) ?? [];
 
     public string[]? Note { get; set; }
 
-    public FolderModel? Folder => FolderId == 0 ? null : FoldersFunc.Invoke()[FolderId];
+    public FolderModel? Folder => folderId == 0 ? null : FoldersFunc.Invoke()[folderId];
 }

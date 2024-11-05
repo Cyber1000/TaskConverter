@@ -105,7 +105,7 @@ public class TaskInfoTaskEntry : TaskInfoEntryBase
     public int Context { get; set; }
     public int Goal { get; set; }
     public int Folder { get; set; }
-    public List<int> Tag { get; set; } = new List<int>();
+    public List<int> Tag { get; set; } = [];
     public bool Starred { get; set; }
     public Priority Priority { get; set; }
 

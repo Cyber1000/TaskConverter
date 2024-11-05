@@ -7,8 +7,7 @@ namespace TaskConverter.Plugin.GTD.Utils;
 public static class JsonUtil
 {
     private readonly static List<(string oldValue, string newValue)> RepeatInfoMapper =
-        new()
-        {
+        [
             ("Norepeat", ""),
             ("Daily", "Every 1 day"),
             ("Weekly", "Every 1 week"),
@@ -18,7 +17,7 @@ public static class JsonUtil
             ("Quarterly", "Every 3 months"),
             ("Semiannually", "Every 6 months"),
             ("Yearly", "Every 1 year")
-        };
+        ];
 
     public static string Read(this FileInfo file)
     {

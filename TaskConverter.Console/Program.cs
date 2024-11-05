@@ -53,10 +53,7 @@ class Programm
         return 0;
     }
 
-    private static IList<string> GetAvailablePlugins(IDictionary<string, IConverterPlugin> commands)
-    {
-        return commands.Select(c => c.Key).ToList();
-    }
+    private static List<string> GetAvailablePlugins(IDictionary<string, IConverterPlugin> commands) => commands.Select(c => c.Key).ToList();
 
     private static IDictionary<string, IConverterPlugin> LoadPluginsAndGetCommands()
     {

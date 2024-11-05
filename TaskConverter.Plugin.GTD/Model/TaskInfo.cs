@@ -17,7 +17,7 @@ public class TaskInfo
                 .Concat(Notebook?.Cast<TaskInfoEntryBase>() ?? new List<TaskInfoEntryBase>())
                 .Concat(TaskNote?.Cast<TaskInfoEntryBase>() ?? new List<TaskInfoEntryBase>());
 
-            return items?.ToList() ?? new List<TaskInfoEntryBase>();
+            return items?.ToList() ?? [];
         }
     }
 
