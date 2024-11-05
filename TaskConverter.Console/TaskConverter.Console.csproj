@@ -17,8 +17,17 @@
     <PackageReference Include="System.CommandLine.DragonFruit" Version="0.4.0-alpha.22272.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
   </ItemGroup>
-
-  <Target Name="BuildPlugin" BeforeTargets="Build">
-      <MSBuild Projects="..\TaskConverter.Plugin.GTD\TaskConverter.Plugin.GTD.csproj" Targets="Restore;Publish" Properties="Configuration=$(Configuration);PublishDir=$(MSBuildThisFileDirectory)/bin/$(Configuration)/plugins/TaskConverter.Plugin.GTD/" />
+  <Target Name="BuildAllPlugins" BeforeTargets="Build">
+    <PropertyGroup>
+      <PluginsDir>$(MSBuildThisFileDirectory)/bin/$(Configuration)/plugins/</PluginsDir>
+    </PropertyGroup>
+    
+    <!-- Delete the plugins directory -->
+    <RemoveDir Directories="$(PluginsDir)" />
+    
+    <ItemGroup>
+      <PluginProjects Include="..\TaskConverter.Plugin.*\*.csproj" Exclude="..\TaskConverter.Plugin.Base\*.csproj" />
+    </ItemGroup>
+    <MSBuild Projects="@(PluginProjects)" Targets="Restore;Publish" Properties="Configuration=$(Configuration);PublishDir=$(PluginsDir)%(RecursiveDir)/" />
   </Target>
 </Project>
