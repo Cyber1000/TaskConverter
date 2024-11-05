@@ -8,13 +8,11 @@ using NodaTime;
 
 namespace TaskConverter.Tests;
 
-public class MappingTests
+public class MappingTests(IConverter converter)
 {
-    private readonly IConverter TestConverter;
+    private readonly IConverter TestConverter = converter;
 
     private DateTimeZone CurrentDateTimeZone => TestConverter.DateTimeZoneProvider.CurrentDateTimeZone;
-
-    public MappingTests(IConverter converter) => TestConverter = converter;
 
     [Fact]
     public void Map_Version_ShouldBeValid()
@@ -36,10 +34,9 @@ public class MappingTests
     {
         var taskInfo = new TaskInfo
         {
-            Folder = new List<TaskInfoFolderEntry>
-            {
-                new TaskInfoFolderEntry
-                {
+            Folder =
+            [
+                new() {
                     Id = 1,
                     Uuid = "",
                     Parent = 0,
@@ -51,7 +48,7 @@ public class MappingTests
                     Visible = false,
                     Ordinal = 0
                 }
-            }
+            ]
         };
         var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
         var folder = taskInfo.Folder[0];
@@ -82,10 +79,9 @@ public class MappingTests
     {
         var taskInfo = new TaskInfo
         {
-            Context = new List<TaskInfoContextEntry>
-            {
-                new TaskInfoContextEntry
-                {
+            Context =
+            [
+                new() {
                     Id = 1,
                     Uuid = "",
                     Parent = 0,
@@ -96,7 +92,7 @@ public class MappingTests
                     Color = -694050399,
                     Visible = false
                 }
-            }
+            ]
         };
         var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
         var context = taskInfo.Context[0];
@@ -126,10 +122,9 @@ public class MappingTests
     {
         var taskInfo = new TaskInfo
         {
-            Tag = new List<TaskInfoTagEntry>
-            {
-                new TaskInfoTagEntry
-                {
+            Tag =
+            [
+                new() {
                     Id = 1,
                     Uuid = "",
                     Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
@@ -138,7 +133,7 @@ public class MappingTests
                     Color = -694050399,
                     Visible = false
                 }
-            }
+            ]
         };
         var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
         var tag = taskInfo.Tag[0];
@@ -166,10 +161,9 @@ public class MappingTests
     {
         var taskInfo = new TaskInfo
         {
-            Task = new List<TaskInfoTaskEntry>
-            {
-                new TaskInfoTaskEntry
-                {
+            Task =
+            [
+                new() {
                     Id = 2,
                     Uuid = "",
                     Parent = 1,
@@ -191,7 +185,7 @@ public class MappingTests
                     Context = 5,
                     Goal = 0,
                     Folder = 8,
-                    Tag = new List<int> { 10, 11 },
+                    Tag = [10, 11],
                     Starred = true,
                     Priority = Plugin.GTD.Model.Priority.Low,
                     Note = new string[] { "Note" },
@@ -204,8 +198,7 @@ public class MappingTests
                     Hide = Hide.GivenDate,
                     HideUntil = 1677402000000
                 },
-                new TaskInfoTaskEntry
-                {
+                new() {
                     Id = 1,
                     Uuid = "",
                     Parent = 0,
@@ -213,11 +206,10 @@ public class MappingTests
                     Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                     Title = "Test"
                 }
-            },
-            Context = new List<TaskInfoContextEntry>
-            {
-                new TaskInfoContextEntry
-                {
+            ],
+            Context =
+            [
+                new() {
                     Id = 5,
                     Uuid = "",
                     Parent = 0,
@@ -228,11 +220,10 @@ public class MappingTests
                     Color = -694050399,
                     Visible = false
                 }
-            },
-            Folder = new List<TaskInfoFolderEntry>
-            {
-                new TaskInfoFolderEntry
-                {
+            ],
+            Folder =
+            [
+                new() {
                     Id = 8,
                     Uuid = "",
                     Parent = 0,
@@ -244,11 +235,10 @@ public class MappingTests
                     Visible = false,
                     Ordinal = 0
                 }
-            },
-            Tag = new List<TaskInfoTagEntry>
-            {
-                new TaskInfoTagEntry
-                {
+            ],
+            Tag =
+            [
+                new() {
                     Id = 10,
                     Uuid = "",
                     Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
@@ -257,8 +247,7 @@ public class MappingTests
                     Color = -694050399,
                     Visible = false
                 },
-                new TaskInfoTagEntry
-                {
+                new() {
                     Id = 11,
                     Uuid = "",
                     Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
@@ -267,7 +256,7 @@ public class MappingTests
                     Color = -694050399,
                     Visible = false
                 }
-            }
+            ]
         };
         var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
         var task = taskInfo.Task[0];
@@ -344,10 +333,9 @@ public class MappingTests
     {
         var taskInfo = new TaskInfo
         {
-            TaskNote = new List<TaskInfoTaskNote>
-            {
-                new TaskInfoTaskNote
-                {
+            TaskNote =
+            [
+                new() {
                     Id = 1,
                     Uuid = "",
                     Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
@@ -356,7 +344,7 @@ public class MappingTests
                     Color = -694050399,
                     Visible = false
                 }
-            }
+            ]
         };
         var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
         var taskNote = taskInfo.TaskNote[0];
@@ -384,10 +372,9 @@ public class MappingTests
     {
         var taskInfo = new TaskInfo
         {
-            Notebook = new List<TaskInfoNotebook>
-            {
-                new TaskInfoNotebook
-                {
+            Notebook =
+            [
+                new() {
                     Id = 1,
                     Uuid = "",
                     Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
@@ -399,11 +386,10 @@ public class MappingTests
                     Color = -694050399,
                     Visible = false
                 }
-            },
-            Folder = new List<TaskInfoFolderEntry>
-            {
-                new TaskInfoFolderEntry
-                {
+            ],
+            Folder =
+            [
+                new() {
                     Id = 2,
                     Uuid = "",
                     Parent = 0,
@@ -415,7 +401,7 @@ public class MappingTests
                     Visible = false,
                     Ordinal = 0
                 }
-            }
+            ]
         };
         var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
         var notebook = taskInfo.Notebook[0];
@@ -451,7 +437,7 @@ public class MappingTests
         XmlDocument originalXml = new();
         originalXml.LoadXml(originalXmlString);
 
-        var taskInfo = new TaskInfo { Preferences = new List<Preferences>() { new Preferences { XmlConfig = originalXml } } };
+        var taskInfo = new TaskInfo { Preferences = [new() { XmlConfig = originalXml }] };
         var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
         var preference = taskInfo.Preferences[0].XmlConfig;
         var preferenceModel = taskInfoModel?.Config;
@@ -469,10 +455,9 @@ public class MappingTests
     {
         var taskInfo = new TaskInfo
         {
-            Task = new List<TaskInfoTaskEntry>
-            {
-                new TaskInfoTaskEntry
-                {
+            Task =
+            [
+                new() {
                     Id = 1,
                     Uuid = "",
                     Parent = 0,
@@ -481,7 +466,7 @@ public class MappingTests
                     Title = "Test",
                     DueDate = hasTime ? new LocalDateTime(2023, 02, 20, 10, 0, 0) : new LocalDateTime(2023, 02, 20, 0, 0, 0)
                 }
-            }
+            ]
         };
         var (_, taskInfoFromModel) = GetMappedInfo(taskInfo);
 
@@ -497,10 +482,9 @@ public class MappingTests
     {
         var taskInfo = new TaskInfo
         {
-            Task = new List<TaskInfoTaskEntry>
-            {
-                new TaskInfoTaskEntry
-                {
+            Task =
+            [
+                new() {
                     Id = 1,
                     Uuid = "",
                     Parent = 0,
@@ -510,7 +494,7 @@ public class MappingTests
                     DueDate = new LocalDateTime(2023, 02, 20, 10, 0, 0),
                     Floating = isFloating
                 }
-            }
+            ]
         };
         var (_, taskInfoFromModel) = GetMappedInfo(taskInfo);
 
@@ -535,10 +519,9 @@ public class MappingTests
         var dueDate = dueDateInstant.GetLocalDateTime(CurrentDateTimeZone);
         var taskInfo = new TaskInfo
         {
-            Task = new List<TaskInfoTaskEntry>
-            {
-                new TaskInfoTaskEntry
-                {
+            Task =
+            [
+                new() {
                     Id = 1,
                     Uuid = "",
                     Parent = 0,
@@ -548,7 +531,7 @@ public class MappingTests
                     DueDate = dueDate,
                     Reminder = reminder
                 }
-            }
+            ]
         };
         var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
 
@@ -567,10 +550,9 @@ public class MappingTests
     {
         var taskInfo = new TaskInfo
         {
-            Task = new List<TaskInfoTaskEntry>
-            {
-                new TaskInfoTaskEntry
-                {
+            Task =
+            [
+                new() {
                     Id = 1,
                     Uuid = "",
                     Parent = 0,
@@ -580,7 +562,7 @@ public class MappingTests
                     DueDate = null,
                     Reminder = 30000
                 }
-            }
+            ]
         };
         var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
 
@@ -603,10 +585,9 @@ public class MappingTests
 
         var taskInfo = new TaskInfo
         {
-            Task = new List<TaskInfoTaskEntry>
-            {
-                new TaskInfoTaskEntry
-                {
+            Task =
+            [
+                new() {
                     Id = 1,
                     Uuid = "",
                     Parent = 0,
@@ -616,7 +597,7 @@ public class MappingTests
                     DueDate = new LocalDateTime(2023, 02, 20, 10, 0, 0),
                     Reminder = reminder
                 }
-            }
+            ]
         };
         var (_, taskInfoFromModel) = GetMappedInfo(taskInfo);
 
@@ -647,10 +628,9 @@ public class MappingTests
     {
         var taskInfo = new TaskInfo
         {
-            Task = new List<TaskInfoTaskEntry>
-            {
-                new TaskInfoTaskEntry
-                {
+            Task =
+            [
+                new() {
                     Id = 1,
                     Uuid = "",
                     Parent = 0,
@@ -660,7 +640,7 @@ public class MappingTests
                     RepeatFrom = repeatFrom,
                     RepeatNew = expectRepeatInfo ? new RepeatInfo(repeatInfoString) : null
                 }
-            }
+            ]
         };
         var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
 
@@ -701,10 +681,9 @@ public class MappingTests
 
         var taskInfo = new TaskInfo
         {
-            Task = new List<TaskInfoTaskEntry>
-            {
-                new TaskInfoTaskEntry
-                {
+            Task =
+            [
+                new() {
                     Id = 1,
                     Uuid = "",
                     Parent = 0,
@@ -715,7 +694,7 @@ public class MappingTests
                     Hide = Hide.SixMonthsBeforeDue,
                     HideUntil = hideInMilliseconds
                 }
-            }
+            ]
         };
         var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
 

@@ -16,28 +16,26 @@ public class LocalDateTimeNullablePattern<T> : IPattern<T>
     private LocalDateTimeNullablePattern(LocalDateTimePattern pattern)
     {
         if (BaseType != typeof(LocalDateTime))
+        {
             throw new ArgumentException($"Type {typeof(T)} is not allowed here, only LocalDateTime|Nullable<LocalDateTime> allowed.");
+        }
+
         Pattern = pattern;
     }
 
     public StringBuilder AppendFormat(T value, StringBuilder builder)
     {
-        if (!HasValue(value))
-            return new StringBuilder();
-
-        return Pattern.AppendFormat(GetLocalDateTime(value), builder);
+        return !HasValue(value) ? new StringBuilder() : Pattern.AppendFormat(GetLocalDateTime(value), builder);
     }
 
     public string Format(T value)
     {
-        if (!HasValue(value))
-            return string.Empty;
-        return Pattern.Format(GetLocalDateTime(value));
+        return !HasValue(value) ? string.Empty : Pattern.Format(GetLocalDateTime(value));
     }
 
     public ParseResult<T> Parse(string text)
     {
-        var parseResult = Pattern.Parse(text);
+        ParseResult<LocalDateTime> parseResult = Pattern.Parse(text);
 
         if (!parseResult.Success)
         {
@@ -58,10 +56,18 @@ public class LocalDateTimeNullablePattern<T> : IPattern<T>
 
     private readonly bool IsNullable = Nullable.GetUnderlyingType(typeof(T)) != null;
 
-    private static bool HasValue(T value) => !EqualityComparer<T>.Default.Equals(value, default);
+    private static bool HasValue(T value)
+    {
+        return !EqualityComparer<T>.Default.Equals(value, default);
+    }
 
-    private static LocalDateTime GetLocalDateTime(T value) =>
-        value == null ? default : (LocalDateTime)Convert.ChangeType(value, typeof(LocalDateTime));
+    private static LocalDateTime GetLocalDateTime(T value)
+    {
+        return value == null ? default : (LocalDateTime)Convert.ChangeType(value, typeof(LocalDateTime));
+    }
 
-    private T GetT(LocalDateTime value) => (T)Convert.ChangeType(value, BaseType);
+    private T GetT(LocalDateTime value)
+    {
+        return (T)Convert.ChangeType(value, BaseType);
+    }
 }

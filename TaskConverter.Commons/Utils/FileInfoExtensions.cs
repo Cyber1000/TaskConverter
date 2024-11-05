@@ -7,7 +7,7 @@ public static class FileInfoExtensions
     public static void WriteToZip(this FileInfo zipFileInfo, string jsonString)
     {
         var zipFilePath = zipFileInfo.FullName;
-        var filePath = zipFilePath[..zipFilePath.LastIndexOf(".")];
+        var filePath = zipFilePath[..zipFilePath.LastIndexOf('.')];
         var entryName = Path.GetFileName(filePath);
 
         using var memoryStream = new MemoryStream();
@@ -28,7 +28,7 @@ public static class FileInfoExtensions
     public static string ReadFromZip(this FileInfo zipFileInfo)
     {
         var zipFilePath = zipFileInfo.FullName;
-        var filePath = zipFilePath[..zipFilePath.LastIndexOf(".")];
+        var filePath = zipFilePath[..zipFilePath.LastIndexOf('.')];
         var entryName = Path.GetFileName(filePath);
 
         using var file = File.OpenRead(zipFilePath);

@@ -3,10 +3,7 @@ using NodaTime.Text;
 
 namespace TaskConverter.Commons.ConversionHelper;
 
-public class NodaNullablePatternConverter<T> : DelegatingConverterBase<T>
+public class NodaNullablePatternConverter<T>(IPattern<T> pattern) : DelegatingConverterBase<T>(new NodaPatternConverter<T>(pattern))
 {
     public override bool HandleNull => true;
-
-    public NodaNullablePatternConverter(IPattern<T> pattern)
-        : base(new NodaPatternConverter<T>(pattern)) { }
 }
