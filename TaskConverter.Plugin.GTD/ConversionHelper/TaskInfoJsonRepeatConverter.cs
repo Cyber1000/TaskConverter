@@ -4,15 +4,15 @@ using TaskConverter.Plugin.GTD.Model;
 
 namespace TaskConverter.Plugin.GTD.ConversionHelper;
 
-public class TaskInfoJsonRepeatConverter : JsonConverter<RepeatInfo?>
+public class TaskInfoJsonRepeatConverter : JsonConverter<GTDRepeatInfoModel?>
 {
-    public override bool CanConvert(Type typeToConvert) => typeToConvert == typeof(RepeatInfo?);
+    public override bool CanConvert(Type typeToConvert) => typeToConvert == typeof(GTDRepeatInfoModel?);
 
     public override bool HandleNull => true;
 
     public TaskInfoJsonRepeatConverter() { }
 
-    public override RepeatInfo? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override GTDRepeatInfoModel? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         var stringValue = reader.GetString()?.ToLower();
         if (stringValue == null)
@@ -24,11 +24,11 @@ public class TaskInfoJsonRepeatConverter : JsonConverter<RepeatInfo?>
         }
         else
         {
-            return new RepeatInfo(stringValue);
+            return new GTDRepeatInfoModel(stringValue);
         }
     }
 
-    public override void Write(Utf8JsonWriter writer, RepeatInfo? value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, GTDRepeatInfoModel? value, JsonSerializerOptions options)
     {
         writer.WriteStringValue(value == null ? "" : value.ToString());
     }

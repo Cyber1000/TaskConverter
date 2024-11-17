@@ -17,7 +17,7 @@
     <PackageReference Include="System.CommandLine.DragonFruit" Version="0.4.0-alpha.22272.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
   </ItemGroup>
-  <Target Name="BuildAllPlugins" BeforeTargets="Build">
+    <Target Name="BuildAllPlugins" BeforeTargets="Build">
     <PropertyGroup>
       <PluginsDir>$(MSBuildThisFileDirectory)/bin/$(Configuration)/plugins/</PluginsDir>
     </PropertyGroup>

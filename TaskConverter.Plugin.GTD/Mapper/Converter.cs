@@ -5,12 +5,13 @@ using NodaTime;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
+//TODO HH: move to base?
 public interface IConverter
 {
     IClock Clock { get; }
     IConverterDateTimeZoneProvider DateTimeZoneProvider { get; }
-    TaskInfoModel MapToModel(TaskInfo taskInfo);
-    TaskInfo MapFromModel(TaskInfoModel model);
+    TaskAppDataModel MapToModel(GTDDataModel taskInfo);
+    GTDDataModel MapFromModel(TaskAppDataModel model);
 }
 
 public class Converter(IClock clock, IConverterDateTimeZoneProvider dateTimeZoneProvider) : IConverter
@@ -19,7 +20,7 @@ public class Converter(IClock clock, IConverterDateTimeZoneProvider dateTimeZone
     public IClock Clock { get; } = clock;
     public IConverterDateTimeZoneProvider DateTimeZoneProvider { get; set; } = dateTimeZoneProvider;
 
-    public TaskInfoModel MapToModel(TaskInfo taskInfo) => GTDMapper.Mapper.Map<TaskInfoModel>(taskInfo);
+    public TaskAppDataModel MapToModel(GTDDataModel taskInfo) => GTDMapper.Mapper.Map<TaskAppDataModel>(taskInfo);
 
-    public TaskInfo MapFromModel(TaskInfoModel model) => GTDMapper.Mapper.Map<TaskInfo>(model);
+    public GTDDataModel MapFromModel(TaskAppDataModel model) => GTDMapper.Mapper.Map<GTDDataModel>(model);
 }

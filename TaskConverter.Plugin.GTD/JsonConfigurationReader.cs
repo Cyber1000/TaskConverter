@@ -17,7 +17,7 @@ namespace TaskConverter.Plugin.GTD;
 public class JsonConfigurationReader
 {
     private string? RawJsonString;
-    public TaskInfo? TaskInfo { get; private set; }
+    public GTDDataModel? TaskInfo { get; private set; }
 
     public JsonConfigurationReader(FileInfo inputFile)
     {
@@ -38,7 +38,7 @@ public class JsonConfigurationReader
         RawJsonString = jsonString;
         JsonSerializerOptions options = InitSerializerOptions();
 
-        TaskInfo = JsonSerializer.Deserialize<TaskInfo>(jsonString, options);
+        TaskInfo = JsonSerializer.Deserialize<GTDDataModel>(jsonString, options);
         AssertValues(TaskInfo);
     }
 
@@ -61,8 +61,9 @@ public class JsonConfigurationReader
         return options;
     }
 
-    private static void AssertValues(TaskInfo? taskInfo)
+    private static void AssertValues(GTDDataModel? taskInfo)
     {
+        //TODO HH: add validators or move to mapper?
         if (taskInfo == null)
             return;
         string? errorText = null;
@@ -75,7 +76,7 @@ public class JsonConfigurationReader
 
             switch (singleTaskInfo)
             {
-                case TaskInfoTaskEntry taskInfoTaskEntry:
+                case GTDTaskModel taskInfoTaskEntry:
                     if (taskInfoTaskEntry.StartDate is not null)
                         errorText = "Start Date not implemented";
                     if (taskInfoTaskEntry.StartTimeSet)
@@ -98,7 +99,7 @@ public class JsonConfigurationReader
                     if (taskInfoTaskEntry.Hide != Hide.DontHide && taskInfoTaskEntry.Hide != Hide.SixMonthsBeforeDue)
                         errorText = $"Hide not implemented with value {taskInfoTaskEntry.Hide}";
                     break;
-                case TaskInfoTaskNote:
+                case GTDTaskNoteModel:
                     errorText = "TaskInfoTaskNote not implemented";
                     break;
             }

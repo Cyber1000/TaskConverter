@@ -4,7 +4,7 @@ using TaskConverter.Plugin.GTD.ConversionHelper;
 
 namespace TaskConverter.Plugin.GTD.Model;
 
-public class Preferences
+public class GTDPreferencesModel
 {
     [JsonPropertyName("com.dg.gtd.android.lite_preferences")]
     [JsonConverter(typeof(TaskInfoXmlConverter))]

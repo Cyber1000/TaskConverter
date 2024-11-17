@@ -3,7 +3,7 @@ using TaskConverter.Commons.ConversionHelper;
 
 namespace TaskConverter.Plugin.GTD.Model;
 
-public class TaskInfoNotebook : TaskInfoExtendedEntry
+public class GTDNotebookModel : GTDExtendedModel
 {
     [JsonPropertyOrder(-650)]
     public int Private { get; set; }

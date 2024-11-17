@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace TaskConverter.Plugin.GTD.Model;
 
-public abstract class TaskInfoExtendedEntry : TaskInfoEntryBase
+public abstract class GTDExtendedModel : GTDBaseModel
 {
     [JsonPropertyOrder(-500)]
     public int Color { get; set; }

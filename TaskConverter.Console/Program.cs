@@ -55,12 +55,12 @@ class Programm
 
     private static List<string> GetAvailablePlugins(IDictionary<string, IConverterPlugin> commands) => commands.Select(c => c.Key).ToList();
 
-    private static IDictionary<string, IConverterPlugin> LoadPluginsAndGetCommands()
+    private static Dictionary<string, IConverterPlugin> LoadPluginsAndGetCommands()
     {
         var pluginBaseDir = Path.Combine(AppContext.BaseDirectory, "plugins");
         if (!Directory.Exists(pluginBaseDir))
         {
-            return new Dictionary<string, IConverterPlugin>();
+            return [];
         }
         var pluginLoader = new PluginHandler(pluginBaseDir);
         return pluginLoader
@@ -70,7 +70,7 @@ class Programm
 
     private static void CanMap(IConverterPlugin command, TextWriter errorConsole)
     {
-        var (canConvert, exception) = command.CanConvertToTaskInfoModel();
+        var (canConvert, exception) = command.CanConvertToTaskAppDataModel();
         if (canConvert.HasValue)
         {
             if (canConvert.Value)

@@ -1,3 +1,4 @@
+
 namespace TaskConverter.Model.Model;
 
 public struct RepeatInfoModel(int interval, Period period, RepeatFrom repeatFrom)

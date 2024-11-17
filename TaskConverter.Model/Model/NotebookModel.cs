@@ -1,10 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace TaskConverter.Model.Model;
 
-public class NotebookModel(TaskInfoModel taskInfoModel, int folderId) : ExtendedModel
+public class NotebookModel(TaskAppDataModel taskAppDataModel, [AllowNull] string keyWordId) : ExtendedModel
 {
-    private readonly Func<Dictionary<int, FolderModel>> FoldersFunc = () => taskInfoModel.Folders?.ToDictionary(f => f.Id) ?? [];
+    private readonly Func<Dictionary<string, KeyWordModel>> KeyWordsFunc = () => taskAppDataModel.KeyWords?.ToDictionary(f => f.Id) ?? [];
 
+    //TODO HH: string instead?
     public string[]? Note { get; set; }
 
-    public FolderModel? Folder => folderId == 0 ? null : FoldersFunc.Invoke()[folderId];
+    public KeyWordModel? Keyword => string.IsNullOrEmpty(keyWordId) ? null : KeyWordsFunc.Invoke()[keyWordId];
 }

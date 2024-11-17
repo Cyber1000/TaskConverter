@@ -3,7 +3,7 @@ using NodaTime;
 
 namespace TaskConverter.Plugin.GTD.Model;
 
-public abstract class TaskInfoEntryBase
+public abstract class GTDBaseModel
 {
     [JsonPropertyOrder(-1000)]
     public int Id { get; set; }

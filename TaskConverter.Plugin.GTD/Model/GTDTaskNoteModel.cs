@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace TaskConverter.Plugin.GTD.Model;
 
-public class TaskInfoTaskNote : TaskInfoExtendedEntry
+public class GTDTaskNoteModel : GTDExtendedModel
 {
     [JsonPropertyOrder(-850)]
     [JsonPropertyName("TASK_ID")]

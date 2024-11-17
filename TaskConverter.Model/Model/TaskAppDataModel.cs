@@ -2,15 +2,11 @@ using System.Xml;
 
 namespace TaskConverter.Model.Model;
 
-public class TaskInfoModel
+public class TaskAppDataModel
 {
     public int Version { get; set; }
 
-    public List<FolderModel>? Folders { get; set; }
-
-    public List<ContextModel>? Contexts { get; set; }
-
-    public List<TagModel>? Tags { get; set; }
+    public List<KeyWordModel>? KeyWords { get; set; }
 
     public List<TaskModel>? Tasks { get; set; }
 

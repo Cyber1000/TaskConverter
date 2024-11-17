@@ -3,7 +3,7 @@ using TaskConverter.Model.Model;
 
 namespace TaskConverter.Plugin.GTD.Model;
 
-public readonly struct RepeatInfo
+public readonly struct GTDRepeatInfoModel
 {
     private readonly Func<string, (bool Success, int Interval, Period Period)>[] searchFunctions =
     [
@@ -18,7 +18,7 @@ public readonly struct RepeatInfo
 
     public Period Period { get; }
 
-    public RepeatInfo(string repeatInfo)
+    public GTDRepeatInfoModel(string repeatInfo)
     {
         foreach (var searchFunction in searchFunctions)
         {
@@ -34,7 +34,7 @@ public readonly struct RepeatInfo
         throw new NotImplementedException($"Cannot cast \"{repeatInfo}\" to RepeatInfo");
     }
 
-    public RepeatInfo(int interval, Period period)
+    public GTDRepeatInfoModel(int interval, Period period)
     {
         Interval = interval;
         Period = period;

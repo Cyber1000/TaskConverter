@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace TaskConverter.Plugin.GTD.Model;
 
-public class TaskInfoFolderEntry : TaskInfoEntryBaseWithParent
+public class GTDFolderModel : GTDBaseWithParentModel
 {
     [JsonPropertyOrder(-840)]
     public int Children { get; set; }

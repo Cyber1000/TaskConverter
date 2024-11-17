@@ -5,10 +5,10 @@ using NodaTime;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
-public class ReminderResolver(DateTimeZone dateTimeZone) : IValueResolver<TaskModel, TaskInfoTaskEntry, long>
+public class ReminderResolver(DateTimeZone dateTimeZone) : IValueResolver<TaskModel, GTDTaskModel, long>
 {
-    int[] fixedDiffsFromDueDate =
-    {
+    readonly int[] fixedDiffsFromDueDate =
+    [
         0,
         1,
         5,
@@ -35,11 +35,11 @@ public class ReminderResolver(DateTimeZone dateTimeZone) : IValueResolver<TaskMo
         10080,
         20160,
         43200
-    };
+    ];
 
     public DateTimeZone DateTimeZone { get; } = dateTimeZone;
 
-    public long Resolve(TaskModel source, TaskInfoTaskEntry destination, long destMember, ResolutionContext context)
+    public long Resolve(TaskModel source, GTDTaskModel destination, long destMember, ResolutionContext context)
     {
         var reminder = source.Reminder;
         if (reminder == null)

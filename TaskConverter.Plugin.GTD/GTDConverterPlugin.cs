@@ -35,14 +35,14 @@ public class GTDConverterPlugin : IConverterPlugin
         }
     }
 
-    public (bool?, Exception? exception) CanConvertToTaskInfoModel()
+    public (bool?, Exception? exception) CanConvertToTaskAppDataModel()
     {
         try
         {
             if (jsonReader?.TaskInfo == null)
                 return (null, null);
 
-            ConvertToTaskInfoModel();
+            ConvertToTaskAppDataModel();
             return (true, null);
         }
         catch (Exception exception)
@@ -51,7 +51,7 @@ public class GTDConverterPlugin : IConverterPlugin
         }
     }
 
-    public TaskInfoModel? ConvertToTaskInfoModel()
+    public TaskAppDataModel? ConvertToTaskAppDataModel()
     {
         return jsonReader?.TaskInfo == null ? null : converter.MapToModel(jsonReader.TaskInfo);
     }

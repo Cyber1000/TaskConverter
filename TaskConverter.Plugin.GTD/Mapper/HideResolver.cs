@@ -6,7 +6,7 @@ using Period = TaskConverter.Model.Model.Period;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
-public class HideResolver(DateTimeZone dateTimeZone) : IValueResolver<TaskModel, TaskInfoTaskEntry, Hide>
+public class HideResolver(DateTimeZone dateTimeZone) : IValueResolver<TaskModel, GTDTaskModel, Hide>
 {
     public enum HideBase
     {
@@ -20,7 +20,7 @@ public class HideResolver(DateTimeZone dateTimeZone) : IValueResolver<TaskModel,
 
     public DateTimeZone DateTimeZone { get; } = dateTimeZone;
 
-    public Hide Resolve(TaskModel source, TaskInfoTaskEntry destination, Hide destMember, ResolutionContext context)
+    public Hide Resolve(TaskModel source, GTDTaskModel destination, Hide destMember, ResolutionContext context)
     {
         var dueDate = source.DueDate;
         var hideUntil = source.HideUntil;

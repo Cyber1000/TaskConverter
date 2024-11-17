@@ -3,6 +3,7 @@ using TaskConverter.Commons.ConversionHelper;
 using TaskConverter.Model.Model;
 using TaskConverter.Plugin.GTD.ConversionHelper;
 using NodaTime;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TaskConverter.Plugin.GTD.Model;
 
@@ -75,8 +76,21 @@ public enum Hide
     GivenDate = 4
 }
 
-public class TaskInfoTaskEntry : TaskInfoEntryBase
+public class GTDTaskModel : GTDBaseModel
 {
+    public GTDTaskModel()
+    {
+        
+    }
+
+    public GTDTaskModel(GTDDataModel gtdDataModel, int parentId, List<int> tagIds, int folderId, int contextId)
+    {
+        Parent = parentId;
+        Tag = tagIds;
+        Folder = folderId;
+        Context = contextId;
+    }
+
     [JsonPropertyOrder(-850)]
     public int Parent { get; set; }
     public LocalDateTime? StartDate { get; set; }
@@ -98,8 +112,8 @@ public class TaskInfoTaskEntry : TaskInfoEntryBase
     public LocalDateTime? Alarm { get; set; }
 
     [JsonConverter(typeof(TaskInfoJsonRepeatConverter))]
-    public RepeatInfo? RepeatNew { get; set; }
-    public RepeatFrom RepeatFrom { get; set; }
+    public GTDRepeatInfoModel? RepeatNew { get; set; }
+    public GTDRepeatFrom RepeatFrom { get; set; }
     public int Duration { get; set; }
     public Status Status { get; set; }
     public int Context { get; set; }

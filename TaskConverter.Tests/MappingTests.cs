@@ -5,24 +5,32 @@ using TaskConverter.Plugin.GTD.Mapper;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Tests.Extensions;
 using NodaTime;
+using TaskConverter.Model.Mapper;
 
 namespace TaskConverter.Tests;
 
-public class MappingTests(IConverter converter)
+//TODO HH: simplify
+public class MappingTests(IConverter TestConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
 {
-    private readonly IConverter TestConverter = converter;
-
     private DateTimeZone CurrentDateTimeZone => TestConverter.DateTimeZoneProvider.CurrentDateTimeZone;
+
+    [Fact]
+    public void Automapper_CheckConfig_ShouldBeValid()
+    {
+        //TODO HH: Test mapping in both directions? Check missing mappings
+        var gtdMapper = new GTDMapper(clock, converterDateTimeZoneProvider);
+        gtdMapper.Mapper.ConfigurationProvider.AssertConfigurationIsValid();
+    }
 
     [Fact]
     public void Map_Version_ShouldBeValid()
     {
-        var taskInfo = new TaskInfo { Version = 3 };
+        var gtdDataModel = new GTDDataModel { Version = 3 };
 
-        var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
-        var version = taskInfo.Version;
-        var versionModel = taskInfoModel?.Version;
-        var versionFromModel = taskInfoFromModel?.Version;
+        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
+        var version = gtdDataModel.Version;
+        var versionModel = taskAppDataModel?.Version;
+        var versionFromModel = gtdDataMappedRemappedModel?.Version;
 
         Assert.Equal(version, versionModel);
 
@@ -32,7 +40,7 @@ public class MappingTests(IConverter converter)
     [Fact]
     public void Map_Folder_ShouldBeValid()
     {
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             Folder =
             [
@@ -50,12 +58,13 @@ public class MappingTests(IConverter converter)
                 }
             ]
         };
-        var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
-        var folder = taskInfo.Folder[0];
-        var folderModel = taskInfoModel?.Folders?[0]!;
-        var folderFromModel = taskInfoFromModel?.Folder?[0]!;
+        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
+        var folder = gtdDataModel.Folder[0];
+        //TODO HH: keyword is not the exact mapping here
+        var folderModel = taskAppDataModel?.KeyWords?[0]!;
+        var folderFromModel = gtdDataMappedRemappedModel?.Folder?[0]!;
 
-        Assert.Equal(folder.Id, folderModel.Id);
+        Assert.Equal(folder.Id.ToString(), folderModel.Id);
         Assert.Equal(folder.Created, folderModel.Created.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(folder.Modified, folderModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(folder.Title, folderModel.Title);
@@ -77,7 +86,7 @@ public class MappingTests(IConverter converter)
     [Fact]
     public void Map_Context_ShouldBeValid()
     {
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             Context =
             [
@@ -94,12 +103,13 @@ public class MappingTests(IConverter converter)
                 }
             ]
         };
-        var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
-        var context = taskInfo.Context[0];
-        var contextModel = taskInfoModel?.Contexts?[0]!;
-        var contextFromModel = taskInfoFromModel?.Context?[0]!;
+        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
+        var context = gtdDataModel.Context[0];
+        //TODO HH: keyword is not the exact mapping here
+        var contextModel = taskAppDataModel?.KeyWords?[0]!;
+        var contextFromModel = gtdDataMappedRemappedModel?.Context?[0]!;
 
-        Assert.Equal(context.Id, contextModel.Id);
+        Assert.Equal(context.Id.ToString(), contextModel.Id);
         Assert.Equal(context.Created, contextModel.Created.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(context.Modified, contextModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(context.Title, contextModel.Title);
@@ -120,7 +130,7 @@ public class MappingTests(IConverter converter)
     [Fact]
     public void Map_Tag_ShouldBeValid()
     {
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             Tag =
             [
@@ -135,12 +145,12 @@ public class MappingTests(IConverter converter)
                 }
             ]
         };
-        var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
-        var tag = taskInfo.Tag[0];
-        var tagModel = taskInfoModel?.Tags?[0]!;
-        var tagFromModel = taskInfoFromModel?.Tag?[0]!;
+        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
+        var tag = gtdDataModel.Tag[0];
+        var tagModel = taskAppDataModel?.KeyWords?[0]!;
+        var tagFromModel = gtdDataMappedRemappedModel?.Tag?[0]!;
 
-        Assert.Equal(tag.Id, tagModel.Id);
+        Assert.Equal(tag.Id.ToString(), tagModel.Id);
         Assert.Equal(tag.Created, tagModel.Created.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(tag.Modified, tagModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(tag.Title, tagModel.Title);
@@ -159,7 +169,7 @@ public class MappingTests(IConverter converter)
     [Fact]
     public void Map_Task_ShouldBeValid()
     {
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             Task =
             [
@@ -178,8 +188,8 @@ public class MappingTests(IConverter converter)
                     DueDateModifier = DueDateModifier.DueBy,
                     Reminder = -1,
                     Alarm = null,
-                    RepeatNew = new RepeatInfo("Every 1 week"),
-                    RepeatFrom = RepeatFrom.FromDueDate,
+                    RepeatNew = new GTDRepeatInfoModel("Every 1 week"),
+                    RepeatFrom = GTDRepeatFrom.FromDueDate,
                     Duration = 0,
                     Status = Plugin.GTD.Model.Status.NextAction,
                     Context = 5,
@@ -258,16 +268,16 @@ public class MappingTests(IConverter converter)
                 }
             ]
         };
-        var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
-        var task = taskInfo.Task[0];
-        var taskModel = taskInfoModel?.Tasks?[0]!;
-        var taskModelWithoutParent = taskInfoModel?.Tasks?[1]!;
+        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
+        var task = gtdDataModel.Task[0];
+        var taskModel = taskAppDataModel?.Tasks?[0]!;
+        var taskModelWithoutParent = taskAppDataModel?.Tasks?[1]!;
 
-        var taskFromModel = taskInfoFromModel?.Task?[0]!;
-        var taskFromModelWithoutParent = taskInfoFromModel?.Task?[1]!;
+        var taskFromModel = gtdDataMappedRemappedModel?.Task?[0]!;
+        var taskFromModelWithoutParent = gtdDataMappedRemappedModel?.Task?[1]!;
 
-        Assert.Equal(task.Id, taskModel.Id);
-        Assert.Equal(task.Parent, taskModel.Parent!.Id);
+        Assert.Equal(task.Id.ToString(), taskModel.Id);
+        Assert.Equal(task.Parent.ToString(), taskModel.Parent!.Id);
         Assert.Equal(task.Created, taskModel.Created.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(task.Modified, taskModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(task.Title, taskModel.Title);
@@ -276,17 +286,18 @@ public class MappingTests(IConverter converter)
         Assert.Null(taskModel.Reminder);
         Assert.Equal(task.RepeatNew?.Interval, taskModel.RepeatInfo?.Interval);
         Assert.Equal(task.RepeatNew?.Period, taskModel.RepeatInfo?.Period);
-        Assert.Equal(task.RepeatFrom, taskModel.RepeatInfo?.RepeatFrom);
+        Assert.Equal(task.RepeatFrom, (GTDRepeatFrom?)taskModel.RepeatInfo?.RepeatFrom ?? GTDRepeatFrom.FromDueDate);
         Assert.Equal(Model.Model.Status.NextAction, taskModel.Status);
-        Assert.Equal(task.Context, taskModel.Context!.Id);
-        Assert.Equal(task.Folder, taskModel.Folder!.Id);
-        Assert.Equal(task.Tag, taskModel.Tags.Select(t => t.Id));
+        //TODO HH: keyword is not the exact mapping for context and folder
+        Assert.Equal(task.Context.ToString(), taskModel.KeyWords.FirstOrDefault(t => t.KeyWordType == GTDKeyWordEnum.Context)!.Id);
+        Assert.Equal(task.Folder.ToString(), taskModel.KeyWords.FirstOrDefault(t => t.KeyWordType == GTDKeyWordEnum.Folder)!.Id);
+        Assert.Equal(task.Tag.Select(t => t.ToString()), taskModel.KeyWords.Where(t => t.KeyWordType == KeyWordEnum.Tag).Select(t => t.Id));
         Assert.Equal(task.Starred, taskModel.Starred);
         Assert.Equal(Model.Model.Priority.Low, taskModel.Priority);
         Assert.Equal(task.Note, taskModel.Note);
         Assert.Equal(task.Completed, taskModel.Completed);
         Assert.Equal(Model.Model.TaskType.Task, taskModel.Type);
-        Assert.Equal(task.Floating, taskModel.Floating);
+        Assert.Equal(task.Floating, taskModel.HasFloatingDueDate);
         Assert.Equal(task.HideUntil, taskModel.HideUntil!.Value.ToUnixTimeMilliseconds());
 
         Assert.Null(taskModelWithoutParent.Parent);
@@ -331,7 +342,7 @@ public class MappingTests(IConverter converter)
     [Fact]
     public void Map_TaskNote_ShouldBeValid()
     {
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             TaskNote =
             [
@@ -346,12 +357,12 @@ public class MappingTests(IConverter converter)
                 }
             ]
         };
-        var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
-        var taskNote = taskInfo.TaskNote[0];
-        var taskNoteModel = taskInfoModel?.TaskNotes?[0]!;
-        var taskNoteFromModel = taskInfoFromModel?.TaskNote?[0]!;
+        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
+        var taskNote = gtdDataModel.TaskNote[0];
+        var taskNoteModel = taskAppDataModel?.TaskNotes?[0]!;
+        var taskNoteFromModel = gtdDataMappedRemappedModel?.TaskNote?[0]!;
 
-        Assert.Equal(taskNote.Id, taskNoteModel.Id);
+        Assert.Equal(taskNote.Id.ToString(), taskNoteModel.Id);
         Assert.Equal(taskNote.Created, taskNoteModel.Created.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(taskNote.Modified, taskNoteModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(taskNote.Title, taskNoteModel.Title);
@@ -370,7 +381,7 @@ public class MappingTests(IConverter converter)
     [Fact]
     public void Map_Notebook_ShouldBeValid()
     {
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             Notebook =
             [
@@ -403,17 +414,17 @@ public class MappingTests(IConverter converter)
                 }
             ]
         };
-        var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
-        var notebook = taskInfo.Notebook[0];
-        var notebookModel = taskInfoModel?.Notebooks?[0]!;
-        var notebookFromModel = taskInfoFromModel?.Notebook?[0]!;
+        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
+        var notebook = gtdDataModel.Notebook[0];
+        var notebookModel = taskAppDataModel?.Notebooks?[0]!;
+        var notebookFromModel = gtdDataMappedRemappedModel?.Notebook?[0]!;
 
-        Assert.Equal(notebook.Id, notebookModel.Id);
+        Assert.Equal(notebook.Id.ToString(), notebookModel.Id);
         Assert.Equal(notebook.Created, notebookModel.Created.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(notebook.Modified, notebookModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(notebook.Title, notebookModel.Title);
         Assert.Equal(notebook.Note, notebookModel.Note);
-        Assert.Equal(notebook.FolderId, notebookModel.Folder?.Id);
+        Assert.Equal(notebook.FolderId.ToString(), notebookModel.Keyword?.Id);
         Assert.Equal(Color.FromArgb(notebook.Color), notebookModel.Color);
         Assert.Equal(notebook.Visible, notebookModel.Visible);
 
@@ -437,11 +448,11 @@ public class MappingTests(IConverter converter)
         XmlDocument originalXml = new();
         originalXml.LoadXml(originalXmlString);
 
-        var taskInfo = new TaskInfo { Preferences = [new() { XmlConfig = originalXml }] };
-        var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
-        var preference = taskInfo.Preferences[0].XmlConfig;
-        var preferenceModel = taskInfoModel?.Config;
-        var preferenceFromModel = taskInfoFromModel?.Preferences?[0]?.XmlConfig;
+        var gtdDataModel = new GTDDataModel { Preferences = [new() { XmlConfig = originalXml }] };
+        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
+        var preference = gtdDataModel.Preferences[0].XmlConfig;
+        var preferenceModel = taskAppDataModel?.Config;
+        var preferenceFromModel = gtdDataMappedRemappedModel?.Preferences?[0]?.XmlConfig;
 
         Assert.Equal(preferenceModel, preference);
 
@@ -453,7 +464,7 @@ public class MappingTests(IConverter converter)
     [InlineData(false)]
     public void Map_TaskWithDueDate_ShouldBeValid(bool hasTime)
     {
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             Task =
             [
@@ -468,9 +479,9 @@ public class MappingTests(IConverter converter)
                 }
             ]
         };
-        var (_, taskInfoFromModel) = GetMappedInfo(taskInfo);
+        var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
-        var taskFromModel = taskInfoFromModel?.Task?[0]!;
+        var taskFromModel = gtdDataMappedRemappedModel?.Task?[0]!;
 
         Assert.Equal(hasTime, taskFromModel.DueTimeSet);
     }
@@ -480,7 +491,7 @@ public class MappingTests(IConverter converter)
     [InlineData(false)]
     public void Map_TaskWithDueDateModifier_ShouldBeValid(bool isFloating)
     {
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             Task =
             [
@@ -496,9 +507,9 @@ public class MappingTests(IConverter converter)
                 }
             ]
         };
-        var (_, taskInfoFromModel) = GetMappedInfo(taskInfo);
+        var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
-        var taskFromModel = taskInfoFromModel?.Task?[0]!;
+        var taskFromModel = gtdDataMappedRemappedModel?.Task?[0]!;
 
         Assert.Equal(isFloating ? DueDateModifier.OptionallyOn : DueDateModifier.DueBy, taskFromModel.DueDateModifier);
     }
@@ -517,7 +528,7 @@ public class MappingTests(IConverter converter)
     {
         var dueDateInstant = Instant.FromUnixTimeMilliseconds(1608541200000);
         var dueDate = dueDateInstant.GetLocalDateTime(CurrentDateTimeZone);
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             Task =
             [
@@ -533,10 +544,10 @@ public class MappingTests(IConverter converter)
                 }
             ]
         };
-        var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
+        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
-        var taskModel = taskInfoModel?.Tasks?[0]!;
-        var taskFromModel = taskInfoFromModel?.Task?[0]!;
+        var taskModel = taskAppDataModel?.Tasks?[0]!;
+        var taskFromModel = gtdDataMappedRemappedModel?.Task?[0]!;
 
         Assert.Equal(expectedBase, taskModel.Reminder?.ReminderInstantType);
         var expectedReminder = expectOriginalValue
@@ -548,7 +559,7 @@ public class MappingTests(IConverter converter)
     [Fact]
     public void Map_TaskWithReminderWithDueDAteBasedReminderWithoutDueDate_ShouldReturnMinusOne()
     {
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             Task =
             [
@@ -564,10 +575,10 @@ public class MappingTests(IConverter converter)
                 }
             ]
         };
-        var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
+        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
-        var taskModel = taskInfoModel?.Tasks?[0]!;
-        var taskFromModel = taskInfoFromModel?.Task?[0]!;
+        var taskModel = taskAppDataModel?.Tasks?[0]!;
+        var taskFromModel = gtdDataMappedRemappedModel?.Task?[0]!;
 
         Assert.Equal(BaseDateOfReminderInstant.FromDueDate, taskModel.Reminder?.ReminderInstantType);
         Assert.Null(taskModel.Reminder?.AbsoluteInstant);
@@ -583,7 +594,7 @@ public class MappingTests(IConverter converter)
         var currentDateTime = TestConverter.Clock.GetCurrentInstant();
         var reminder = currentDateTime.Plus(Duration.FromMinutes(addMinutes)).ToUnixTimeMilliseconds();
 
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             Task =
             [
@@ -599,9 +610,9 @@ public class MappingTests(IConverter converter)
                 }
             ]
         };
-        var (_, taskInfoFromModel) = GetMappedInfo(taskInfo);
+        var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
-        var taskFromModel = taskInfoFromModel?.Task?[0]!;
+        var taskFromModel = gtdDataMappedRemappedModel?.Task?[0]!;
 
         if (shouldHaveAlarm)
             Assert.Equal(reminder, taskFromModel.Alarm!.Value.InZoneLeniently(CurrentDateTimeZone).ToInstant().ToUnixTimeMilliseconds());
@@ -610,23 +621,23 @@ public class MappingTests(IConverter converter)
     }
 
     [Theory]
-    [InlineData("Every 1 day", RepeatFrom.FromDueDate, 1, Model.Model.Period.Day, true)]
-    [InlineData("Every 2 weeks", RepeatFrom.FromDueDate, 2, Model.Model.Period.Week, true)]
-    [InlineData("Every 3 months", RepeatFrom.FromDueDate, 3, Model.Model.Period.Month, true)]
-    [InlineData("Every 4 years", RepeatFrom.FromDueDate, 4, Model.Model.Period.Year, true)]
-    [InlineData("Every 1 day", RepeatFrom.FromCompletion, 1, Model.Model.Period.Day, true)]
-    [InlineData("every 1 day", RepeatFrom.FromDueDate, 1, Model.Model.Period.Day, true)]
-    [InlineData(null, RepeatFrom.FromDueDate, 1, Model.Model.Period.Day, false)]
-    [InlineData(null, RepeatFrom.FromCompletion, 1, Model.Model.Period.Day, false)]
+    [InlineData("Every 1 day", GTDRepeatFrom.FromDueDate, 1, Model.Model.Period.Day, true)]
+    [InlineData("Every 2 weeks", GTDRepeatFrom.FromDueDate, 2, Model.Model.Period.Week, true)]
+    [InlineData("Every 3 months", GTDRepeatFrom.FromDueDate, 3, Model.Model.Period.Month, true)]
+    [InlineData("Every 4 years", GTDRepeatFrom.FromDueDate, 4, Model.Model.Period.Year, true)]
+    [InlineData("Every 1 day", GTDRepeatFrom.FromCompletion, 1, Model.Model.Period.Day, true)]
+    [InlineData("every 1 day", GTDRepeatFrom.FromDueDate, 1, Model.Model.Period.Day, true)]
+    [InlineData(null, GTDRepeatFrom.FromDueDate, 1, Model.Model.Period.Day, false)]
+    [InlineData(null, GTDRepeatFrom.FromCompletion, 1, Model.Model.Period.Day, false)]
     public void Map_Repeat_ShouldBeValid(
         string repeatInfoString,
-        RepeatFrom repeatFrom,
+        GTDRepeatFrom repeatFrom,
         int expectedInterval,
         Model.Model.Period expectedPeriod,
         bool expectRepeatInfo
     )
     {
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             Task =
             [
@@ -638,20 +649,21 @@ public class MappingTests(IConverter converter)
                     Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                     Title = "Test",
                     RepeatFrom = repeatFrom,
-                    RepeatNew = expectRepeatInfo ? new RepeatInfo(repeatInfoString) : null
+                    RepeatNew = expectRepeatInfo ? new GTDRepeatInfoModel(repeatInfoString) : null
                 }
             ]
         };
-        var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
+        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
-        var taskModel = taskInfoModel?.Tasks?[0]!;
-        var taskFromModel = taskInfoFromModel?.Task?[0]!;
+        var taskModel = taskAppDataModel?.Tasks?[0]!;
+        var taskFromModel = gtdDataMappedRemappedModel?.Task?[0]!;
 
         if (expectRepeatInfo)
         {
+            var gtdRepeatFrom = (GTDRepeatFrom?)taskModel.RepeatInfo!.Value.RepeatFrom;
             Assert.Equal(expectedInterval, taskModel.RepeatInfo!.Value.Interval);
             Assert.Equal(expectedPeriod, taskModel.RepeatInfo!.Value.Period);
-            Assert.Equal(repeatFrom, taskModel.RepeatInfo!.Value.RepeatFrom);
+            Assert.Equal(repeatFrom, gtdRepeatFrom);
 
             Assert.Equal(repeatFrom, taskFromModel.RepeatFrom);
             Assert.Equal(repeatInfoString.ToLowerInvariant(), taskFromModel.RepeatNew!.Value.ToString().ToLowerInvariant());
@@ -659,7 +671,7 @@ public class MappingTests(IConverter converter)
         else
         {
             Assert.Null(taskModel.RepeatInfo);
-            Assert.Equal(RepeatFrom.FromDueDate, taskFromModel.RepeatFrom);
+            Assert.Equal(RepeatFrom.FromDueDate, (RepeatFrom)taskFromModel.RepeatFrom);
             Assert.Null(taskFromModel.RepeatNew);
         }
     }
@@ -679,7 +691,7 @@ public class MappingTests(IConverter converter)
         };
         var hideInMilliseconds = hideUntil.HasValue ? hideUntil.Value.ToUnixTimeMilliseconds() : 0;
 
-        var taskInfo = new TaskInfo
+        var gtdDataModel = new GTDDataModel
         {
             Task =
             [
@@ -696,10 +708,10 @@ public class MappingTests(IConverter converter)
                 }
             ]
         };
-        var (taskInfoModel, taskInfoFromModel) = GetMappedInfo(taskInfo);
+        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
-        var taskModel = taskInfoModel?.Tasks?[0]!;
-        var taskFromModel = taskInfoFromModel?.Task?[0]!;
+        var taskModel = taskAppDataModel?.Tasks?[0]!;
+        var taskFromModel = gtdDataMappedRemappedModel?.Task?[0]!;
 
         Assert.Equal(hideUntil, taskModel.HideUntil);
 
@@ -707,13 +719,13 @@ public class MappingTests(IConverter converter)
         Assert.Equal(hide, taskFromModel.Hide);
     }
 
-    private (TaskInfoModel? model, TaskInfo? fromModel) GetMappedInfo(TaskInfo taskInfo)
+    private (TaskAppDataModel? model, GTDDataModel? fromModel) GetMappedInfo(GTDDataModel gtdDataModel)
     {
-        if (taskInfo == null)
+        if (gtdDataModel == null)
             return (null, null);
-        var taskInfoModel = TestConverter.MapToModel(taskInfo);
-        var taskInfoFromModel = TestConverter.MapFromModel(taskInfoModel);
+        var taskAppDataModel = TestConverter.MapToModel(gtdDataModel);
+        var gtdDataMappedRemappedModel = TestConverter.MapFromModel(taskAppDataModel);
 
-        return (taskInfoModel, taskInfoFromModel);
+        return (taskAppDataModel, gtdDataMappedRemappedModel);
     }
 }
