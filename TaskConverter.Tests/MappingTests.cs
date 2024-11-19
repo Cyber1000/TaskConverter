@@ -1,15 +1,15 @@
 using System.Drawing;
-using System.Xml;
+using NodaTime;
+using TaskConverter.Model.Mapper;
 using TaskConverter.Model.Model;
 using TaskConverter.Plugin.GTD.Mapper;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Tests.Extensions;
-using NodaTime;
-using TaskConverter.Model.Mapper;
+using TaskConverter.Tests.TestData;
 
 namespace TaskConverter.Tests;
 
-//TODO HH: simplify
+//TODO HH: simplify (use asserts between objects, maybe use a general model for mapping)
 public class MappingTests(IConverter TestConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
 {
     private DateTimeZone CurrentDateTimeZone => TestConverter.DateTimeZoneProvider.CurrentDateTimeZone;
@@ -17,7 +17,6 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
     [Fact]
     public void Automapper_CheckConfig_ShouldBeValid()
     {
-        //TODO HH: Test mapping in both directions? Check missing mappings
         var gtdMapper = new GTDMapper(clock, converterDateTimeZoneProvider);
         gtdMapper.Mapper.ConfigurationProvider.AssertConfigurationIsValid();
     }
@@ -25,7 +24,7 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
     [Fact]
     public void Map_Version_ShouldBeValid()
     {
-        var gtdDataModel = new GTDDataModel { Version = 3 };
+        var gtdDataModel = Create.A.GTDDataModel().Build();
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var version = gtdDataModel.Version;
@@ -40,28 +39,11 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
     [Fact]
     public void Map_Folder_ShouldBeValid()
     {
-        var gtdDataModel = new GTDDataModel
-        {
-            Folder =
-            [
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Parent = 0,
-                    Children = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test",
-                    Color = -694050399,
-                    Visible = false,
-                    Ordinal = 0
-                }
-            ]
-        };
+        var gtdDataModel = Create.A.GTDDataModel().AddDefaultFolder(1).Build();
+
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var folder = gtdDataModel.Folder[0];
-        //TODO HH: keyword is not the exact mapping here
-        var folderModel = taskAppDataModel?.KeyWords?[0]!;
+        var folder = gtdDataModel.Folder![0];
+        var folderModel = taskAppDataModel!.KeyWords!.First(t => t.KeyWordType == GTDKeyWordEnum.Folder);
         var folderFromModel = gtdDataMappedRemappedModel?.Folder?[0]!;
 
         Assert.Equal(folder.Id.ToString(), folderModel.Id);
@@ -71,42 +53,17 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         Assert.Equal(Color.FromArgb(folder.Color), folderModel.Color);
         Assert.Equal(folder.Visible, folderModel.Visible);
 
-        Assert.Equal(folder.Id, folderFromModel.Id);
-        Assert.Equal(folder.Uuid, folderFromModel.Uuid);
-        Assert.Equal(folder.Parent, folderFromModel.Parent);
-        Assert.Equal(folder.Children, folderFromModel.Children);
-        Assert.Equal(folder.Created, folderFromModel.Created);
-        Assert.Equal(folder.Modified, folderFromModel.Modified);
-        Assert.Equal(folder.Title, folderFromModel.Title);
-        Assert.Equal(folder.Color, folderFromModel.Color);
-        Assert.Equal(folder.Visible, folderFromModel.Visible);
-        Assert.Equal(folder.Ordinal, folderFromModel.Ordinal);
+        Assert.Equivalent(folder, folderFromModel);
     }
 
     [Fact]
     public void Map_Context_ShouldBeValid()
     {
-        var gtdDataModel = new GTDDataModel
-        {
-            Context =
-            [
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Parent = 0,
-                    Children = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test",
-                    Color = -694050399,
-                    Visible = false
-                }
-            ]
-        };
+        var gtdDataModel = Create.A.GTDDataModel().AddDefaultContext(1).Build();
+
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var context = gtdDataModel.Context[0];
-        //TODO HH: keyword is not the exact mapping here
-        var contextModel = taskAppDataModel?.KeyWords?[0]!;
+        var context = gtdDataModel.Context![0];
+        var contextModel = taskAppDataModel!.KeyWords!.First(t => t.KeyWordType == GTDKeyWordEnum.Context);
         var contextFromModel = gtdDataMappedRemappedModel?.Context?[0]!;
 
         Assert.Equal(context.Id.ToString(), contextModel.Id);
@@ -116,38 +73,17 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         Assert.Equal(Color.FromArgb(context.Color), contextModel.Color);
         Assert.Equal(context.Visible, contextModel.Visible);
 
-        Assert.Equal(context.Id, contextFromModel.Id);
-        Assert.Equal(context.Uuid, contextFromModel.Uuid);
-        Assert.Equal(context.Parent, contextFromModel.Parent);
-        Assert.Equal(context.Children, contextFromModel.Children);
-        Assert.Equal(context.Created, contextFromModel.Created);
-        Assert.Equal(context.Modified, contextFromModel.Modified);
-        Assert.Equal(context.Title, contextFromModel.Title);
-        Assert.Equal(context.Color, contextFromModel.Color);
-        Assert.Equal(context.Visible, contextFromModel.Visible);
+        Assert.Equivalent(context, contextFromModel);
     }
 
     [Fact]
     public void Map_Tag_ShouldBeValid()
     {
-        var gtdDataModel = new GTDDataModel
-        {
-            Tag =
-            [
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test",
-                    Color = -694050399,
-                    Visible = false
-                }
-            ]
-        };
+        var gtdDataModel = Create.A.GTDDataModel().AddDefaultTag(1).Build();
+
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var tag = gtdDataModel.Tag[0];
-        var tagModel = taskAppDataModel?.KeyWords?[0]!;
+        var tag = gtdDataModel.Tag![0];
+        var tagModel = taskAppDataModel!.KeyWords!.First(t => t.KeyWordType == KeyWordEnum.Tag);
         var tagFromModel = gtdDataMappedRemappedModel?.Tag?[0]!;
 
         Assert.Equal(tag.Id.ToString(), tagModel.Id);
@@ -157,119 +93,24 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         Assert.Equal(Color.FromArgb(tag.Color), tagModel.Color);
         Assert.Equal(tag.Visible, tagModel.Visible);
 
-        Assert.Equal(tag.Id, tagFromModel.Id);
-        Assert.Equal(tag.Uuid, tagFromModel.Uuid);
-        Assert.Equal(tag.Created, tagFromModel.Created);
-        Assert.Equal(tag.Modified, tagFromModel.Modified);
-        Assert.Equal(tag.Title, tagFromModel.Title);
-        Assert.Equal(tag.Color, tagFromModel.Color);
-        Assert.Equal(tag.Visible, tagFromModel.Visible);
+        Assert.Equivalent(tag, tagFromModel);
     }
 
     [Fact]
     public void Map_Task_ShouldBeValid()
     {
-        var gtdDataModel = new GTDDataModel
-        {
-            Task =
-            [
-                new() {
-                    Id = 2,
-                    Uuid = "",
-                    Parent = 1,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test",
-                    StartDate = null,
-                    StartTimeSet = false,
-                    DueDate = new LocalDateTime(2023, 02, 23, 0, 0, 0),
-                    DueDateProject = new LocalDateTime(2023, 02, 24, 0, 0, 0),
-                    DueTimeSet = false,
-                    DueDateModifier = DueDateModifier.DueBy,
-                    Reminder = -1,
-                    Alarm = null,
-                    RepeatNew = new GTDRepeatInfoModel("Every 1 week"),
-                    RepeatFrom = GTDRepeatFrom.FromDueDate,
-                    Duration = 0,
-                    Status = Plugin.GTD.Model.Status.NextAction,
-                    Context = 5,
-                    Goal = 0,
-                    Folder = 8,
-                    Tag = [10, 11],
-                    Starred = true,
-                    Priority = Plugin.GTD.Model.Priority.Low,
-                    Note = ["Note"],
-                    Completed = new LocalDateTime(2023, 02, 25, 10, 0, 0),
-                    Type = Plugin.GTD.Model.TaskType.Task,
-                    TrashBin = "",
-                    Importance = 0,
-                    MetaInformation = "",
-                    Floating = false,
-                    Hide = Hide.GivenDate,
-                    HideUntil = 1677402000000
-                },
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Parent = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test"
-                }
-            ],
-            Context =
-            [
-                new() {
-                    Id = 5,
-                    Uuid = "",
-                    Parent = 0,
-                    Children = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Context",
-                    Color = -694050399,
-                    Visible = false
-                }
-            ],
-            Folder =
-            [
-                new() {
-                    Id = 8,
-                    Uuid = "",
-                    Parent = 0,
-                    Children = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Folder",
-                    Color = -694050399,
-                    Visible = false,
-                    Ordinal = 0
-                }
-            ],
-            Tag =
-            [
-                new() {
-                    Id = 10,
-                    Uuid = "",
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Tag1",
-                    Color = -694050399,
-                    Visible = false
-                },
-                new() {
-                    Id = 11,
-                    Uuid = "",
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Tag2",
-                    Color = -694050399,
-                    Visible = false
-                }
-            ]
-        };
+        var gtdDataModel = Create
+            .A.GTDDataModel()
+            .AddDefaultFolder(5)
+            .AddDefaultContext(6)
+            .AddDefaultTag(7)
+            .AddDefaultTag(8)
+            .AddDefaultTask(1, 5, 6, [7, 8], 10)
+            .AddDefaultTask(10, 0, 0, [], 0)
+            .Build();
+
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var task = gtdDataModel.Task[0];
+        var task = gtdDataModel.Task![0];
         var taskModel = taskAppDataModel?.Tasks?[0]!;
         var taskModelWithoutParent = taskAppDataModel?.Tasks?[1]!;
 
@@ -288,9 +129,8 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         Assert.Equal(task.RepeatNew?.Period, taskModel.RepeatInfo?.Period);
         Assert.Equal(task.RepeatFrom, (GTDRepeatFrom?)taskModel.RepeatInfo?.RepeatFrom ?? GTDRepeatFrom.FromDueDate);
         Assert.Equal(Model.Model.Status.NextAction, taskModel.Status);
-        //TODO HH: keyword is not the exact mapping for context and folder
-        Assert.Equal(task.Context.ToString(), taskModel.KeyWords.FirstOrDefault(t => t.KeyWordType == GTDKeyWordEnum.Context)!.Id);
-        Assert.Equal(task.Folder.ToString(), taskModel.KeyWords.FirstOrDefault(t => t.KeyWordType == GTDKeyWordEnum.Folder)!.Id);
+        Assert.Equal(task.Context.ToString(), GetFirstIdOfKeyWord(taskModel, GTDKeyWordEnum.Context));
+        Assert.Equal(task.Folder.ToString(), GetFirstIdOfKeyWord(taskModel, GTDKeyWordEnum.Folder));
         Assert.Equal(task.Tag.Select(t => t.ToString()), taskModel.KeyWords.Where(t => t.KeyWordType == KeyWordEnum.Tag).Select(t => t.Id));
         Assert.Equal(task.Starred, taskModel.Starred);
         Assert.Equal(Model.Model.Priority.Low, taskModel.Priority);
@@ -303,62 +143,21 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         Assert.Null(taskModelWithoutParent.Parent);
         Assert.Equal(0, taskFromModelWithoutParent.Parent);
 
-        Assert.Equal(task.Id, taskFromModel.Id);
-        Assert.Equal(task.Uuid, taskFromModel.Uuid);
-        Assert.Equal(task.Parent, taskFromModel.Parent);
-        Assert.Equal(task.Created, taskFromModel.Created);
-        Assert.Equal(task.Modified, taskFromModel.Modified);
-        Assert.Equal(task.Title, taskFromModel.Title);
-        Assert.Null(taskFromModel.StartDate);
-        Assert.False(taskFromModel.StartTimeSet);
-        Assert.Equal(task.DueDate, taskFromModel.DueDate);
-        Assert.Equal(task.DueDateProject, taskFromModel.DueDateProject);
-        Assert.Equal(task.DueTimeSet, taskFromModel.DueTimeSet);
-        Assert.Equal(task.DueDateModifier, taskFromModel.DueDateModifier);
-        Assert.Equal(task.Reminder, taskFromModel.Reminder);
-        Assert.Equal(task.Alarm, taskFromModel.Alarm);
-        Assert.Equal(task.RepeatNew?.Interval, taskFromModel.RepeatNew?.Interval);
-        Assert.Equal(task.RepeatNew?.Period, taskFromModel.RepeatNew?.Period);
-        Assert.Equal(task.RepeatFrom, taskFromModel.RepeatFrom);
-        Assert.Equal(0, taskFromModel.Duration);
-        Assert.Equal(task.Status, taskFromModel.Status);
-        Assert.Equal(task.Context, taskFromModel.Context);
-        Assert.Equal(0, taskFromModel.Goal);
-        Assert.Equal(task.Folder, taskFromModel.Folder);
-        Assert.Equal(task.Tag, taskFromModel.Tag);
-        Assert.Equal(task.Starred, taskFromModel.Starred);
-        Assert.Equal(task.Priority, taskFromModel.Priority);
-        Assert.Equal(task.Note, taskFromModel.Note);
-        Assert.Equal(task.Completed, taskFromModel.Completed);
-        Assert.Equal(task.Type, taskFromModel.Type);
-        Assert.Empty(taskFromModel.TrashBin);
-        Assert.Equal(0, taskFromModel.Importance);
-        Assert.Empty(taskFromModel.MetaInformation);
-        Assert.Equal(task.Floating, taskFromModel.Floating);
-        Assert.Equal(task.Hide, taskFromModel.Hide);
-        Assert.Equal(task.HideUntil, taskFromModel.HideUntil);
+        Assert.Equivalent(task, taskFromModel);
+
+        string GetFirstIdOfKeyWord(TaskModel taskModel, KeyWordEnum keyWordEnum)
+        {
+            return taskModel.KeyWords.FirstOrDefault(t => t.KeyWordType == keyWordEnum)!.Id;
+        }
     }
 
     [Fact]
     public void Map_TaskNote_ShouldBeValid()
     {
-        var gtdDataModel = new GTDDataModel
-        {
-            TaskNote =
-            [
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test",
-                    Color = -694050399,
-                    Visible = false
-                }
-            ]
-        };
+        var gtdDataModel = Create.A.GTDDataModel().AddDefaultTaskNote(1).Build();
+
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var taskNote = gtdDataModel.TaskNote[0];
+        var taskNote = gtdDataModel.TaskNote![0];
         var taskNoteModel = taskAppDataModel?.TaskNotes?[0]!;
         var taskNoteFromModel = gtdDataMappedRemappedModel?.TaskNote?[0]!;
 
@@ -369,53 +168,16 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         Assert.Equal(Color.FromArgb(taskNote.Color), taskNoteModel.Color);
         Assert.Equal(taskNote.Visible, taskNoteModel.Visible);
 
-        Assert.Equal(taskNote.Id, taskNoteFromModel.Id);
-        Assert.Equal(taskNote.Uuid, taskNoteFromModel.Uuid);
-        Assert.Equal(taskNote.Created, taskNoteFromModel.Created);
-        Assert.Equal(taskNote.Modified, taskNoteFromModel.Modified);
-        Assert.Equal(taskNote.Title, taskNoteFromModel.Title);
-        Assert.Equal(taskNote.Color, taskNoteFromModel.Color);
-        Assert.Equal(taskNote.Visible, taskNoteFromModel.Visible);
+        Assert.Equivalent(taskNote, taskNoteFromModel);
     }
 
     [Fact]
     public void Map_Notebook_ShouldBeValid()
     {
-        var gtdDataModel = new GTDDataModel
-        {
-            Notebook =
-            [
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Private = 0,
-                    Title = "Test",
-                    Note = ["abc", "def"],
-                    FolderId = 2,
-                    Color = -694050399,
-                    Visible = false
-                }
-            ],
-            Folder =
-            [
-                new() {
-                    Id = 2,
-                    Uuid = "",
-                    Parent = 0,
-                    Children = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Folder",
-                    Color = -694050399,
-                    Visible = false,
-                    Ordinal = 0
-                }
-            ]
-        };
+        var gtdDataModel = Create.A.GTDDataModel().AddDefaultFolder(2).AddDefaultNotebook(1).Build();
+
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var notebook = gtdDataModel.Notebook[0];
+        var notebook = gtdDataModel.Notebook![0];
         var notebookModel = taskAppDataModel?.Notebooks?[0]!;
         var notebookFromModel = gtdDataMappedRemappedModel?.Notebook?[0]!;
 
@@ -428,29 +190,16 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         Assert.Equal(Color.FromArgb(notebook.Color), notebookModel.Color);
         Assert.Equal(notebook.Visible, notebookModel.Visible);
 
-        Assert.Equal(notebook.Id, notebookFromModel.Id);
-        Assert.Equal(notebook.Uuid, notebookFromModel.Uuid);
-        Assert.Equal(notebook.Created, notebookFromModel.Created);
-        Assert.Equal(notebook.Modified, notebookFromModel.Modified);
-        Assert.Equal(notebook.Private, notebookFromModel.Private);
-        Assert.Equal(notebook.Title, notebookFromModel.Title);
-        Assert.Equal(notebook.Note, notebookFromModel.Note);
-        Assert.Equal(notebook.FolderId, notebookFromModel.FolderId);
-        Assert.Equal(notebook.Color, notebookFromModel.Color);
-        Assert.Equal(notebook.Visible, notebookFromModel.Visible);
+        Assert.Equivalent(notebook, notebookFromModel);
     }
 
     [Fact]
     public void Map_Preferences_ShouldBeValid()
     {
-        var originalXmlString =
-            "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n<map>\n    <boolean name=\"pref_show_context_label\" value=\"true\" />\n    <boolean name=\"pref_hide_until_with_time\" value=\"false\" />\n    <boolean name=\"pref_backup_before_sync\" value=\"true\" />\n    <boolean name=\"pref_show_breadcrumb\" value=\"true\" />\n    <string name=\"pref_first_day_of_week\">2</string>\n    <boolean name=\"pref_auto_hotlist_duedate\" value=\"true\" />\n    <string name=\"sync_interval\">Disabled</string>\n    <boolean name=\"pref_use_default_context_color\" value=\"true\" />\n    <boolean name=\"first_run\" value=\"false\" />\n    <boolean name=\"pref_slide_to_view_more_task_details\" value=\"false\" />\n    <string name=\"pref_vibrate\">vibrate_always</string>\n    <int name=\"fix_duplicated_folders\" value=\"18\" />\n    <boolean name=\"pref_hot_started\" value=\"false\" />\n    <boolean name=\"pref_events_missed_call_create_task\" value=\"false\" />\n    <string name=\"pref_sort_mode\">duedate</string>\n    <boolean name=\"pref_show_status\" value=\"true\" />\n    <string name=\"pref_notification_sound\">content://settings/system/notification_sound</string>\n    <boolean name=\"pref_inherit_folder\" value=\"true\" />\n    <boolean name=\"pref_capital_words_notebook\" value=\"false\" />\n    <boolean name=\"pref_inherit_tags\" value=\"true\" />\n    <boolean name=\"pref_show_tags\" value=\"true\" />\n    <boolean name=\"pref_immediate_calendar\" value=\"false\" />\n    <boolean name=\"pref_events_missed_call_create_task_with_due_date\" value=\"true\" />\n    <boolean name=\"pref_slide_to_view_more_notebook_lists\" value=\"false\" />\n    <boolean name=\"pref_hot_force_show_overdue\" value=\"true\" />\n    <boolean name=\"pref_nagging_alarm\" value=\"false\" />\n    <boolean name=\"pref_hot_star\" value=\"false\" />\n    <boolean name=\"pref_checklist_item_autom_del\" value=\"false\" />\n    <boolean name=\"pref_capital_words_task\" value=\"false\" />\n    <boolean name=\"pref_nav_toolbar\" value=\"true\" />\n    <boolean name=\"pref_capital_words_tag\" value=\"false\" />\n    <boolean name=\"pref_show_goal\" value=\"true\" />\n    <boolean name=\"pref_inherit_context\" value=\"true\" />\n    <long name=\"pref_backup_schedule\" value=\"1671328800000\" />\n    <int name=\"pref_led_color\" value=\"-65536\" />\n    <string name=\"pref_hot_priority\">-1</string>\n    <int name=\"temp_build_counters\" value=\"19\" />\n    <boolean name=\"pref_inherit_goal\" value=\"true\" />\n    <boolean name=\"pref_pure_widget_use_hotlist_filter\" value=\"false\" />\n    <boolean name=\"pref_hide_until\" value=\"false\" />\n    <int name=\"fix_too_many_files\" value=\"1\" />\n    <boolean name=\"pref_pure_widget_use_current_filter\" value=\"false\" />\n    <boolean name=\"pref_capital_words_goal\" value=\"false\" />\n    <boolean name=\"pref_enable_alarms\" value=\"true\" />\n    <int name=\"pref_dashboard_nav_view\" value=\"1\" />\n    <boolean name=\"pref_only_one_alarm\" value=\"false\" />\n    <boolean name=\"variations_seed_native_stored\" value=\"true\" />\n    <boolean name=\"pref_confirm_delete_from_list\" value=\"true\" />\n    <boolean name=\"pref_time_format\" value=\"false\" />\n    <string name=\"pref_notebook_date_format\">E, MMM dd</string>\n    <boolean name=\"pref_immediate_requery\" value=\"true\" />\n    <boolean name=\"pref_hot_nextaction\" value=\"false\" />\n    <boolean name=\"pref_show_list_label\" value=\"true\" />\n    <string name=\"CLOUDING_SERVICE\">Toodledo</string>\n    <boolean name=\"pref_pure_html_support\" value=\"false\" />\n    <boolean name=\"pref_speak_now\" value=\"true\" />\n    <boolean name=\"pref_insistent_alarm\" value=\"false\" />\n    <boolean name=\"pref_confirm_complete_task_from_list\" value=\"false\" />\n    <boolean name=\"pref_show_task_breadcrumb\" value=\"true\" />\n    <boolean name=\"pref_filter_expr_and_or\" value=\"true\" />\n    <int name=\"pref_fix_hide_until_with_date\" value=\"2\" />\n    <boolean name=\"pref_task_group\" value=\"true\" />\n    <string name=\"pref_long_date_format\">E, MMM dd, yyyy</string>\n    <boolean name=\"pref_task_list_force_show_time\" value=\"false\" />\n    <boolean name=\"pref_sort_by_completed\" value=\"false\" />\n    <boolean name=\"pref_confirm_complete_task_from_reminder\" value=\"true\" />\n    <boolean name=\"pref_task_autom_del\" value=\"false\" />\n    <string name=\"pref_hot_logical_operator\">OR</string>\n    <boolean name=\"pref_wake_screen\" value=\"false\" />\n    <boolean name=\"pref_confirm_complete_task_from_checklist\" value=\"false\" />\n    <string name=\"pref_short_date_format\">E, MMM dd</string>\n    <boolean name=\"pref_use_default_list_color\" value=\"true\" />\n    <boolean name=\"pref_task_list_show_duration\" value=\"true\" />\n    <boolean name=\"pref_hide_subtask\" value=\"false\" />\n    <boolean name=\"pref_repeating_task_remove_next_action_status\" value=\"false\" />\n    <boolean name=\"pref_auto_reminder_inbox\" value=\"false\" />\n    <string name=\"pref_widget_date_format\">dd.MM</string>\n    <int name=\"fix_goal_orphans\" value=\"1\" />\n    <boolean name=\"pref_slide_to_view_more_lists\" value=\"false\" />\n    <boolean name=\"pref_multiple_selection_status\" value=\"false\" />\n    <boolean name=\"pref_capital_words_context\" value=\"false\" />\n    <string name=\"pref_auto_reminder\">-1</string>\n    <boolean name=\"pref_search_completed_tasks\" value=\"true\" />\n    <string name=\"pref_theme\">theme_dark</string>\n    <int name=\"pref_current_version\" value=\"331\" />\n    <int name=\"pref_fix_tag_delimiter\" value=\"320\" />\n    <boolean name=\"pref_use_additional_task_notes\" value=\"true\" />\n    <boolean name=\"pref_confirm_dismiss_alarm\" value=\"true\" />\n    <int name=\"fix_null_values\" value=\"5\" />\n    <boolean name=\"pref_capital_words_folder\" value=\"false\" />\n    <boolean name=\"pref_no_clear_alarm\" value=\"false\" />\n    <boolean name=\"pref_confirm_delete_from_detail\" value=\"true\" />\n    <boolean name=\"pref_led_active\" value=\"true\" />\n    <string name=\"pref_additional_task_view_mode\">2</string>\n    <boolean name=\"pref_events_immediate_note_to_self\" value=\"true\" />\n    <int name=\"fix_vibrate_always\" value=\"2\" />\n</map>\n";
-        XmlDocument originalXml = new();
-        originalXml.LoadXml(originalXmlString);
+        var gtdDataModel = Create.A.GTDDataModel().AddPreferences().Build();
 
-        var gtdDataModel = new GTDDataModel { Preferences = [new() { XmlConfig = originalXml }] };
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var preference = gtdDataModel.Preferences[0].XmlConfig;
+        var preference = gtdDataModel.Preferences![0].XmlConfig;
         var preferenceModel = taskAppDataModel?.Config;
         var preferenceFromModel = gtdDataMappedRemappedModel?.Preferences?[0]?.XmlConfig;
 
@@ -464,21 +213,9 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
     [InlineData(false)]
     public void Map_TaskWithDueDate_ShouldBeValid(bool hasTime)
     {
-        var gtdDataModel = new GTDDataModel
-        {
-            Task =
-            [
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Parent = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test",
-                    DueDate = hasTime ? new LocalDateTime(2023, 02, 20, 10, 0, 0) : new LocalDateTime(2023, 02, 20, 0, 0, 0)
-                }
-            ]
-        };
+        var dueDate = hasTime ? new LocalDateTime(2023, 02, 20, 10, 0, 0) : new LocalDateTime(2023, 02, 20, 0, 0, 0);
+        var gtdDataModel = Create.A.GTDDataModel().AddDefaultTask(1, 0, 0, [], 0, dueDate).Build();
+
         var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
         var taskFromModel = gtdDataMappedRemappedModel?.Task?[0]!;
@@ -491,22 +228,8 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
     [InlineData(false)]
     public void Map_TaskWithDueDateModifier_ShouldBeValid(bool isFloating)
     {
-        var gtdDataModel = new GTDDataModel
-        {
-            Task =
-            [
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Parent = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test",
-                    DueDate = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Floating = isFloating
-                }
-            ]
-        };
+        var gtdDataModel = Create.A.GTDDataModel().AddDefaultTask(1, 0, 0, [], 0, null, null, isFloating).Build();
+
         var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
         var taskFromModel = gtdDataMappedRemappedModel?.Task?[0]!;
@@ -528,22 +251,8 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
     {
         var dueDateInstant = Instant.FromUnixTimeMilliseconds(1608541200000);
         var dueDate = dueDateInstant.GetLocalDateTime(CurrentDateTimeZone);
-        var gtdDataModel = new GTDDataModel
-        {
-            Task =
-            [
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Parent = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test",
-                    DueDate = dueDate,
-                    Reminder = reminder
-                }
-            ]
-        };
+        var gtdDataModel = Create.A.GTDDataModel().AddDefaultTask(1, 0, 0, [], 0, dueDate, null, null, reminder).Build();
+
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
         var taskModel = taskAppDataModel?.Tasks?[0]!;
@@ -557,24 +266,10 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
     }
 
     [Fact]
-    public void Map_TaskWithReminderWithDueDAteBasedReminderWithoutDueDate_ShouldReturnMinusOne()
+    public void Map_TaskWithReminderWithDueDateBasedReminderWithoutDueDate_ShouldReturnMinusOne()
     {
-        var gtdDataModel = new GTDDataModel
-        {
-            Task =
-            [
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Parent = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test",
-                    DueDate = null,
-                    Reminder = 30000
-                }
-            ]
-        };
+        var gtdDataModel = Create.A.GTDDataModel().AddTask(1, 0, 0, [], 0, null, null, null, 30000).Build();
+
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
         var taskModel = taskAppDataModel?.Tasks?[0]!;
@@ -594,22 +289,7 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         var currentDateTime = TestConverter.Clock.GetCurrentInstant();
         var reminder = currentDateTime.Plus(Duration.FromMinutes(addMinutes)).ToUnixTimeMilliseconds();
 
-        var gtdDataModel = new GTDDataModel
-        {
-            Task =
-            [
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Parent = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test",
-                    DueDate = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Reminder = reminder
-                }
-            ]
-        };
+        var gtdDataModel = Create.A.GTDDataModel().AddDefaultTask(1, 0, 0, [], 0, null, null, null, reminder).Build();
         var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
         var taskFromModel = gtdDataMappedRemappedModel?.Task?[0]!;
@@ -637,22 +317,9 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         bool expectRepeatInfo
     )
     {
-        var gtdDataModel = new GTDDataModel
-        {
-            Task =
-            [
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Parent = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test",
-                    RepeatFrom = repeatFrom,
-                    RepeatNew = expectRepeatInfo ? new GTDRepeatInfoModel(repeatInfoString) : null
-                }
-            ]
-        };
+        var repeatNew = expectRepeatInfo ? new GTDRepeatInfoModel(repeatInfoString) : (GTDRepeatInfoModel?)null;
+        var gtdDataModel = Create.A.GTDDataModel().AddTask(1, 0, 0, [], 0, null, repeatNew, null, null, repeatFrom).Build();
+
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
         var taskModel = taskAppDataModel?.Tasks?[0]!;
@@ -690,24 +357,13 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
             _ => throw new NotImplementedException($"HideInfo {hide} not implemented"),
         };
         var hideInMilliseconds = hideUntil.HasValue ? hideUntil.Value.ToUnixTimeMilliseconds() : 0;
+        var dueDate = new LocalDateTime(2023, 02, 20, 10, 0, 0);
 
-        var gtdDataModel = new GTDDataModel
-        {
-            Task =
-            [
-                new() {
-                    Id = 1,
-                    Uuid = "",
-                    Parent = 0,
-                    Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                    Title = "Test",
-                    DueDate = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                    Hide = Hide.SixMonthsBeforeDue,
-                    HideUntil = hideInMilliseconds
-                }
-            ]
-        };
+        var gtdDataModel = Create
+            .A.GTDDataModel()
+            .AddDefaultTask(1, 0, 0, [], 0, dueDate, null, null, null, null, Hide.SixMonthsBeforeDue, hideInMilliseconds)
+            .Build();
+
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
 
         var taskModel = taskAppDataModel?.Tasks?[0]!;
