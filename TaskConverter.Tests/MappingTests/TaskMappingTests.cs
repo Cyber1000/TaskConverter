@@ -1,4 +1,3 @@
-using System.Drawing;
 using NodaTime;
 using TaskConverter.Model.Mapper;
 using TaskConverter.Model.Model;
@@ -7,22 +6,15 @@ using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Tests.Extensions;
 using TaskConverter.Tests.TestData;
 
-namespace TaskConverter.Tests;
+namespace TaskConverter.Tests.MappingTests;
 
-//TODO HH: simplify (use asserts between objects, maybe use a general model for mapping)
-public class MappingTests(IConverter TestConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
+public class TaskMappingTests(IConverter testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider) : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
 {
-    private DateTimeZone CurrentDateTimeZone => TestConverter.DateTimeZoneProvider.CurrentDateTimeZone;
-
-    public static class TestConstants
+    public enum HideTestCase
     {
-        public const int DefaultFolderId = 1;
-        public const int DefaultContextId = 2;
-        public const int DefaultTagId = 3;
-        public const int DefaultTaskId = 4;
-        public const int DefaultTaskNoteId = 5;
-        public const int DefaultNotebookId = 6;
-        public const long DefaultDueDateMilliseconds = 1608541200000;
+        SixMonthsBeforeDue,
+        GivenDate,
+        DontHide,
     }
 
     public enum ReminderTestCase
@@ -46,75 +38,6 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         EveryFourYears,
         EveryDayLowerCase,
         NoRepeat,
-    }
-
-    public enum HideTestCase
-    {
-        SixMonthsBeforeDue,
-        GivenDate,
-        DontHide,
-    }
-
-    [Fact]
-    public void Automapper_CheckConfig()
-    {
-        var gtdMapper = new GTDMapper(clock, converterDateTimeZoneProvider);
-
-        gtdMapper.Mapper.ConfigurationProvider.AssertConfigurationIsValid();
-    }
-
-    [Fact]
-    public void Map_Version()
-    {
-        var gtdDataModel = CreateGTDDataModel();
-
-        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var gtdVersionModel = gtdDataModel.Version;
-        var taskAppVersionModel = taskAppDataModel?.Version;
-        var gtdRemappedVersionModel = gtdDataMappedRemappedModel?.Version;
-
-        Assert.Equal(gtdVersionModel, taskAppVersionModel);
-        Assert.Equal(gtdVersionModel, gtdRemappedVersionModel);
-    }
-
-    [Fact]
-    public void Map_Folder()
-    {
-        var gtdDataModel = CreateGTDDataModelWithFolder();
-
-        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var gtdFolderModel = gtdDataModel.Folder![0];
-        var taskAppFolderModel = taskAppDataModel!.KeyWords!.First(t => t.KeyWordType == GTDKeyWordEnum.Folder);
-        var gtdRemappedFolderModel = gtdDataMappedRemappedModel?.Folder?[0]!;
-
-        AssertMappedModelEquivalence(gtdFolderModel, taskAppFolderModel, gtdRemappedFolderModel);
-    }
-
-    [Fact]
-    public void Map_Context()
-    {
-        var gtdDataModel = CreateGTDDataModelWithContext();
-
-        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var gtdContextModel = gtdDataModel.Context![0];
-        var taskAppContextModel = taskAppDataModel!.KeyWords!.First(t => t.KeyWordType == GTDKeyWordEnum.Context);
-        var gtdRemappedContextModel = gtdDataMappedRemappedModel?.Context?[0]!;
-
-        AssertCommonProperties(gtdContextModel, taskAppContextModel);
-        AssertMappedModelEquivalence(gtdContextModel, taskAppContextModel, gtdRemappedContextModel);
-    }
-
-    [Fact]
-    public void Map_Tag()
-    {
-        var gtdDataModel = CreateGTDDataModelWithTag();
-
-        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var gtdTagModel = gtdDataModel.Tag![0];
-        var taskAppTagModel = taskAppDataModel!.KeyWords!.First(t => t.KeyWordType == KeyWordEnum.Tag);
-        var gtdRemappedTagModel = gtdDataMappedRemappedModel?.Tag?[0]!;
-
-        AssertMappedModelEquivalence(gtdTagModel, taskAppTagModel, gtdRemappedTagModel);
     }
 
     [Fact]
@@ -178,48 +101,6 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
 
         Assert.Equal("10", taskAppTaskModel.Parent!.Id);
         Assert.Equal(10, gtdRemappedTaskModelWithoutParent.Parent);
-    }
-
-    [Fact]
-    public void Map_TaskNote()
-    {
-        var gtdDataModel = CreateGTDDataModelWithTaskNote();
-
-        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var gtdTaskNoteModel = gtdDataModel.TaskNote![0];
-        var taskAppTaskNoteModel = taskAppDataModel?.TaskNotes?[0]!;
-        var gtdRemappedTaskNoteModel = gtdDataMappedRemappedModel?.TaskNote?[0]!;
-
-        AssertMappedModelEquivalence(gtdTaskNoteModel, taskAppTaskNoteModel, gtdRemappedTaskNoteModel);
-    }
-
-    [Fact]
-    public void Map_Notebook()
-    {
-        var gtdDataModel = CreateGTDDataModelWithNotebook();
-
-        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var gtdNotebookModel = gtdDataModel.Notebook![0];
-        var taskAppNotebookModel = taskAppDataModel?.Notebooks?[0]!;
-        var gtdRemappedNotebookModel = gtdDataMappedRemappedModel?.Notebook?[0]!;
-
-        AssertMappedModelEquivalence(gtdNotebookModel, taskAppNotebookModel, gtdRemappedNotebookModel);
-        Assert.Equal(gtdNotebookModel.Note, taskAppNotebookModel.Note);
-        Assert.Equal(gtdNotebookModel.FolderId.ToString(), taskAppNotebookModel.Keyword?.Id);
-    }
-
-    [Fact]
-    public void Map_Preferences()
-    {
-        var gtdDataModel = CreateGTDDataModelWithPreferences();
-
-        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var gtdPreferenceModel = gtdDataModel.Preferences![0].XmlConfig;
-        var taskAppPreferenceModel = taskAppDataModel?.Config;
-        var gtdRemappedPreferenceModel = gtdDataMappedRemappedModel?.Preferences?[0]?.XmlConfig;
-
-        Assert.Equal(taskAppPreferenceModel, gtdPreferenceModel);
-        Assert.Equal(gtdRemappedPreferenceModel, gtdPreferenceModel);
     }
 
     [Theory]
@@ -363,41 +244,6 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         Assert.Equal(hide, gtdRemappedTaskModel.Hide);
     }
 
-    private (TaskAppDataModel? model, GTDDataModel? fromModel) GetMappedInfo(GTDDataModel gtdDataModel)
-    {
-        if (gtdDataModel == null)
-            return (null, null);
-        var taskAppDataModel = TestConverter.MapToModel(gtdDataModel);
-        var gtdDataMappedRemappedModel = TestConverter.MapFromModel(taskAppDataModel);
-
-        return (taskAppDataModel, gtdDataMappedRemappedModel);
-    }
-
-    private void AssertCommonProperties<T>(T gtdModel, ExtendedModel taskAppModel)
-        where T : GTDExtendedModel
-    {
-        Assert.Equal(gtdModel.Id.ToString(), taskAppModel.Id);
-        Assert.Equal(gtdModel.Created, taskAppModel.Created.GetLocalDateTime(CurrentDateTimeZone));
-        Assert.Equal(gtdModel.Modified, taskAppModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
-        Assert.Equal(gtdModel.Title, taskAppModel.Title);
-        Assert.Equal(Color.FromArgb(gtdModel.Color), taskAppModel.Color);
-        Assert.Equal(gtdModel.Visible, taskAppModel.Visible);
-    }
-
-    private void AssertMappedModelEquivalence<T>(T originalModel, ExtendedModel taskAppModel, T remappedModel)
-        where T : class
-    {
-        Assert.NotNull(taskAppModel);
-        Assert.NotNull(remappedModel);
-
-        if (originalModel is GTDExtendedModel gtdExtendedModel)
-        {
-            AssertCommonProperties(gtdExtendedModel, taskAppModel);
-        }
-
-        Assert.Equivalent(originalModel, remappedModel);
-    }
-
     private static void AssertBasicTaskProperties(GTDTaskModel gtdTaskModel, TaskModel taskAppTaskModel, GTDTaskModel gtdRemappedTaskModel)
     {
         Assert.Equal(gtdTaskModel.Id.ToString(), taskAppTaskModel.Id);
@@ -428,25 +274,11 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         Assert.Equal(gtdTaskModel.Context.ToString(), GetFirstIdOfKeyWord(taskAppTaskModel, GTDKeyWordEnum.Context));
         Assert.Equal(gtdTaskModel.Folder.ToString(), GetFirstIdOfKeyWord(taskAppTaskModel, GTDKeyWordEnum.Folder));
         Assert.Equal(gtdTaskModel.Tag.Select(t => t.ToString()), taskAppTaskModel.KeyWords.Where(t => t.KeyWordType == KeyWordEnum.Tag).Select(t => t.Id));
-    }
 
-    private static string GetFirstIdOfKeyWord(TaskModel taskModel, KeyWordEnum keyWordEnum)
-    {
-        return taskModel.KeyWords.FirstOrDefault(t => t.KeyWordType == keyWordEnum)!.Id;
-    }
-
-    private static string? GetRepeatInfoString(RepeatTestCase repeatCase)
-    {
-        return repeatCase switch
+        string GetFirstIdOfKeyWord(TaskModel taskModel, KeyWordEnum keyWordEnum)
         {
-            RepeatTestCase.EveryDay => "Every 1 day",
-            RepeatTestCase.EveryDayLowerCase => "every 1 day",
-            RepeatTestCase.EveryTwoWeeks => "Every 2 weeks",
-            RepeatTestCase.EveryThreeMonths => "Every 3 months",
-            RepeatTestCase.EveryFourYears => "Every 4 years",
-            RepeatTestCase.NoRepeat => null,
-            _ => throw new ArgumentOutOfRangeException(nameof(repeatCase), repeatCase, null),
-        };
+            return taskModel.KeyWords.FirstOrDefault(t => t.KeyWordType == keyWordEnum)!.Id;
+        }
     }
 
     private (Instant? hideUntil, Hide hide) GetHideInfo(HideTestCase hideCase)
@@ -477,39 +309,18 @@ public class MappingTests(IConverter TestConverter, IClock clock, IConverterDate
         };
     }
 
-    private static GTDDataModel CreateGTDDataModel()
+    private static string? GetRepeatInfoString(RepeatTestCase repeatCase)
     {
-        return Create.A.GTDDataModel().Build();
-    }
-
-    private static GTDDataModel CreateGTDDataModelWithFolder()
-    {
-        return Create.A.GTDDataModel().AddFolder(TestConstants.DefaultFolderId).Build();
-    }
-
-    private static GTDDataModel CreateGTDDataModelWithContext()
-    {
-        return Create.A.GTDDataModel().AddContext(TestConstants.DefaultContextId).Build();
-    }
-
-    private static GTDDataModel CreateGTDDataModelWithTag()
-    {
-        return Create.A.GTDDataModel().AddTag(TestConstants.DefaultTagId).Build();
-    }
-
-    private static GTDDataModel CreateGTDDataModelWithTaskNote()
-    {
-        return Create.A.GTDDataModel().AddTaskNote(TestConstants.DefaultTaskNoteId).Build();
-    }
-
-    private static GTDDataModel CreateGTDDataModelWithNotebook()
-    {
-        return Create.A.GTDDataModel().AddFolder(TestConstants.DefaultFolderId).AddNotebook(TestConstants.DefaultNotebookId, TestConstants.DefaultFolderId).Build();
-    }
-
-    private static GTDDataModel CreateGTDDataModelWithPreferences()
-    {
-        return Create.A.GTDDataModel().AddPreferences().Build();
+        return repeatCase switch
+        {
+            RepeatTestCase.EveryDay => "Every 1 day",
+            RepeatTestCase.EveryDayLowerCase => "every 1 day",
+            RepeatTestCase.EveryTwoWeeks => "Every 2 weeks",
+            RepeatTestCase.EveryThreeMonths => "Every 3 months",
+            RepeatTestCase.EveryFourYears => "Every 4 years",
+            RepeatTestCase.NoRepeat => null,
+            _ => throw new ArgumentOutOfRangeException(nameof(repeatCase), repeatCase, null),
+        };
     }
 
     private static GTDDataModel CreateGTDDataModelWithTask(List<GTDTaskModelBuilder>? taskList = null)
