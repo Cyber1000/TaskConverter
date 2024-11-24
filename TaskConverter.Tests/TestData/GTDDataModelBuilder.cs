@@ -1,13 +1,12 @@
 using System.Xml;
 using NodaTime;
-using TaskConverter.Model.Model;
 using TaskConverter.Plugin.GTD.Model;
 
 namespace TaskConverter.Tests.TestData;
 
-public static class FindingRecordBuilderExtensions
+public static class GTDDataModelBuilderExtensions
 {
-    public static GTDDataModelBuilder GTDDataModel(this IObjectBuilder builder) => new GTDDataModelBuilder();
+    public static GTDDataModelBuilder GTDDataModel(this IObjectBuilder _) => new();
 }
 
 public class GTDDataModelBuilder
@@ -16,7 +15,7 @@ public class GTDDataModelBuilder
     private readonly List<GTDFolderModel> _folderList = [];
     private readonly List<GTDContextModel> _contextList = [];
     private readonly List<GTDTagModel> _tagList = [];
-    private readonly List<GTDTaskModel> _taskList = [];
+    private Func<List<GTDTaskModel>> _taskListFunc = () => [];
     private readonly List<GTDTaskNoteModel> _taskNoteList = [];
     private readonly List<GTDNotebookModel> _notebookList = [];
     private List<GTDPreferencesModel> _preferenceList = [];
@@ -32,7 +31,7 @@ public class GTDDataModelBuilder
         return this;
     }
 
-    public GTDDataModelBuilder AddDefaultFolder(int id)
+    public GTDDataModelBuilder AddFolder(int id)
     {
         _folderList.Add(
             new()
@@ -52,7 +51,7 @@ public class GTDDataModelBuilder
         return this;
     }
 
-    public GTDDataModelBuilder AddDefaultContext(int id)
+    public GTDDataModelBuilder AddContext(int id)
     {
         _contextList.Add(
             new()
@@ -71,7 +70,7 @@ public class GTDDataModelBuilder
         return this;
     }
 
-    public GTDDataModelBuilder AddDefaultTag(int id)
+    public GTDDataModelBuilder AddTag(int id)
     {
         _tagList.Add(
             new()
@@ -88,90 +87,13 @@ public class GTDDataModelBuilder
         return this;
     }
 
-    public GTDDataModelBuilder AddDefaultTask(
-        int id,
-        int folderId,
-        int contextId,
-        List<int> tagIds,
-        int parentId,
-        LocalDateTime? dueDate = null,
-        GTDRepeatInfoModel? repeatNew = null,
-        bool? floating = null,
-        long? reminder = null,
-        GTDRepeatFrom? repeatFrom = null,
-        Hide? hide = null,
-        long? hideUntil = null
-    )
+    public GTDDataModelBuilder AddTaskList(Func<List<GTDTaskModel>> taskListFunc)
     {
-        dueDate ??= new LocalDateTime(2023, 02, 23, 0, 0, 0);
-        repeatNew ??= new GTDRepeatInfoModel("Every 1 week");
-        AddTask(id, folderId, contextId, tagIds, parentId, dueDate.Value, repeatNew.Value, floating, reminder, repeatFrom, hide, hideUntil);
+        _taskListFunc = taskListFunc;
         return this;
     }
 
-    public GTDDataModelBuilder AddTask(
-        int id,
-        int folderId,
-        int contextId,
-        List<int> tagIds,
-        int parentId,
-        LocalDateTime? dueDate,
-        GTDRepeatInfoModel? repeatNew,
-        bool? floating = null,
-        long? reminder = null,
-        GTDRepeatFrom? repeatFrom = null,
-        Hide? hide = null,
-        long? hideUntil = null
-    )
-    {
-        floating ??= false;
-        reminder ??= -1;
-        repeatFrom ??= GTDRepeatFrom.FromDueDate;
-        hide ??= Hide.GivenDate;
-        hideUntil ??= 1677402000000;
-
-        _taskList.Add(
-            new()
-            {
-                Id = id,
-                Uuid = "",
-                Parent = parentId,
-                Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
-                Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                Title = $"Task {id}",
-                StartDate = null,
-                StartTimeSet = false,
-                DueDate = dueDate,
-                DueDateProject = new LocalDateTime(2023, 02, 24, 0, 0, 0),
-                DueTimeSet = false,
-                DueDateModifier = DueDateModifier.DueBy,
-                Reminder = reminder.Value,
-                Alarm = null,
-                RepeatNew = repeatNew,
-                RepeatFrom = repeatFrom.Value,
-                Duration = 0,
-                Status = Plugin.GTD.Model.Status.NextAction,
-                Context = contextId,
-                Goal = 0,
-                Folder = folderId,
-                Tag = tagIds,
-                Starred = true,
-                Priority = Plugin.GTD.Model.Priority.Low,
-                Note = ["Note"],
-                Completed = new LocalDateTime(2023, 02, 25, 10, 0, 0),
-                Type = Plugin.GTD.Model.TaskType.Task,
-                TrashBin = "",
-                Importance = 0,
-                MetaInformation = "",
-                Floating = floating.Value,
-                Hide = hide.Value,
-                HideUntil = hideUntil.Value,
-            }
-        );
-        return this;
-    }
-
-    public GTDDataModelBuilder AddDefaultTaskNote(int id)
+    public GTDDataModelBuilder AddTaskNote(int id)
     {
         _taskNoteList.Add(
             new()
@@ -188,7 +110,7 @@ public class GTDDataModelBuilder
         return this;
     }
 
-    public GTDDataModelBuilder AddDefaultNotebook(int id)
+    public GTDDataModelBuilder AddNotebook(int id, int folderId)
     {
         _notebookList.Add(
             new()
@@ -200,7 +122,7 @@ public class GTDDataModelBuilder
                 Private = 0,
                 Title = $"Notebook {id}",
                 Note = ["abc", "def"],
-                FolderId = 2,
+                FolderId = folderId,
                 Color = -694050399,
                 Visible = false,
             }
@@ -227,13 +149,22 @@ public class GTDDataModelBuilder
             Folder = ReturnNullIfListIsEmpty(_folderList),
             Context = ReturnNullIfListIsEmpty(_contextList),
             Tag = ReturnNullIfListIsEmpty(_tagList),
-            Task = ReturnNullIfListIsEmpty(_taskList),
+            Task = CreateTaskList(),
             TaskNote = ReturnNullIfListIsEmpty(_taskNoteList),
             Notebook = ReturnNullIfListIsEmpty(_notebookList),
             Preferences = ReturnNullIfListIsEmpty(_preferenceList),
         };
 
         return gtdDataModel;
+    }
+
+    private List<GTDTaskModel>? CreateTaskList()
+    {
+        var taskList = _taskListFunc.Invoke();
+        if (taskList.Count == 0)
+            return null;
+
+        return taskList;
     }
 
     private static List<T>? ReturnNullIfListIsEmpty<T>(List<T> list)
