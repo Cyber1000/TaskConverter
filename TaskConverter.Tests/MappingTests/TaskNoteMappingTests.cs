@@ -6,7 +6,6 @@ using TaskConverter.Tests.Utils;
 
 namespace TaskConverter.Tests.MappingTests;
 
-//TODO HH: simplify (use asserts between objects, maybe use a general model for mapping)
 public class TaskNoteMappingTests(IConverter testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider) : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
 {
     [Fact]

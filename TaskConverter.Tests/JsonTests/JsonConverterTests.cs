@@ -8,6 +8,7 @@ using TaskConverter.Tests.Utils;
 
 namespace TaskConverter.Tests.JsonTests;
 
+//TODO HH: simplify
 public class JsonConverterTests
 {
     [Theory]
