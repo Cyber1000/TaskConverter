@@ -4,9 +4,8 @@ using NodaTime;
 using TaskConverter.Plugin.GTD;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Utils;
-using TaskConverter.Tests.TestData;
 
-namespace TaskConverter.Tests;
+namespace TaskConverter.Tests.JsonTests;
 
 public class JsonConverterTests
 {

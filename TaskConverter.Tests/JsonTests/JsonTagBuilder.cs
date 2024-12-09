@@ -1,7 +1,6 @@
-namespace TaskConverter.Tests;
+namespace TaskConverter.Tests.JsonTests;
 
-
-public static class JsonDataBuilderExtensions
+public static class JsonTagBuilderExtensions
 {
     public static JsonTagBuilder JsonTag(this IObjectBuilder _) => new();
 }
