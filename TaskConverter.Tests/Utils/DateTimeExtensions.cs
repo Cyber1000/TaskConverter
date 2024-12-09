@@ -1,6 +1,6 @@
 using NodaTime;
 
-namespace TaskConverter.Tests.Extensions;
+namespace TaskConverter.Tests.Utils;
 
 public static class DateTimeExtensions
 {

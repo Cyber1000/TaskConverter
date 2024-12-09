@@ -1,8 +1,9 @@
 using TaskConverter.Commons.Utils;
 using TaskConverter.Plugin.GTD;
 using TaskConverter.Tests.JsonTests;
+using TaskConverter.Tests.Utils;
 
-namespace TaskConverter.Tests;
+namespace TaskConverter.Tests.JsonTests;
 
 public class JsonFileTests
 {

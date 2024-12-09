@@ -4,7 +4,7 @@ using TaskConverter.Model.Mapper;
 using TaskConverter.Model.Model;
 using TaskConverter.Plugin.GTD.Mapper;
 using TaskConverter.Plugin.GTD.Model;
-using TaskConverter.Tests.Extensions;
+using TaskConverter.Tests.Utils;
 
 namespace TaskConverter.Tests.MappingTests;
 

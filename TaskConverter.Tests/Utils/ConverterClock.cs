@@ -1,6 +1,6 @@
 using NodaTime;
 
-namespace TaskConverter.Tests;
+namespace TaskConverter.Tests.Utils;
 
 public class ConverterClock : IClock
 {
