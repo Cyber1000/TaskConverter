@@ -2,9 +2,9 @@ using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using TaskConverter.Model.Mapper;
 using TaskConverter.Plugin.GTD.Mapper;
-using TaskConverter.Tests.Utils;
+using TaskConverter.Plugin.GTD.Tests.Utils;
 
-namespace TaskConverter.Tests;
+namespace TaskConverter.Plugin.GTD.Tests;
 
 public class Startup
 {

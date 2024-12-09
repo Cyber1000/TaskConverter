@@ -1,7 +1,7 @@
 using System.Text.Json;
-using TaskConverter.Tests.Utils;
+using TaskConverter.Plugin.GTD.Tests.Utils;
 
-namespace TaskConverter.Tests.JsonTests;
+namespace TaskConverter.Plugin.GTD.Tests.JsonTests;
 
 public static class JsonDataBuilderExtensions
 {

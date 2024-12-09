@@ -1,9 +1,9 @@
 using TaskConverter.Commons.Utils;
 using TaskConverter.Plugin.GTD;
-using TaskConverter.Tests.JsonTests;
-using TaskConverter.Tests.Utils;
+using TaskConverter.Plugin.GTD.Tests.JsonTests;
+using TaskConverter.Plugin.GTD.Tests.Utils;
 
-namespace TaskConverter.Tests.JsonTests;
+namespace TaskConverter.Plugin.GTD.Tests.JsonTests;
 
 //TODO HH: simplify
 public class JsonFileTests

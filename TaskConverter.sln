@@ -5,9 +5,9 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Console", "TaskConverter.Console\TaskConverter.Console.csproj", "{5D492E84-9426-45C6-9D99-38A069AAEDE0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Tests", "TaskConverter.Tests\TaskConverter.Tests.csproj", "{C8F5CFC8-7BA4-4054-B2DA-37066DF70BE8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Plugin.GTD", "TaskConverter.Plugin.GTD\TaskConverter.Plugin.GTD.csproj", "{62CECBE6-82C2-4E42-A523-EE43059421AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Plugin.GTD.Tests", "TaskConverter.Plugin.GTD.Tests\TaskConverter.Plugin.GTD.Tests.csproj", "{C8F5CFC8-7BA4-4054-B2DA-37066DF70BE8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Plugin.Base", "TaskConverter.Plugin.Base\TaskConverter.Plugin.Base.csproj", "{E52C1080-075C-45A2-9970-36DDA783F6E4}"
 EndProject
@@ -28,10 +28,6 @@ Global
 		{5D492E84-9426-45C6-9D99-38A069AAEDE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D492E84-9426-45C6-9D99-38A069AAEDE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D492E84-9426-45C6-9D99-38A069AAEDE0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C8F5CFC8-7BA4-4054-B2DA-37066DF70BE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C8F5CFC8-7BA4-4054-B2DA-37066DF70BE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C8F5CFC8-7BA4-4054-B2DA-37066DF70BE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C8F5CFC8-7BA4-4054-B2DA-37066DF70BE8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E5799C42-3FF7-49E7-8D07-431F921F8499}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E5799C42-3FF7-49E7-8D07-431F921F8499}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5799C42-3FF7-49E7-8D07-431F921F8499}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -40,6 +36,10 @@ Global
 		{62CECBE6-82C2-4E42-A523-EE43059421AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{62CECBE6-82C2-4E42-A523-EE43059421AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{62CECBE6-82C2-4E42-A523-EE43059421AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8F5CFC8-7BA4-4054-B2DA-37066DF70BE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8F5CFC8-7BA4-4054-B2DA-37066DF70BE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8F5CFC8-7BA4-4054-B2DA-37066DF70BE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8F5CFC8-7BA4-4054-B2DA-37066DF70BE8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E52C1080-075C-45A2-9970-36DDA783F6E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E52C1080-075C-45A2-9970-36DDA783F6E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E52C1080-075C-45A2-9970-36DDA783F6E4}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -1,7 +1,7 @@
 using NodaTime;
 using TaskConverter.Model.Mapper;
 
-namespace TaskConverter.Tests.Utils;
+namespace TaskConverter.Plugin.GTD.Tests.Utils;
 
 public class TestDateTimeZoneProvider : IConverterDateTimeZoneProvider
 {

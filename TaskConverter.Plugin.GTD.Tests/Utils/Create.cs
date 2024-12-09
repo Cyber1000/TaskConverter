@@ -1,4 +1,4 @@
-namespace TaskConverter.Tests.Utils;
+namespace TaskConverter.Plugin.GTD.Tests.Utils;
 
 public class Create : IObjectBuilder
 {

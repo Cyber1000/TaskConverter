@@ -3,13 +3,13 @@ using TaskConverter.Model.Mapper;
 using TaskConverter.Model.Model;
 using TaskConverter.Plugin.GTD.Mapper;
 using TaskConverter.Plugin.GTD.Model;
-using TaskConverter.Tests.Utils;
+using TaskConverter.Plugin.GTD.Tests.Utils;
 
-namespace TaskConverter.Tests.MappingTests;
+namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class KeywordMappingTests(IConverter testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider) : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
+public class KeywordMappingTests(IConverter testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
+    : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
 {
-
     [Fact]
     public void Map_Folder()
     {

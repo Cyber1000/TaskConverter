@@ -44,7 +44,7 @@
       "command": "dotnet",
       "args": ["test"],
       "options": {
-        "cwd": "${workspaceFolder}/TaskConverter.Tests",
+        "cwd": "${workspaceFolder}/TaskConverter.Plugin.GTD.Tests",
         "env": {
           "VSTEST_HOST_DEBUG": "1"
         }

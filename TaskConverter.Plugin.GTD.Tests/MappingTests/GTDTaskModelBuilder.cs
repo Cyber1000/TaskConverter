@@ -1,9 +1,9 @@
 using NodaTime;
 using TaskConverter.Model.Model;
 using TaskConverter.Plugin.GTD.Model;
-using TaskConverter.Tests.Utils;
+using TaskConverter.Plugin.GTD.Tests.Utils;
 
-namespace TaskConverter.Tests.MappingTests;
+namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
 public static class GTDTaskModelBuilderExtensions
 {

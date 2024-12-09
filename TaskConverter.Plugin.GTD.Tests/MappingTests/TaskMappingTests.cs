@@ -3,11 +3,13 @@ using TaskConverter.Model.Mapper;
 using TaskConverter.Model.Model;
 using TaskConverter.Plugin.GTD.Mapper;
 using TaskConverter.Plugin.GTD.Model;
-using TaskConverter.Tests.Utils;
+using TaskConverter.Plugin.GTD.Tests.Utils;
+using TaskConverterModel = TaskConverter.Model.Model;
 
-namespace TaskConverter.Tests.MappingTests;
+namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class TaskMappingTests(IConverter testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider) : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
+public class TaskMappingTests(IConverter testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
+    : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
 {
     public enum HideTestCase
     {
@@ -188,12 +190,12 @@ public class TaskMappingTests(IConverter testConverter, IClock clock, IConverter
     }
 
     [Theory]
-    [InlineData(RepeatTestCase.EveryDay, GTDRepeatFrom.FromDueDate, RepeatFrom.FromDueDate, GTDRepeatFrom.FromDueDate, 1, Model.Model.Period.Day, true)]
-    [InlineData(RepeatTestCase.EveryTwoWeeks, GTDRepeatFrom.FromDueDate, RepeatFrom.FromDueDate, GTDRepeatFrom.FromDueDate, 2, Model.Model.Period.Week, true)]
-    [InlineData(RepeatTestCase.EveryThreeMonths, GTDRepeatFrom.FromDueDate, RepeatFrom.FromDueDate, GTDRepeatFrom.FromDueDate, 3, Model.Model.Period.Month, true)]
-    [InlineData(RepeatTestCase.EveryFourYears, GTDRepeatFrom.FromDueDate, RepeatFrom.FromDueDate, GTDRepeatFrom.FromDueDate, 4, Model.Model.Period.Year, true)]
-    [InlineData(RepeatTestCase.EveryDay, GTDRepeatFrom.FromCompletion, RepeatFrom.FromCompletion, GTDRepeatFrom.FromCompletion, 1, Model.Model.Period.Day, true)]
-    [InlineData(RepeatTestCase.EveryDayLowerCase, GTDRepeatFrom.FromDueDate, RepeatFrom.FromDueDate, GTDRepeatFrom.FromDueDate, 1, Model.Model.Period.Day, true)]
+    [InlineData(RepeatTestCase.EveryDay, GTDRepeatFrom.FromDueDate, RepeatFrom.FromDueDate, GTDRepeatFrom.FromDueDate, 1, TaskConverterModel.Period.Day, true)]
+    [InlineData(RepeatTestCase.EveryTwoWeeks, GTDRepeatFrom.FromDueDate, RepeatFrom.FromDueDate, GTDRepeatFrom.FromDueDate, 2, TaskConverterModel.Period.Week, true)]
+    [InlineData(RepeatTestCase.EveryThreeMonths, GTDRepeatFrom.FromDueDate, RepeatFrom.FromDueDate, GTDRepeatFrom.FromDueDate, 3, TaskConverterModel.Period.Month, true)]
+    [InlineData(RepeatTestCase.EveryFourYears, GTDRepeatFrom.FromDueDate, RepeatFrom.FromDueDate, GTDRepeatFrom.FromDueDate, 4, TaskConverterModel.Period.Year, true)]
+    [InlineData(RepeatTestCase.EveryDay, GTDRepeatFrom.FromCompletion, RepeatFrom.FromCompletion, GTDRepeatFrom.FromCompletion, 1, TaskConverterModel.Period.Day, true)]
+    [InlineData(RepeatTestCase.EveryDayLowerCase, GTDRepeatFrom.FromDueDate, RepeatFrom.FromDueDate, GTDRepeatFrom.FromDueDate, 1, TaskConverterModel.Period.Day, true)]
     [InlineData(RepeatTestCase.NoRepeat, GTDRepeatFrom.FromDueDate, null, GTDRepeatFrom.FromDueDate, null, null, false)]
     [InlineData(RepeatTestCase.NoRepeat, GTDRepeatFrom.FromCompletion, null, GTDRepeatFrom.FromDueDate, null, null, false)]
     public void Map_Repeat(
@@ -202,7 +204,7 @@ public class TaskMappingTests(IConverter testConverter, IClock clock, IConverter
         RepeatFrom? expectedTaskAppRepeatFrom,
         GTDRepeatFrom expectedRemappedRepeatFrom,
         int? expectedTaskAppInterval,
-        Model.Model.Period? expectedTaskAppPeriod,
+        TaskConverterModel.Period? expectedTaskAppPeriod,
         bool expectTaskAppRepeatInfo
     )
     {
@@ -248,11 +250,11 @@ public class TaskMappingTests(IConverter testConverter, IClock clock, IConverter
         Assert.Equal(gtdTaskModel.Id.ToString(), taskAppTaskModel.Id);
         Assert.Null(taskAppTaskModel.Parent);
         Assert.Equal(gtdTaskModel.Title, taskAppTaskModel.Title);
-        Assert.Equal(Model.Model.Status.NextAction, taskAppTaskModel.Status);
+        Assert.Equal(TaskConverterModel.Status.NextAction, taskAppTaskModel.Status);
         Assert.Equal(gtdTaskModel.Starred, taskAppTaskModel.Starred);
-        Assert.Equal(Model.Model.Priority.Low, taskAppTaskModel.Priority);
+        Assert.Equal(TaskConverterModel.Priority.Low, taskAppTaskModel.Priority);
         Assert.Equal(gtdTaskModel.Note, taskAppTaskModel.Note);
-        Assert.Equal(Model.Model.TaskType.Task, taskAppTaskModel.Type);
+        Assert.Equal(TaskConverterModel.TaskType.Task, taskAppTaskModel.Type);
         Assert.Equal(gtdTaskModel.Floating, taskAppTaskModel.HasFloatingDueDate);
 
         Assert.Equivalent(gtdTaskModel, gtdRemappedTaskModel);

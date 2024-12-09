@@ -3,10 +3,10 @@ using System.Xml;
 using NodaTime;
 using TaskConverter.Plugin.GTD;
 using TaskConverter.Plugin.GTD.Model;
+using TaskConverter.Plugin.GTD.Tests.Utils;
 using TaskConverter.Plugin.GTD.Utils;
-using TaskConverter.Tests.Utils;
 
-namespace TaskConverter.Tests.JsonTests;
+namespace TaskConverter.Plugin.GTD.Tests.JsonTests;
 
 //TODO HH: simplify
 public class JsonConverterTests
