@@ -1,4 +1,4 @@
-namespace TaskConverter.Tests.TestData;
+namespace TaskConverter.Tests;
 
 public class Create : IObjectBuilder
 {
