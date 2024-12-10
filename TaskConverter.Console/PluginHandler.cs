@@ -1,10 +1,11 @@
 using McMaster.NETCore.Plugins;
+using TaskConverter.Plugin.Base;
 
 namespace TaskConverter.Console.PluginHandling;
 
 class PluginHandler(string pluginBaseDir)
 {
-    public IEnumerable<T> GetAllCommands<T>(params object[] args)
+    public IEnumerable<T> GetAllCommands<T>(ConversionAppData conversionAppData)
     {
         foreach (var dir in Directory.GetDirectories(pluginBaseDir))
         {
@@ -13,7 +14,7 @@ class PluginHandler(string pluginBaseDir)
             if (File.Exists(pluginDll))
             {
                 var loader = PluginLoader.CreateFromAssemblyFile(pluginDll, sharedTypes: [typeof(T)]);
-                var commands = GetPluginCommands<T>(loader, args);
+                var commands = GetPluginCommands<T>(loader, conversionAppData);
                 foreach (var command in commands)
                 {
                     yield return command;

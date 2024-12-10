@@ -1,18 +1,11 @@
+using System.IO.Abstractions;
+
 namespace TaskConverter.Plugin.Base;
 
-public class ConversionAppSettings
+public class ConversionAppData(IFileSystem fileSystem, Dictionary<string, string> appsettings)
 {
-    private readonly Dictionary<string, string> appsettings;
-
-    public ConversionAppSettings()
-    {
-        appsettings = new Dictionary<string, string>();
-    }
-
-    public ConversionAppSettings(Dictionary<string, string> appsettings)
-    {
-        this.appsettings = appsettings;
-    }
+    public IFileSystem FileSystem { get; } = fileSystem;
+    private readonly Dictionary<string, string> appsettings = appsettings;
 
     public string GetAppSetting(string Key, string? defaultValue = null)
     {

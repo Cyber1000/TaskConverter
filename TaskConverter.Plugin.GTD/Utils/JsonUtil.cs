@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.IO.Abstractions;
 using System.Text.Json.JsonDiffPatch;
 using System.Text.Json.Nodes;
 
@@ -19,9 +20,9 @@ public static class JsonUtil
             ("Yearly", "Every 1 year")
         ];
 
-    public static string Read(this FileInfo file)
+    public static string Read(this IFileInfo file)
     {
-        return NormalizeText(File.ReadAllText(file.FullName));
+        return NormalizeText(file.FileSystem.File.ReadAllText(file.FullName));
     }
 
     public static string NormalizeText(string text)

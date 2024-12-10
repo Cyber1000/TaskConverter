@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using TaskConverter.Console;
 using TaskConverter.Console.PluginHandling;
 using TaskConverter.Plugin.Base;
@@ -64,7 +65,7 @@ class Programm
         }
         var pluginLoader = new PluginHandler(pluginBaseDir);
         return pluginLoader
-            .GetAllCommands<IConverterPlugin>(SettingsHelper.GetAppSettings())
+            .GetAllCommands<IConverterPlugin>(new ConversionAppData(new FileSystem(), SettingsHelper.GetAppSettings()))
             .ToDictionary(c => c.Name.ToLowerInvariant(), c => c);
     }
 

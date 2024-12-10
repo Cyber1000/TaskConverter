@@ -1,6 +1,6 @@
+using NodaTime;
 using TaskConverter.Model.Model;
 using TaskConverter.Plugin.Base;
-using NodaTime;
 
 namespace TaskConverter.Plugin.GTD;
 
@@ -8,13 +8,13 @@ public class GTDConverterPlugin : IConverterPlugin
 {
     private JsonConfigurationReader? jsonReader = null;
 
-    internal ConversionAppSettings ConversionAppSettings;
+    internal ConversionAppData ConversionAppData;
 
     private readonly Mapper.Converter converter;
 
-    public GTDConverterPlugin(params object[] args)
+    public GTDConverterPlugin(ConversionAppData conversionAppData)
     {
-        ConversionAppSettings = (ConversionAppSettings)args[0];
+        ConversionAppData = conversionAppData;
         var clock = SystemClock.Instance;
         var converterDateTimeZoneProvider = new ConverterDateTimeZoneProvider(this);
         converter = new Mapper.Converter(clock, converterDateTimeZoneProvider);
@@ -26,7 +26,8 @@ public class GTDConverterPlugin : IConverterPlugin
     {
         try
         {
-            jsonReader = new JsonConfigurationReader(new FileInfo(fromLocation));
+            var fileSystem = ConversionAppData.FileSystem;
+            jsonReader = new JsonConfigurationReader(fileSystem.FileInfo.New(fromLocation), fileSystem);
             return true;
         }
         catch

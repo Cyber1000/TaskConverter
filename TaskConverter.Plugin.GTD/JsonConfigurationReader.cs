@@ -1,16 +1,17 @@
+using System.IO.Abstractions;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.JsonDiffPatch;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Xml;
 using NodaTime;
-using TaskConverter.Commons.Utils;
-using TaskConverter.Plugin.GTD.Model;
-using TaskConverter.Plugin.GTD.ConversionHelper;
 using TaskConverter.Commons.ConversionHelper;
+using TaskConverter.Commons.Utils;
+using TaskConverter.Plugin.GTD.ConversionHelper;
+using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Utils;
-using System.Text.Json.JsonDiffPatch;
 
 namespace TaskConverter.Plugin.GTD;
 
@@ -18,18 +19,21 @@ public class JsonConfigurationReader
 {
     private string? RawJsonString;
     public GTDDataModel? TaskInfo { get; private set; }
+    private IFileSystem FileSystem { get; }
 
-    public JsonConfigurationReader(FileInfo inputFile)
+    public JsonConfigurationReader(IFileInfo inputFile, IFileSystem fileSystem)
     {
+        FileSystem = fileSystem;
         if (!inputFile.Exists)
             throw new Exception($"File {inputFile} doesn't exist");
 
-        var jsonString = inputFile.FullName.EndsWith(".zip") ? inputFile.ReadFromZip() : File.ReadAllText(inputFile.FullName);
+        var jsonString = inputFile.FullName.EndsWith(".zip") ? inputFile.ReadFromZip() : fileSystem.File.ReadAllText(inputFile.FullName);
         Read(jsonString);
     }
 
     public JsonConfigurationReader(string jsonString)
     {
+        FileSystem = new FileSystem();
         Read(jsonString);
     }
 
@@ -50,12 +54,7 @@ public class JsonConfigurationReader
             PropertyNamingPolicy = new TaskInfoJsonNamingPolicy(),
             WriteIndented = true,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            Converters =
-            {
-                new ExactLocalDateTimeConverter<LocalDateTime?>(),
-                new ExactLocalDateTimeConverter<LocalDateTime>(),
-                new TaskInfoBoolConverter()
-            }
+            Converters = { new ExactLocalDateTimeConverter<LocalDateTime?>(), new ExactLocalDateTimeConverter<LocalDateTime>(), new TaskInfoBoolConverter() },
         };
 
         return options;
@@ -81,10 +80,7 @@ public class JsonConfigurationReader
                         errorText = "Start Date not implemented";
                     if (taskInfoTaskEntry.StartTimeSet)
                         errorText = "Start Time Set not implemented";
-                    if (
-                        taskInfoTaskEntry.DueDateModifier != DueDateModifier.DueBy
-                        && taskInfoTaskEntry.DueDateModifier != DueDateModifier.OptionallyOn
-                    )
+                    if (taskInfoTaskEntry.DueDateModifier != DueDateModifier.DueBy && taskInfoTaskEntry.DueDateModifier != DueDateModifier.OptionallyOn)
                         errorText = $"Due date {taskInfoTaskEntry.DueDateModifier} not implemented";
                     if (taskInfoTaskEntry.Duration > 0)
                         errorText = "Duration not implemented";
@@ -116,10 +112,14 @@ public class JsonConfigurationReader
         }
     }
 
-    public void Write(FileInfo outputFile)
+    public void Write(IFileInfo outputFile)
     {
         var output = GetJsonOutput();
-        File.WriteAllText(outputFile.FullName, output, Encoding.UTF8);
+        if (output == null)
+            return;
+
+        var fileName = outputFile.FullName;
+        FileSystem.File.WriteAllText(fileName, output, Encoding.UTF8);
     }
 
     public string? GetJsonOutput()
@@ -137,12 +137,7 @@ public class JsonConfigurationReader
             throw new Exception("Use Read before Validating!");
 
         var recreatedJsonText = GetJsonOutput();
-        var jsonDiff = JsonDiffPatcher.Diff(
-            JsonUtil.NormalizeText(RawJsonString),
-            recreatedJsonText,
-            new JsonDeltaFormatter(),
-            JsonUtil.GetDiffOptions()
-        );
+        var jsonDiff = JsonDiffPatcher.Diff(JsonUtil.NormalizeText(RawJsonString), recreatedJsonText, new JsonDeltaFormatter(), JsonUtil.GetDiffOptions());
         var isError = jsonDiff is null || (jsonDiff is JsonArray jsonArray && jsonArray.Count > 0);
 
         XmlDocument originalXml = ParseOriginalXml();
