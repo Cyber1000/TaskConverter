@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using NodaTime;
 using TaskConverter.Model.Model;
 using TaskConverter.Plugin.Base;
@@ -8,11 +9,11 @@ public class GTDConverterPlugin : IConverterPlugin
 {
     private JsonConfigurationReader? jsonReader = null;
 
-    internal ConversionAppData ConversionAppData;
+    internal ConversionAppSettings ConversionAppData;
 
     private readonly Mapper.Converter converter;
 
-    public GTDConverterPlugin(ConversionAppData conversionAppData)
+    public GTDConverterPlugin(ConversionAppSettings conversionAppData)
     {
         ConversionAppData = conversionAppData;
         var clock = SystemClock.Instance;
@@ -26,7 +27,7 @@ public class GTDConverterPlugin : IConverterPlugin
     {
         try
         {
-            var fileSystem = ConversionAppData.FileSystem;
+            var fileSystem = new FileSystem();
             jsonReader = new JsonConfigurationReader(fileSystem.FileInfo.New(fromLocation), fileSystem);
             return true;
         }

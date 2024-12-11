@@ -5,10 +5,6 @@
     <ProjectReference Include="..\TaskConverter.Commons\TaskConverter.Commons.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="21.1.7" />
-  </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

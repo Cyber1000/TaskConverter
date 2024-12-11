@@ -1,4 +1,3 @@
-using System.IO.Abstractions;
 using TaskConverter.Console;
 using TaskConverter.Console.PluginHandling;
 using TaskConverter.Plugin.Base;
@@ -6,7 +5,7 @@ using TaskConverter.Plugin.Base;
 enum Command
 {
     CheckSource,
-    CanMap
+    CanMap,
 }
 
 class Programm
@@ -27,9 +26,7 @@ class Programm
         if (string.IsNullOrEmpty(fromModel) || !commands.ContainsKey(fromModel))
         {
             //TODO HH: better message, when there are no plugins
-            errorWriter.WriteLine(
-                $"FromModel is mandatory and must be a valid plugin. Valid plugins are: {string.Join(',', GetAvailablePlugins(commands))}"
-            );
+            errorWriter.WriteLine($"FromModel is mandatory and must be a valid plugin. Valid plugins are: {string.Join(',', GetAvailablePlugins(commands))}");
             return 1;
         }
         var fromCommand = commands[fromModel];
@@ -64,9 +61,7 @@ class Programm
             return [];
         }
         var pluginLoader = new PluginHandler(pluginBaseDir);
-        return pluginLoader
-            .GetAllCommands<IConverterPlugin>(new ConversionAppData(new FileSystem(), SettingsHelper.GetAppSettings()))
-            .ToDictionary(c => c.Name.ToLowerInvariant(), c => c);
+        return pluginLoader.GetAllCommands<IConverterPlugin>(SettingsHelper.GetAppSettings()).ToDictionary(c => c.Name.ToLowerInvariant(), c => c);
     }
 
     private static void CanMap(IConverterPlugin command, TextWriter errorConsole)

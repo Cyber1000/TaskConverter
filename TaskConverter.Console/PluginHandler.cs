@@ -5,7 +5,7 @@ namespace TaskConverter.Console.PluginHandling;
 
 class PluginHandler(string pluginBaseDir)
 {
-    public IEnumerable<T> GetAllCommands<T>(ConversionAppData conversionAppData)
+    public IEnumerable<T> GetAllCommands<T>(ConversionAppSettings conversionAppData)
     {
         foreach (var dir in Directory.GetDirectories(pluginBaseDir))
         {
