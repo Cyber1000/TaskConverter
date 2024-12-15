@@ -4,13 +4,13 @@ using TaskConverter.Plugin.GTD.Tests.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.JsonTests;
 
-public class JsonFileTests
+public class JsonConfigurationReaderTests
 {
     private const string originalFilePath = "./GTD.json";
     private const string resultFilePath = "./GTD_new.json";
     private readonly MockFileSystem _mockFileSystem;
 
-    public JsonFileTests()
+    public JsonConfigurationReaderTests()
     {
         _mockFileSystem = new MockFileSystem();
     }
