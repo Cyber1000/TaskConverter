@@ -1,5 +1,6 @@
 using System.IO.Abstractions.TestingHelpers;
 using System.Text.Json;
+using FluentValidation;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;
 
@@ -98,8 +99,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddFolder(folder).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Only empty Uuids are accepted", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("Only empty Uuids are accepted.", exception.Message);
     }
 
     [Fact]
@@ -109,8 +110,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddFolder(folder).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Title must not be null", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Title' must not be empty.", exception.Message);
     }
 
     [Fact]
@@ -120,7 +121,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTag(tag).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
         Assert.Contains("Only empty Uuids are accepted", exception.Message);
     }
 
@@ -131,8 +132,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTag(tag).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Title must not be null", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Title' must not be empty.", exception.Message);
     }
 
     [Fact]
@@ -142,7 +143,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
         Assert.Contains("Only empty Uuids are accepted", exception.Message);
     }
 
@@ -153,8 +154,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Title must not be null", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Title' must not be empty.", exception.Message);
     }
 
     [Fact]
@@ -164,7 +165,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddContext(context).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
         Assert.Contains("Only empty Uuids are accepted", exception.Message);
     }
 
@@ -175,8 +176,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddContext(context).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Title must not be null", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Title' must not be empty.", exception.Message);
     }
 
     [Fact]
@@ -186,7 +187,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddNotebook(notebook).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
         Assert.Contains("Only empty Uuids are accepted", exception.Message);
     }
 
@@ -197,8 +198,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddNotebook(notebook).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Title must not be null", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Title' must not be empty.", exception.Message);
     }
 
     [Fact]
@@ -208,8 +209,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Start Date not implemented", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Start Date' not implemented.", exception.Message);
     }
 
     [Fact]
@@ -219,8 +220,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Start Time Set not implemented", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Start Time Set' not implemented.", exception.Message);
     }
 
     [Fact]
@@ -231,8 +232,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Due date DueAfter not implemented", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Due date' DueAfter not implemented.", exception.Message);
     }
 
     [Fact]
@@ -242,8 +243,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Duration not implemented", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Duration' not implemented.", exception.Message);
     }
 
     [Fact]
@@ -253,8 +254,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Goal not implemented", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Goal' not implemented.", exception.Message);
     }
 
     [Fact]
@@ -264,8 +265,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("TrashBin not implemented", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'TrashBin' not implemented.", exception.Message);
     }
 
     [Fact]
@@ -275,8 +276,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Importance not implemented", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Importance' not implemented.", exception.Message);
     }
 
     [Fact]
@@ -286,8 +287,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("MetaInformation not implemented", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'MetaInformation' not implemented.", exception.Message);
     }
 
     [Fact]
@@ -297,8 +298,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Hide not implemented with value GivenDate", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Hide' not implemented with value GivenDate.", exception.Message);
     }
 
     [Fact]
@@ -308,8 +309,8 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTaskNote(taskNote).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("TaskInfoTaskNote not implemented", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'TaskNote' not implemented.", exception.Message);
     }
 
     [Fact]
@@ -319,7 +320,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).WithoutPreferences().Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<NotImplementedException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
-        Assert.Contains("Preferences should have entries", exception.Message);
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Contains("'Preferences' must not be empty.", exception.Message);
     }
 }

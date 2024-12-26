@@ -6,12 +6,14 @@ using System.Text.Json.JsonDiffPatch;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Xml;
+using FluentValidation;
 using NodaTime;
 using TaskConverter.Commons.ConversionHelper;
 using TaskConverter.Commons.Utils;
 using TaskConverter.Plugin.GTD.ConversionHelper;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Utils;
+using TaskConverter.Plugin.GTD.Validators;
 
 namespace TaskConverter.Plugin.GTD;
 
@@ -43,7 +45,16 @@ public class JsonConfigurationReader
         JsonSerializerOptions options = InitSerializerOptions();
 
         TaskInfo = JsonSerializer.Deserialize<GTDDataModel>(jsonString, options);
-        AssertValues(TaskInfo);
+        if (TaskInfo == null)
+            return;
+
+        var validator = new GTDDataModelValidator();
+        var validationResult = validator.Validate(TaskInfo);
+
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException(validationResult.Errors);
+        }
     }
 
     private static JsonSerializerOptions InitSerializerOptions()
@@ -58,58 +69,6 @@ public class JsonConfigurationReader
         };
 
         return options;
-    }
-
-    private static void AssertValues(GTDDataModel? taskInfo)
-    {
-        //TODO HH: add validators or move to mapper?
-        if (taskInfo == null)
-            return;
-        string? errorText = null;
-        foreach (var singleTaskInfo in taskInfo.GetAllEntries)
-        {
-            if (!string.IsNullOrEmpty(singleTaskInfo.Uuid))
-                errorText = "Only empty Uuids are accepted";
-            if (string.IsNullOrEmpty(singleTaskInfo.Title))
-                errorText = "Title must not be null";
-
-            switch (singleTaskInfo)
-            {
-                case GTDTaskModel taskInfoTaskEntry:
-                    if (taskInfoTaskEntry.StartDate is not null)
-                        errorText = "Start Date not implemented";
-                    if (taskInfoTaskEntry.StartTimeSet)
-                        errorText = "Start Time Set not implemented";
-                    if (taskInfoTaskEntry.DueDateModifier != DueDateModifier.DueBy && taskInfoTaskEntry.DueDateModifier != DueDateModifier.OptionallyOn)
-                        errorText = $"Due date {taskInfoTaskEntry.DueDateModifier} not implemented";
-                    if (taskInfoTaskEntry.Duration > 0)
-                        errorText = "Duration not implemented";
-                    if (taskInfoTaskEntry.Goal > 0)
-                        errorText = "Goal not implemented";
-                    if (!string.IsNullOrEmpty(taskInfoTaskEntry.TrashBin))
-                        errorText = "TrashBin not implemented";
-                    if (taskInfoTaskEntry.Importance > 0)
-                        errorText = "Importance not implemented";
-                    if (!string.IsNullOrEmpty(taskInfoTaskEntry.MetaInformation))
-                        errorText = "MetaInformation not implemented";
-                    if (taskInfoTaskEntry.Hide != Hide.DontHide && taskInfoTaskEntry.Hide != Hide.SixMonthsBeforeDue)
-                        errorText = $"Hide not implemented with value {taskInfoTaskEntry.Hide}";
-                    break;
-                case GTDTaskNoteModel:
-                    errorText = "TaskInfoTaskNote not implemented";
-                    break;
-            }
-
-            if (taskInfo.Preferences == null)
-            {
-                errorText = "Preferences should have entries";
-            }
-
-            if (errorText is not null)
-            {
-                throw new NotImplementedException($"Item {singleTaskInfo.GetType()} with Id {singleTaskInfo.Id}: {errorText}");
-            }
-        }
     }
 
     public void Write(IFileInfo outputFile)
