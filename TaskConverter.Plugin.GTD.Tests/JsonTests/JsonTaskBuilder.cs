@@ -95,4 +95,70 @@ public class JsonTaskBuilder
     {
         return task;
     }
+
+    public JsonTaskBuilder WithUuid(string uuid)
+    {
+        task["UUID"] = uuid;
+        return this;
+    }
+
+    public JsonTaskBuilder WithTitle(string title)
+    {
+        task["TITLE"] = title;
+        return this;
+    }
+
+    public JsonTaskBuilder WithStartDate(string startDate)
+    {
+        task["START_DATE"] = startDate;
+        return this;
+    }
+
+    public JsonTaskBuilder WithStartTimeSet(bool startTimeSet)
+    {
+        task["START_TIME_SET"] = startTimeSet ? 1 : 0;
+        return this;
+    }
+
+    public JsonTaskBuilder WithDuration(int duration)
+    {
+        task["DURATION"] = duration;
+        return this;
+    }
+
+    public JsonTaskBuilder WithGoal(int goal)
+    {
+        task["GOAL"] = goal;
+        return this;
+    }
+
+    public JsonTaskBuilder WithTrashBin(string trashBin)
+    {
+        task["TRASH_BIN"] = trashBin;
+        return this;
+    }
+
+    public JsonTaskBuilder WithImportance(int importance)
+    {
+        task["IMPORTANCE"] = importance;
+        return this;
+    }
+
+    public JsonTaskBuilder WithMetaInformation(string metaInfo)
+    {
+        task["METAINF"] = metaInfo;
+        return this;
+    }
+
+    public JsonTaskBuilder WithHide(string hide)
+    {
+        task["HIDE"] = int.Parse(hide);
+        return this;
+    }
+
+    public JsonTaskBuilder WithFloating(bool floating)
+    {
+        task["FLOATING"] = floating ? 1 : 0;
+        return this;
+    }
 }

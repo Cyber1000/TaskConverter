@@ -37,8 +37,8 @@ public class JsonConverterTests
     public void Task_DueDateModifier()
     {
         AssertAndVerify<GTDDataModel>(
-            json => json.AddTask(Create.A.JsonTask().WithDueDateModifier("1").Build()),
-            taskInfo => Assert.Equal(DueDateModifier.DueOn, taskInfo?.Task?[0].DueDateModifier)
+            json => json.AddTask(Create.A.JsonTask().WithDueDateModifier("3").Build()),
+            taskInfo => Assert.Equal(DueDateModifier.OptionallyOn, taskInfo?.Task?[0].DueDateModifier)
         );
     }
 

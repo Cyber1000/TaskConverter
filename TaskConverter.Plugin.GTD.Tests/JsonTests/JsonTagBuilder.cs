@@ -34,6 +34,18 @@ public class JsonTagBuilder
         return this;
     }
 
+    public JsonTagBuilder WithUuid(string uuid)
+    {
+        tag["UUID"] = uuid;
+        return this;
+    }
+
+    public JsonTagBuilder WithTitle(string title)
+    {
+        tag["TITLE"] = title;
+        return this;
+    }
+
     public Dictionary<string, object> Build()
     {
         return tag;

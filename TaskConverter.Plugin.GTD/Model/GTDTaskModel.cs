@@ -1,9 +1,8 @@
 using System.Text.Json.Serialization;
+using NodaTime;
 using TaskConverter.Commons.ConversionHelper;
 using TaskConverter.Model.Model;
 using TaskConverter.Plugin.GTD.ConversionHelper;
-using NodaTime;
-using System.Diagnostics.CodeAnalysis;
 
 namespace TaskConverter.Plugin.GTD.Model;
 
@@ -12,7 +11,7 @@ public enum DueDateModifier
     DueBy = 0,
     DueOn = 1,
     DueAfter = 2,
-    OptionallyOn = 3
+    OptionallyOn = 3,
 }
 
 public enum Status
@@ -27,7 +26,7 @@ public enum Status
     Postponed,
     Someday,
     Canceled,
-    Reference
+    Reference,
 }
 
 public enum Priority
@@ -36,7 +35,7 @@ public enum Priority
     High = 2,
     Med = 1,
     Low = 0,
-    None = -1
+    None = -1,
 }
 
 public enum TaskType
@@ -49,7 +48,7 @@ public enum TaskType
     Call,
     Email,
     Sms,
-    ReturnCall
+    ReturnCall,
 }
 
 public enum Hide
@@ -73,15 +72,12 @@ public enum Hide
     FourMonthsBeforeDue = 140,
     FiveMonthsBeforeDue = 150,
     SixMonthsBeforeDue = 160,
-    GivenDate = 4
+    GivenDate = 4,
 }
 
 public class GTDTaskModel : GTDBaseModel
 {
-    public GTDTaskModel()
-    {
-        
-    }
+    public GTDTaskModel() { }
 
     public GTDTaskModel(GTDDataModel gtdDataModel, int parentId, List<int> tagIds, int folderId, int contextId)
     {
@@ -93,6 +89,8 @@ public class GTDTaskModel : GTDBaseModel
 
     [JsonPropertyOrder(-850)]
     public int Parent { get; set; }
+
+    [JsonConverter(typeof(ExactToMinuteLocalDateTimeConverter<LocalDateTime?>))]
     public LocalDateTime? StartDate { get; set; }
     public bool StartTimeSet { get; set; }
 

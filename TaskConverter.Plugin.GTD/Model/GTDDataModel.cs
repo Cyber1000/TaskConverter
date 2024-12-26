@@ -10,8 +10,7 @@ public class GTDDataModel
     {
         get
         {
-            var items = Folder
-                ?.Cast<GTDBaseModel>()
+            var items = Folder?.Cast<GTDBaseModel>() ?? new List<GTDBaseModel>()
                 .Concat(Tag?.Cast<GTDBaseModel>() ?? new List<GTDBaseModel>())
                 .Concat(Task?.Cast<GTDBaseModel>() ?? new List<GTDBaseModel>())
                 .Concat(Context?.Cast<GTDBaseModel>() ?? new List<GTDBaseModel>())
