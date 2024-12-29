@@ -2,12 +2,8 @@ using TaskConverter.Model.Model;
 
 namespace TaskConverter.Plugin.GTD.Model;
 
-public class GTDKeyWordEnum : KeyWordEnum
+public class GTDKeyWordEnum(string value) : KeyWordEnum(value)
 {
-    public GTDKeyWordEnum(string value) : base(value)
-    {
-    }
-
-        public static KeyWordEnum Context = new KeyWordEnum("Context");
-        public static KeyWordEnum Folder = new KeyWordEnum("Folder");
+    public static readonly KeyWordEnum Context = new("Context");
+    public static readonly KeyWordEnum Folder = new("Folder");
 }
