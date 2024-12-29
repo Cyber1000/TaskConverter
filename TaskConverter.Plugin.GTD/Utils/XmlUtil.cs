@@ -11,6 +11,8 @@ public static class XmlUtil
         var stream = new MemoryStream();
         var xmlWriter = XmlWriter.Create(stream);
         var compareResult = xmldiff.Compare(originalXml, recreatedXml, xmlWriter);
+        xmlWriter.Flush();
+        stream.Position = 0;
         var reader = new StreamReader(stream);
         var xmlDiff = reader.ReadToEnd();
         return (compareResult, xmlDiff);

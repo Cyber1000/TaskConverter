@@ -1,16 +1,11 @@
 using System.IO.Abstractions;
 using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
 using System.Text.Json.JsonDiffPatch;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Xml;
 using FluentValidation;
-using NodaTime;
-using TaskConverter.Commons.ConversionHelper;
 using TaskConverter.Commons.Utils;
-using TaskConverter.Plugin.GTD.ConversionHelper;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Utils;
 using TaskConverter.Plugin.GTD.Validators;
@@ -21,11 +16,13 @@ public class JsonConfigurationReader
 {
     private string? RawJsonString;
     public GTDDataModel? TaskInfo { get; private set; }
-    private IFileSystem FileSystem { get; }
+    private readonly IFileSystem _fileSystem;
+    private readonly IJsonConfigurationSerializer _jsonConfigurationSerializer;
 
-    public JsonConfigurationReader(IFileInfo inputFile, IFileSystem fileSystem)
+    public JsonConfigurationReader(IFileInfo inputFile, IFileSystem fileSystem, IJsonConfigurationSerializer jsonConfigurationSerializer)
     {
-        FileSystem = fileSystem;
+        _fileSystem = fileSystem;
+        _jsonConfigurationSerializer = jsonConfigurationSerializer;
         if (!inputFile.Exists)
             throw new Exception($"File {inputFile} doesn't exist");
 
@@ -33,18 +30,11 @@ public class JsonConfigurationReader
         Read(jsonString);
     }
 
-    public JsonConfigurationReader(string jsonString)
-    {
-        FileSystem = new FileSystem();
-        Read(jsonString);
-    }
-
     private void Read(string jsonString)
     {
         RawJsonString = jsonString;
-        JsonSerializerOptions options = InitSerializerOptions();
 
-        TaskInfo = JsonSerializer.Deserialize<GTDDataModel>(jsonString, options);
+        TaskInfo = _jsonConfigurationSerializer.Deserialize<GTDDataModel>(jsonString);
         if (TaskInfo == null)
             return;
 
@@ -57,20 +47,6 @@ public class JsonConfigurationReader
         }
     }
 
-    private static JsonSerializerOptions InitSerializerOptions()
-    {
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = new TaskInfoJsonNamingPolicy(),
-            WriteIndented = true,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            Converters = { new ExactLocalDateTimeConverter<LocalDateTime?>(), new ExactLocalDateTimeConverter<LocalDateTime>(), new TaskInfoBoolConverter() },
-        };
-
-        return options;
-    }
-
     public void Write(IFileInfo outputFile)
     {
         var output = GetJsonOutput();
@@ -78,7 +54,7 @@ public class JsonConfigurationReader
             return;
 
         var fileName = outputFile.FullName;
-        FileSystem.File.WriteAllText(fileName, output, Encoding.UTF8);
+        _fileSystem.File.WriteAllText(fileName, output, Encoding.UTF8);
     }
 
     public string? GetJsonOutput()
@@ -86,34 +62,33 @@ public class JsonConfigurationReader
         if (TaskInfo == null)
             return null;
 
-        JsonSerializerOptions options = InitSerializerOptions();
-        return JsonSerializer.Serialize(TaskInfo, options);
+        return _jsonConfigurationSerializer.Serialize(TaskInfo);
     }
 
     public (bool isError, string validationError) Validate()
     {
-        if (TaskInfo == null || RawJsonString == null)
-            throw new Exception("Use Read before Validating!");
+        if (TaskInfo == null)
+            return (false, "");
 
         var recreatedJsonText = GetJsonOutput();
         var jsonDiff = JsonDiffPatcher.Diff(JsonUtil.NormalizeText(RawJsonString), recreatedJsonText, new JsonDeltaFormatter(), JsonUtil.GetDiffOptions());
-        var isError = jsonDiff is null || (jsonDiff is JsonArray jsonArray && jsonArray.Count > 0);
+        var jsonError = jsonDiff is null || (jsonDiff is JsonArray jsonArray && jsonArray.Count > 0);
 
-        XmlDocument originalXml = ParseOriginalXml();
-        var recreatedXml = TaskInfo!.Preferences![0].XmlConfig;
-        var (compareResult, xmlDiff) = XmlUtil.DiffXml(originalXml, recreatedXml!);
-        isError = isError || !compareResult;
+        XmlDocument originalXml = ParseXmlFromString(RawJsonString);
+        var recreatedXml = string.IsNullOrEmpty(recreatedJsonText) ? new XmlDocument() : ParseXmlFromString(recreatedJsonText);
+        var (compareResult, xmlDiff) = XmlUtil.DiffXml(originalXml, recreatedXml);
+        var xmlError = !compareResult;
         var validationError = "";
-        if (jsonDiff != null)
-            validationError += $"Json: {jsonDiff}{System.Environment.NewLine}";
-        if (!string.IsNullOrEmpty(xmlDiff))
+        if (jsonError)
+            validationError += $"Json: {jsonDiff}{Environment.NewLine}";
+        if (xmlError)
             validationError += $"Xml: {xmlDiff}";
-        return (isError, validationError);
+        return (jsonError || xmlError, validationError);
 
-        XmlDocument ParseOriginalXml()
+        static XmlDocument ParseXmlFromString(string jsonString)
         {
             var originalXmlPattern = @"com\.dg\.gtd\.android\.lite_preferences"":\s*""([^""\\]*(?:\\.[^""\\]*)*)";
-            var match = Regex.Match(RawJsonString, originalXmlPattern);
+            var match = Regex.Match(jsonString, originalXmlPattern);
             string originalXmlString;
             if (match.Success)
             {

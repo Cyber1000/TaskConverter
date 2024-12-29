@@ -11,10 +11,12 @@ public class JsonConfigurationReaderTests
     private const string originalFilePath = "./GTD.json";
     private const string resultFilePath = "./GTD_new.json";
     private readonly MockFileSystem _mockFileSystem;
+    private readonly TestJsonConfigurationSerializer _jsonConfigurationSerializer;
 
     public JsonConfigurationReaderTests()
     {
         _mockFileSystem = new MockFileSystem();
+        _jsonConfigurationSerializer = new TestJsonConfigurationSerializer();
     }
 
     [Fact]
@@ -48,7 +50,7 @@ public class JsonConfigurationReaderTests
     {
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(string.Empty));
 
-        Assert.Throws<JsonException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Throws<JsonException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
     }
 
     [Fact]
@@ -56,7 +58,7 @@ public class JsonConfigurationReaderTests
     {
         _mockFileSystem.AddFile(originalFilePath, new MockFileData("This is not valid JSON"));
 
-        Assert.Throws<JsonException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        Assert.Throws<JsonException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
     }
 
     [Fact]
@@ -65,7 +67,7 @@ public class JsonConfigurationReaderTests
         var emptyZipContent = CreateZipContent(originalFilePath, string.Empty);
         _mockFileSystem.AddFile($"{originalFilePath}.zip", new MockFileData(emptyZipContent));
 
-        Assert.Throws<JsonException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New($"{originalFilePath}.zip"), _mockFileSystem));
+        Assert.Throws<JsonException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New($"{originalFilePath}.zip"), _mockFileSystem, _jsonConfigurationSerializer));
     }
 
     private JsonConfigurationReader SetupTest(string filePath)
@@ -76,7 +78,7 @@ public class JsonConfigurationReaderTests
         var mockFileData = filePath.EndsWith(".zip") ? new MockFileData(CreateZipContent(filePath, originalJson)) : new MockFileData(originalJson);
 
         _mockFileSystem.AddFile(filePath, mockFileData);
-        return new JsonConfigurationReader(_mockFileSystem.FileInfo.New(filePath), _mockFileSystem);
+        return new JsonConfigurationReader(_mockFileSystem.FileInfo.New(filePath), _mockFileSystem, _jsonConfigurationSerializer);
     }
 
     private static byte[] CreateZipContent(string filePath, string content)
@@ -99,7 +101,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddFolder(folder).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("Only empty Uuids are accepted.", exception.Message);
     }
 
@@ -110,7 +112,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddFolder(folder).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Title' must not be empty.", exception.Message);
     }
 
@@ -121,7 +123,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTag(tag).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("Only empty Uuids are accepted", exception.Message);
     }
 
@@ -132,7 +134,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTag(tag).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Title' must not be empty.", exception.Message);
     }
 
@@ -143,7 +145,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("Only empty Uuids are accepted", exception.Message);
     }
 
@@ -154,7 +156,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Title' must not be empty.", exception.Message);
     }
 
@@ -165,7 +167,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddContext(context).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("Only empty Uuids are accepted", exception.Message);
     }
 
@@ -176,7 +178,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddContext(context).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Title' must not be empty.", exception.Message);
     }
 
@@ -187,7 +189,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddNotebook(notebook).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("Only empty Uuids are accepted", exception.Message);
     }
 
@@ -198,7 +200,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddNotebook(notebook).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Title' must not be empty.", exception.Message);
     }
 
@@ -209,7 +211,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Start Date' not implemented.", exception.Message);
     }
 
@@ -220,7 +222,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Start Time Set' not implemented.", exception.Message);
     }
 
@@ -232,7 +234,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Due date' DueAfter not implemented.", exception.Message);
     }
 
@@ -243,7 +245,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Duration' not implemented.", exception.Message);
     }
 
@@ -254,7 +256,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Goal' not implemented.", exception.Message);
     }
 
@@ -265,7 +267,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'TrashBin' not implemented.", exception.Message);
     }
 
@@ -276,7 +278,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Importance' not implemented.", exception.Message);
     }
 
@@ -287,7 +289,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'MetaInformation' not implemented.", exception.Message);
     }
 
@@ -298,7 +300,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Hide' not implemented with value GivenDate.", exception.Message);
     }
 
@@ -309,7 +311,7 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTaskNote(taskNote).Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'TaskNote' not implemented.", exception.Message);
     }
 
@@ -320,7 +322,58 @@ public class JsonConfigurationReaderTests
         var json = Create.A.JsonData().AddTask(task).WithoutPreferences().Build();
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
 
-        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem));
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
         Assert.Contains("'Preferences' must not be empty.", exception.Message);
+    }
+
+    [Fact]
+    public void Validate_WithValidJsonAndXml_ShouldReturnNoError()
+    {
+        var task = Create.A.JsonTask().Build();
+        var json = Create.A.JsonData().AddTask(task).Build();
+        _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
+        var reader = new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer);
+
+        var (isError, validationError) = reader.Validate();
+
+        Assert.False(isError);
+        Assert.Empty(validationError);
+    }
+
+    [Fact]
+    public void Validate_WithModifiedJson_ShouldReturnError()
+    {
+        var testJsonConfigurationSerializer = new TestJsonConfigurationSerializer();
+        var task = Create.A.JsonTask().Build();
+        var originalJson = Create.A.JsonData().AddTask(task).Build();
+        var modifiedJson = originalJson.Replace("\"TITLE\": \"Test\"", "\"TITLE\": \"Modified Test\"");
+        testJsonConfigurationSerializer.OverrideSerializerString(modifiedJson);
+
+        _mockFileSystem.AddFile(originalFilePath, new MockFileData(originalJson));
+        var reader = new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, testJsonConfigurationSerializer);
+        var (isError, validationError) = reader.Validate();
+
+        Assert.True(isError);
+        Assert.Contains("\"original\": \"Test\"", validationError);
+        Assert.Contains("\"new\": \"Modified Test\"", validationError);
+        testJsonConfigurationSerializer.ResetSerializerString();
+    }
+
+    [Fact]
+    public void Validate_WithModifiedXml_ShouldReturnError()
+    {
+        var testJsonConfigurationSerializer = new TestJsonConfigurationSerializer();
+        var preferences = "<preferences><setting>modified</setting></preferences>";
+        var originalJson = Create.A.JsonData().WithPreferences(preferences).Build();
+        var modifiedJson = originalJson.Replace("preferences>", "special>");
+        testJsonConfigurationSerializer.OverrideSerializerString(modifiedJson);
+
+        _mockFileSystem.AddFile(originalFilePath, new MockFileData(originalJson));
+        var reader = new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, testJsonConfigurationSerializer);
+        var (isError, validationError) = reader.Validate();
+
+        Assert.True(isError);
+        Assert.Contains("<xd:change match=\"1\" name=\"special\" /></xd:xmldiff>", validationError);
+        testJsonConfigurationSerializer.ResetSerializerString();
     }
 }

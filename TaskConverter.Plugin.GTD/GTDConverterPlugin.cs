@@ -10,12 +10,15 @@ public class GTDConverterPlugin : IConverterPlugin
     private JsonConfigurationReader? jsonReader = null;
 
     internal ConversionAppSettings ConversionAppData;
-
+    private readonly IFileSystem _fileSystem;
     private readonly Mapper.Converter converter;
+    private readonly IJsonConfigurationSerializer _jsonConfigurationSerializer;
 
     public GTDConverterPlugin(ConversionAppSettings conversionAppData)
     {
         ConversionAppData = conversionAppData;
+        _fileSystem = new FileSystem();
+        _jsonConfigurationSerializer = new JsonConfigurationSerializer();
         var clock = SystemClock.Instance;
         var converterDateTimeZoneProvider = new ConverterDateTimeZoneProvider(this);
         converter = new Mapper.Converter(clock, converterDateTimeZoneProvider);
@@ -27,8 +30,7 @@ public class GTDConverterPlugin : IConverterPlugin
     {
         try
         {
-            var fileSystem = new FileSystem();
-            jsonReader = new JsonConfigurationReader(fileSystem.FileInfo.New(fromLocation), fileSystem);
+            jsonReader = new JsonConfigurationReader(_fileSystem.FileInfo.New(fromLocation), _fileSystem, _jsonConfigurationSerializer);
             return true;
         }
         catch

@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using TaskConverter.Plugin.GTD.Tests.Utils;
 
@@ -10,7 +11,7 @@ public static class JsonDataBuilderExtensions
 
 public class JsonDataBuilder
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions SerializerOptions = new() { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     private int version = 3;
     private readonly List<Dictionary<string, object>> folders = [];
     private readonly List<Dictionary<string, object>> tags = [];
