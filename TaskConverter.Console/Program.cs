@@ -66,17 +66,19 @@ class Programm
 
     private static void CanMap(IConverterPlugin command, TextWriter errorConsole)
     {
-        var (canConvert, exception) = command.CanConvertToTaskAppDataModel();
-        if (canConvert.HasValue)
+        var (result, exception) = command.CanConvertToTaskAppDataModel();
+        switch (result)
         {
-            if (canConvert.Value)
+            case ConversionResult.CanConvert:
                 Console.WriteLine("File can be mapped to intermediate format.");
-            else
+                break;
+            case ConversionResult.ConversionError:
                 errorConsole.WriteLine($"Error while mapping to intermediate format;{exception}");
-            return;
+                break;
+            case ConversionResult.NoTasks:
+                errorConsole.WriteLine("There are no tasks in this file!");
+                break;
         }
-        else
-            errorConsole.WriteLine("There are no tasks in this file!");
     }
 
     private static void CheckSource(IConverterPlugin command, TextWriter errorConsole)

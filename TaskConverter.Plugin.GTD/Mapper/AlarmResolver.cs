@@ -11,13 +11,18 @@ public class AlarmResolver(IClock clock, DateTimeZone dateTimeZone) : IValueReso
 
     public LocalDateTime? Resolve(TaskModel source, GTDTaskModel destination, LocalDateTime? destMember, ResolutionContext context)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(destination);
+        ArgumentNullException.ThrowIfNull(context);
+
         var currentDateTime = clock.GetCurrentInstant();
-        var reminder = source.Reminder;
-        if (reminder == null)
+        if (source.Reminder?.AbsoluteInstant is not { } absoluteInstant)
+        {
             return null;
-        if (reminder.AbsoluteInstant.HasValue && reminder.AbsoluteInstant <= currentDateTime)
-            return reminder.AbsoluteInstant.Value.InZone(DateTimeZone).LocalDateTime;
-        else
-            return null;
+        }
+
+        return absoluteInstant <= currentDateTime 
+            ? absoluteInstant.InZone(DateTimeZone).LocalDateTime 
+            : null;
     }
 }

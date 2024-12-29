@@ -7,6 +7,15 @@ namespace TaskConverter.Plugin.GTD.ConversionHelper;
 
 public class TaskInfoXmlConverter : JsonConverter<XmlDocument?>
 {
+    private static readonly XmlWriterSettings XmlWriterSettings = new()
+    {
+        Indent = true,
+        IndentChars = "    ",
+        NewLineChars = "\n",
+        NewLineHandling = NewLineHandling.Replace,
+        OmitXmlDeclaration = true
+    };
+
     public override bool CanConvert(Type typeToConvert) => typeToConvert == typeof(XmlDocument);
 
     public override bool HandleNull => true;
@@ -17,32 +26,26 @@ public class TaskInfoXmlConverter : JsonConverter<XmlDocument?>
         if (string.IsNullOrEmpty(xmlString))
             return null;
 
-        XmlDocument doc = new();
+        var doc = new XmlDocument();
         doc.LoadXml(xmlString);
         return doc;
     }
 
     public override void Write(Utf8JsonWriter writer, XmlDocument? value, JsonSerializerOptions options)
     {
-        var output = "";
-        if (value is not null)
+        ArgumentNullException.ThrowIfNull(writer);
+
+        if (value is null)
         {
-            var stringBuilder = new StringBuilder();
-            XmlWriterSettings xmlWriterSettings =
-                new()
-                {
-                    Indent = true,
-                    IndentChars = "    ",
-                    NewLineChars = "\n",
-                    NewLineHandling = NewLineHandling.Replace,
-                    OmitXmlDeclaration = true
-                };
-            using var xmlWriter = XmlWriter.Create(stringBuilder, xmlWriterSettings);
-            value.Save(xmlWriter);
-            stringBuilder.Insert(0, "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n");
-            output = stringBuilder.ToString();
+            writer.WriteStringValue(string.Empty);
+            return;
         }
 
-        writer.WriteStringValue(output);
+        var stringBuilder = new StringBuilder();
+        using var xmlWriter = XmlWriter.Create(stringBuilder, XmlWriterSettings);
+        value.Save(xmlWriter);
+        stringBuilder.Insert(0, "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n");
+        
+        writer.WriteStringValue(stringBuilder.ToString());
     }
 }

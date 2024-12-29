@@ -10,26 +10,22 @@ public class TaskInfoJsonRepeatConverter : JsonConverter<GTDRepeatInfoModel?>
 
     public override bool HandleNull => true;
 
-    public TaskInfoJsonRepeatConverter() { }
-
     public override GTDRepeatInfoModel? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var stringValue = reader.GetString()?.ToLower();
-        if (stringValue == null)
-            throw new Exception($"Can't Convert {stringValue} to enum {typeToConvert.Name}");
+        ArgumentNullException.ThrowIfNull(typeToConvert);
 
-        if (stringValue == string.Empty || stringValue == "norepeat")
+        var stringValue = reader.GetString()?.ToLowerInvariant();
+        if (string.IsNullOrEmpty(stringValue) || stringValue == "norepeat")
         {
             return null;
         }
-        else
-        {
-            return new GTDRepeatInfoModel(stringValue);
-        }
+
+        return new GTDRepeatInfoModel(stringValue);
     }
 
     public override void Write(Utf8JsonWriter writer, GTDRepeatInfoModel? value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue(value == null ? "" : value.ToString());
+        ArgumentNullException.ThrowIfNull(writer);
+        writer.WriteStringValue(value?.ToString() ?? string.Empty);
     }
 }

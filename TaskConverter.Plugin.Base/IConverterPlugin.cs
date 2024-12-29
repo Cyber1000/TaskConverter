@@ -8,7 +8,7 @@ public interface IConverterPlugin
 
     bool SetLocation(string fromLocation);
 
-    (bool?, Exception? exception) CanConvertToTaskAppDataModel();
+    (ConversionResult result, Exception? exception) CanConvertToTaskAppDataModel();
 
     TaskAppDataModel? ConvertToTaskAppDataModel();
 

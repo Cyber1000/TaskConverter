@@ -5,21 +5,30 @@ namespace TaskConverter.Plugin.GTD.Model;
 
 public readonly struct GTDRepeatInfoModel
 {
-    private readonly Func<string, (bool Success, int Interval, Period Period)>[] searchFunctions =
+    private const string IntervalPeriodPattern = @"every (?<interval>\d+) (?<period>[^s]*)";
+    private const string PeriodlyPattern = @"(?<period>[^s]+)ly";
+    private const string DailyPattern = @"daily";
+    private const string BiPeriodPattern = @"bi(?<period>[^s]+)ly";
+    private const string QuarterlyPattern = @"quarterly";
+    private const string SemiannuallyPattern = @"semiannually";
+
+    private static readonly Func<string, (bool Success, int Interval, Period Period)>[] searchFunctions =
     [
-        (repeatInfo) => GetIntervalPeriod(repeatInfo, @"every (?<interval>\d+) (?<period>[^s]*)"),
-        (repeatInfo) => GetIntervalPeriod(repeatInfo, @"(?<period>[^s]+)ly"),
-        (repeatInfo) => GetIntervalPeriod(repeatInfo, @"daily", 1, Period.Day),
-        (repeatInfo) => GetIntervalPeriod(repeatInfo, @"bi(?<period>[^s]+)ly", 2),
-        (repeatInfo) => GetIntervalPeriod(repeatInfo, @"quarterly", 3, Period.Month),
-        (repeatInfo) => GetIntervalPeriod(repeatInfo, @"semiannually", 6, Period.Month)
+        (repeatInfo) => GetIntervalPeriod(repeatInfo, IntervalPeriodPattern),
+        (repeatInfo) => GetIntervalPeriod(repeatInfo, PeriodlyPattern),
+        (repeatInfo) => GetIntervalPeriod(repeatInfo, DailyPattern, 1, Period.Day),
+        (repeatInfo) => GetIntervalPeriod(repeatInfo, BiPeriodPattern, 2),
+        (repeatInfo) => GetIntervalPeriod(repeatInfo, QuarterlyPattern, 3, Period.Month),
+        (repeatInfo) => GetIntervalPeriod(repeatInfo, SemiannuallyPattern, 6, Period.Month)
     ];
+
     public int Interval { get; }
 
     public Period Period { get; }
 
     public GTDRepeatInfoModel(string repeatInfo)
     {
+        ArgumentNullException.ThrowIfNull(repeatInfo);
         foreach (var searchFunction in searchFunctions)
         {
             var (success, interval, period) = searchFunction.Invoke(repeatInfo);

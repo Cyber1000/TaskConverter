@@ -18,12 +18,10 @@ public class JsonDeltaFormatter : JsonPatchDeltaFormatter
     private const string OperationNameRemove = "missing";
     private const string OperationNameReplace = "modified";
 
-    protected override JsonNode? FormatArrayElement(
-        in JsonDiffDelta.ArrayChangeEntry arrayChange,
-        JsonNode? left,
-        JsonNode? existingValue
-    )
+    protected override JsonNode? FormatArrayElement(in JsonDiffDelta.ArrayChangeEntry arrayChange, JsonNode? left, JsonNode? existingValue)
     {
+        ArgumentNullException.ThrowIfNull(existingValue);
+
         var index = arrayChange.Index.ToString();
         if (left is JsonObject obj && obj.TryGetPropertyValue("ID", out var id))
         {
@@ -39,7 +37,7 @@ public class JsonDeltaFormatter : JsonPatchDeltaFormatter
         {
             { PropertyNameOperation, OperationNameAdd },
             { PropertyNamePath, PathBuilder.ToString() },
-            { PropertyNameValue, delta.GetAdded() }
+            { PropertyNameValue, delta.GetAdded() },
         };
         existingValue!.AsArray().Add(op);
         return existingValue;
@@ -52,7 +50,7 @@ public class JsonDeltaFormatter : JsonPatchDeltaFormatter
             { PropertyNameOperation, OperationNameReplace },
             { PropertyNamePath, PathBuilder.ToString() },
             { PropertyNameOriginal, delta.GetOldValue() },
-            { PropertyNameNew, delta.GetNewValue() }
+            { PropertyNameNew, delta.GetNewValue() },
         };
         existingValue!.AsArray().Add(op);
         return existingValue;

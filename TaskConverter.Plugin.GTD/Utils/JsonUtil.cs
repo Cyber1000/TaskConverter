@@ -7,26 +7,28 @@ namespace TaskConverter.Plugin.GTD.Utils;
 
 public static class JsonUtil
 {
-    private readonly static List<(string oldValue, string newValue)> RepeatInfoMapper =
-        [
-            ("Norepeat", ""),
-            ("Daily", "Every 1 day"),
-            ("Weekly", "Every 1 week"),
-            ("Biweekly", "Every 2 weeks"),
-            ("Monthly", "Every 1 month"),
-            ("Bimonthly", "Every 2 months"),
-            ("Quarterly", "Every 3 months"),
-            ("Semiannually", "Every 6 months"),
-            ("Yearly", "Every 1 year")
-        ];
+    private static readonly IReadOnlyList<(string oldValue, string newValue)> RepeatInfoMapper = new[]
+    {
+        ("Norepeat", ""),
+        ("Daily", "Every 1 day"),
+        ("Weekly", "Every 1 week"),
+        ("Biweekly", "Every 2 weeks"),
+        ("Monthly", "Every 1 month"),
+        ("Bimonthly", "Every 2 months"),
+        ("Quarterly", "Every 3 months"),
+        ("Semiannually", "Every 6 months"),
+        ("Yearly", "Every 1 year")
+    };
 
     public static string Read(this IFileInfo file)
     {
+        ArgumentNullException.ThrowIfNull(file);
         return NormalizeText(file.FileSystem.File.ReadAllText(file.FullName));
     }
 
     public static string NormalizeText(string text)
     {
+        ArgumentNullException.ThrowIfNull(text);
         var resultText = text;
         foreach (var (oldValue, newValue) in RepeatInfoMapper)
         {
@@ -49,7 +51,7 @@ public static class JsonUtil
                 return null;
             },
             ArrayObjectItemMatchByPosition = true,
-            PropertyFilter = (prop, _) => !string.Equals(prop, "Preferences")
+            PropertyFilter = (prop, _) => !string.Equals(prop, "Preferences", StringComparison.OrdinalIgnoreCase),
         };
         return jsonDiffOptions;
     }

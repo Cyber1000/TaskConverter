@@ -6,7 +6,7 @@ using System.Xml;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Utils;
 
-namespace TaskConverter.Plugin.GTD
+namespace TaskConverter.Plugin.GTD.Validators
 {
     public partial class GTDRoundtripValidator
     {

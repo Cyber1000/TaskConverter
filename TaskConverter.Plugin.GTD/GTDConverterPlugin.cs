@@ -10,7 +10,7 @@ public class GTDConverterPlugin : IConverterPlugin
     private JsonConfigurationReader? jsonReader = null;
 
     internal ConversionAppSettings ConversionAppData;
-    private readonly IFileSystem _fileSystem;
+    private readonly FileSystem _fileSystem;
     private readonly Mapper.Converter converter;
     private readonly IJsonConfigurationSerializer _jsonConfigurationSerializer;
 
@@ -39,19 +39,19 @@ public class GTDConverterPlugin : IConverterPlugin
         }
     }
 
-    public (bool?, Exception? exception) CanConvertToTaskAppDataModel()
+    public (ConversionResult result, Exception? exception) CanConvertToTaskAppDataModel()
     {
+        if (jsonReader?.TaskInfo == null)
+            return (ConversionResult.NoTasks, null);
+
         try
         {
-            if (jsonReader?.TaskInfo == null)
-                return (null, null);
-
             ConvertToTaskAppDataModel();
-            return (true, null);
+            return (ConversionResult.CanConvert, null);
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            return (false, exception);
+            return (ConversionResult.ConversionError, ex);
         }
     }
 
