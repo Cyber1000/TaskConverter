@@ -115,8 +115,8 @@ public class JsonConverterTests
                 originalXml.LoadXml(JsonDataBuilder.DefaultXmlString);
                 var recreatedXml = taskInfo!.Preferences![0].XmlConfig;
 
-                var (compareResult, xmlDiff) = XmlUtil.DiffXml(originalXml, recreatedXml!);
-                Assert.True(compareResult, $"Xml differs: {xmlDiff}");
+                var (hasError, xmlDiff) = XmlUtil.DiffXml(originalXml, recreatedXml!);
+                Assert.False(hasError, $"Xml differs: {xmlDiff}");
             }
         );
     }
@@ -128,7 +128,9 @@ public class JsonConverterTests
         var mockFileSystem = new MockFileSystem();
         mockFileSystem.AddFile("GTD.json", new MockFileData(originalJson));
         var jsonReader = new JsonConfigurationReader(mockFileSystem.FileInfo.New("GTD.json"), mockFileSystem, new TestJsonConfigurationSerializer());
-        var recreatedJson = jsonReader.GetJsonOutput();
+        jsonReader.Write(mockFileSystem.FileInfo.New("outfile"));
+        var outFile = mockFileSystem.GetFile("outfile");
+        var recreatedJson = outFile.TextContents;
         JsonAssert.Equal(JsonUtil.NormalizeText(originalJson), recreatedJson, JsonUtil.GetDiffOptions(), true);
 
         verifyAction(jsonReader.TaskInfo as T);

@@ -62,6 +62,6 @@ public class GTDConverterPlugin : IConverterPlugin
 
     public (bool isError, string validationError) ValidateSource()
     {
-        return jsonReader?.Validate() ?? (false, "");
+        return jsonReader?.ValidateRoundtrip() ?? (false, "");
     }
 }

@@ -334,7 +334,7 @@ public class JsonConfigurationReaderTests
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
         var reader = new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer);
 
-        var (isError, validationError) = reader.Validate();
+        var (isError, validationError) = reader.ValidateRoundtrip();
 
         Assert.False(isError);
         Assert.Empty(validationError);
@@ -351,7 +351,7 @@ public class JsonConfigurationReaderTests
 
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(originalJson));
         var reader = new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, testJsonConfigurationSerializer);
-        var (isError, validationError) = reader.Validate();
+        var (isError, validationError) = reader.ValidateRoundtrip();
 
         Assert.True(isError);
         Assert.Contains("\"original\": \"Test\"", validationError);
@@ -370,10 +370,27 @@ public class JsonConfigurationReaderTests
 
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(originalJson));
         var reader = new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, testJsonConfigurationSerializer);
-        var (isError, validationError) = reader.Validate();
+        var (isError, validationError) = reader.ValidateRoundtrip();
 
         Assert.True(isError);
         Assert.Contains("<xd:change match=\"1\" name=\"special\" /></xd:xmldiff>", validationError);
+        testJsonConfigurationSerializer.ResetSerializerString();
+    }
+
+    [Fact]
+    public void Validate_WithWrongXmlHeader_ShouldThrowException()
+    {
+        var testJsonConfigurationSerializer = new TestJsonConfigurationSerializer();
+        var originalJson = Create.A.JsonData().Build();
+        var modifiedJson = originalJson.Replace("com.dg.gtd.android.lite_preferences", "com.xyz.gtd.android.lite_preferences");
+        testJsonConfigurationSerializer.OverrideSerializerString(modifiedJson);
+
+        _mockFileSystem.AddFile(originalFilePath, new MockFileData(originalJson));
+        var reader = new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, testJsonConfigurationSerializer);
+        var ex = Record.Exception(() => reader.ValidateRoundtrip());
+
+        Assert.NotNull(ex);
+        Assert.Equal("XML preferences section not found in JSON input.", ex.Message);
         testJsonConfigurationSerializer.ResetSerializerString();
     }
 }
