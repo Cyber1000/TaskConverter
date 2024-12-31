@@ -156,6 +156,12 @@ public class JsonTaskBuilder
         return this;
     }
 
+    public JsonTaskBuilder WithType(string type)
+    {
+        task["TYPE"] = int.Parse(type);
+        return this;
+    }
+
     public JsonTaskBuilder WithFloating(bool floating)
     {
         task["FLOATING"] = floating ? 1 : 0;

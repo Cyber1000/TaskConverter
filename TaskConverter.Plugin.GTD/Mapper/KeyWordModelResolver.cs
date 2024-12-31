@@ -4,7 +4,6 @@ using TaskConverter.Plugin.GTD.Model;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
-//TODO HH: add base
 public class KeyWordModelResolver: IValueResolver<GTDDataModel, TaskAppDataModel, List<KeyWordModel>?>
 {
     public List<KeyWordModel>? Resolve(GTDDataModel source, TaskAppDataModel destination, List<KeyWordModel>? destMember, ResolutionContext resolutionContext)

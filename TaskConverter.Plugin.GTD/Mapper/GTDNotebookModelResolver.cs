@@ -10,7 +10,6 @@ public class GTDNotebookModelResolver : IValueResolver<TaskAppDataModel, GTDData
         source.Notebooks
             ?.Select(s =>
             {
-                //TODO HH: fix
                 var model = new GTDNotebookModel();
                 return resolutionContext.Mapper.Map(s, model);
             }).ToList() ?? [];

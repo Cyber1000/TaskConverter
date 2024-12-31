@@ -16,5 +16,6 @@ public class GTDTaskModelValidator : GTDBaseModelValidator<GTDTaskModel>
         RuleFor(x => x.Importance).Equal(0).WithMessage("'Importance' not implemented.");
         RuleFor(x => x.MetaInformation).Empty().WithMessage("'MetaInformation' not implemented.");
         RuleFor(x => x.Hide).Must(x => x == Hide.DontHide || x == Hide.SixMonthsBeforeDue).WithMessage(v => $"'Hide' not implemented with value {v.Hide}.");
+        RuleFor(x => x.Type).Must(x => x == TaskType.Task || x == TaskType.Project || x == TaskType.Checklist).WithMessage(v => $"'TaskType' not implemented with value {v.Type}.");
     }
 }

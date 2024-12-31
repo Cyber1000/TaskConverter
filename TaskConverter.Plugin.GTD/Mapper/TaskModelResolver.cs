@@ -4,7 +4,6 @@ using TaskConverter.Plugin.GTD.Model;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
-//TODO HH: add base / use mapper internally
 public class TaskModelResolver : IValueResolver<GTDDataModel, TaskAppDataModel, List<TaskModel>?>
 {
     public List<TaskModel>? Resolve(GTDDataModel source, TaskAppDataModel destination, List<TaskModel>? destMember, ResolutionContext resolutionContext) =>
@@ -19,7 +18,7 @@ public class TaskModelResolver : IValueResolver<GTDDataModel, TaskAppDataModel, 
 
                 var parentId = s.Parent == 0 ? null : s.Parent.ToString();
 
-                var model = new TaskModel(destination, parentId, keyWordList);
+                var model = new TaskModel(new TaskModelContext(destination), parentId, keyWordList);
                 return resolutionContext.Mapper.Map(s, model);
             }).ToList() ?? [];
 }

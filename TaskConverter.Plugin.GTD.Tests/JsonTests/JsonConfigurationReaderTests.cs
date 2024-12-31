@@ -305,6 +305,17 @@ public class JsonConfigurationReaderTests
     }
 
     [Fact]
+    public void ReadTaskWithUnsupportedTypeValue_ShouldThrowException()
+    {
+        var task = Create.A.JsonTask().WithType(((int)TaskType.Note).ToString()).Build();
+        var json = Create.A.JsonData().AddTask(task).Build();
+        _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
+
+        var exception = Assert.Throws<ValidationException>(() => new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer));
+        Assert.Contains("'TaskType' not implemented with value Note.", exception.Message);
+    }
+
+    [Fact]
     public void ReadTaskNote_ShouldThrowException()
     {
         var taskNote = Create.A.JsonTaskNote().Build();

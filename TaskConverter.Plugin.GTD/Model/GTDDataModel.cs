@@ -4,7 +4,6 @@ namespace TaskConverter.Plugin.GTD.Model;
 
 public class GTDDataModel
 {
-    //TODO HH: better general property?
     [JsonIgnore]
     public List<GTDBaseModel> GetAllEntries
     {

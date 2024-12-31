@@ -114,7 +114,7 @@ public class GTDTaskModelBuilder
             StartDate = null,
             StartTimeSet = false,
             DueDate = dueDate,
-            DueDateProject = new LocalDateTime(2023, 02, 24, 0, 0, 0),
+            DueDateProject = null,
             DueTimeSet = false,
             DueDateModifier = DueDateModifier.DueBy,
             Reminder = reminder ?? -1,

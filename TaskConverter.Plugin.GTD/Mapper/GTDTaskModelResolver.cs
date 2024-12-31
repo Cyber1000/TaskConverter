@@ -16,8 +16,7 @@ public class GTDTaskModelResolver : IValueResolver<TaskAppDataModel, GTDDataMode
 
                 int parentId = int.TryParse(s.Parent?.Id, out var parentParsedId) ? parentParsedId : 0;
 
-                //TODO HH: fix
-                var model = new GTDTaskModel(destination, parentId, tags, folder, context);
+                var model = new GTDTaskModel(parentId, tags, folder, context);
                 return resolutionContext.Mapper.Map(s, model);
             }).ToList() ?? [];
 }

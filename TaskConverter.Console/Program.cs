@@ -1,3 +1,4 @@
+using System.CommandLine;
 using TaskConverter.Console;
 using TaskConverter.Console.PluginHandling;
 using TaskConverter.Plugin.Base;
@@ -10,58 +11,89 @@ enum Command
 
 class Programm
 {
-    /// <summary>
-    /// Command to map data between different todo/planning apps
-    /// </summary>
-    /// <param name="commandType">Execute different commands</param>
-    /// <param name="fromModel">Convert from Model</param>
-    /// <param name="fromLocation">File or Url to interact</param>
-    static int Main(Command commandType, string fromModel, string fromLocation)
+    static async Task<int> Main(string[] args)
     {
-        //TODO HH: Maybe we can change fromModel from string to some dynamic enum (for better help)
-        TextWriter errorWriter = Console.Error;
-        fromModel = fromModel?.ToLowerInvariant() ?? "";
+        var commandTypeOption = new Option<Command>("--command-type", "Execute different commands");
+        var fromModelOption = new Option<string>("--from-model") { IsRequired = true };
+        var fromLocationOption = new Option<string>("--from-location", "File or Url to interact") { IsRequired = true };
+
+        var rootCommand = new RootCommand("Command to map data between different todo/planning apps");
+        rootCommand.AddOption(commandTypeOption);
+        rootCommand.AddOption(fromModelOption);
+        rootCommand.AddOption(fromLocationOption);
 
         var commands = LoadPluginsAndGetCommands();
-        if (string.IsNullOrEmpty(fromModel) || !commands.ContainsKey(fromModel))
+        fromModelOption.Description = $"Convert from Model. Valid plugins: {string.Join(", ", GetAvailablePlugins(commands))}";
+
+        rootCommand.SetHandler((command, model, location) =>
         {
-            //TODO HH: better message, when there are no plugins
-            errorWriter.WriteLine($"FromModel is mandatory and must be a valid plugin. Valid plugins are: {string.Join(',', GetAvailablePlugins(commands))}");
-            return 1;
+            var errorWriter = Console.Error;
+            model = model?.ToLowerInvariant() ?? string.Empty;
+
+            if (!ValidateFromModel(model, commands, errorWriter))
+                return Task.FromResult(1);
+
+            var fromCommand = commands[model];
+            if (!ValidateFromLocation(location, fromCommand, errorWriter))
+                return Task.FromResult(1);
+
+            ExecuteCommand(command, fromCommand, errorWriter);
+            return Task.FromResult(0);
+
+        }, commandTypeOption, fromModelOption, fromLocationOption);
+
+        return await rootCommand.InvokeAsync(args);
+    }
+
+    private static bool ValidateFromModel(string fromModel, Dictionary<string, IConverterPlugin> commands, TextWriter errorWriter)
+    {
+        if (string.IsNullOrEmpty(fromModel) || !commands.TryGetValue(fromModel, out _))
+        {
+            var availablePlugins = GetAvailablePlugins(commands);
+            if (availablePlugins.Count == 0)
+                errorWriter.WriteLine("There are no valid plugins.");
+            else
+                errorWriter.WriteLine($"FromModel is mandatory and must be a valid plugin. Valid plugins are: {string.Join(',', availablePlugins)}");
+            return false;
         }
-        var fromCommand = commands[fromModel];
-        if (string.IsNullOrEmpty(fromLocation) || !fromCommand.SetLocation(fromLocation))
+        return true;
+    }
+
+    private static bool ValidateFromLocation(string fromLocation, IConverterPlugin command, TextWriter errorWriter)
+    {
+        if (string.IsNullOrEmpty(fromLocation) || !command.SetLocation(fromLocation))
         {
             errorWriter.WriteLine("FromLocation is mandatory and must be a valid location.");
-            return 1;
+            return false;
         }
+        return true;
+    }
 
+    private static void ExecuteCommand(Command commandType, IConverterPlugin command, TextWriter errorWriter)
+    {
         switch (commandType)
         {
             case Command.CheckSource:
-            {
-                CheckSource(fromCommand, errorWriter);
+                CheckSource(command, errorWriter);
                 break;
-            }
-
             case Command.CanMap:
-                CanMap(fromCommand, errorWriter);
+                CanMap(command, errorWriter);
                 break;
         }
-        return 0;
     }
 
-    private static List<string> GetAvailablePlugins(IDictionary<string, IConverterPlugin> commands) => commands.Select(c => c.Key).ToList();
+    private static List<string> GetAvailablePlugins(IDictionary<string, IConverterPlugin> commands) =>
+        commands.Select(c => c.Key).ToList();
 
     private static Dictionary<string, IConverterPlugin> LoadPluginsAndGetCommands()
     {
         var pluginBaseDir = Path.Combine(AppContext.BaseDirectory, "plugins");
         if (!Directory.Exists(pluginBaseDir))
-        {
             return [];
-        }
+
         var pluginLoader = new PluginHandler(pluginBaseDir);
-        return pluginLoader.GetAllCommands<IConverterPlugin>(SettingsHelper.GetAppSettings()).ToDictionary(c => c.Name.ToLowerInvariant(), c => c);
+        return pluginLoader.GetAllCommands<IConverterPlugin>(SettingsHelper.GetAppSettings())
+                         .ToDictionary(c => c.Name.ToLowerInvariant(), c => c);
     }
 
     private static void CanMap(IConverterPlugin command, TextWriter errorConsole)

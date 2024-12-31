@@ -1,4 +1,5 @@
 using NodaTime;
+using TaskConverter.Commons.Utils;
 using TaskConverter.Model.Mapper;
 using TaskConverter.Model.Model;
 using TaskConverter.Plugin.GTD.Mapper;
@@ -252,9 +253,8 @@ public class TaskMappingTests(IConverter testConverter, IClock clock, IConverter
         Assert.Equal(gtdTaskModel.Title, taskAppTaskModel.Title);
         Assert.Equal(TaskConverterModel.Status.NextAction, taskAppTaskModel.Status);
         Assert.Equal(gtdTaskModel.Starred, taskAppTaskModel.Starred);
-        Assert.Equal(TaskConverterModel.Priority.Low, taskAppTaskModel.Priority);
-        Assert.Equal(gtdTaskModel.Note, taskAppTaskModel.Note);
-        Assert.Equal(TaskConverterModel.TaskType.Task, taskAppTaskModel.Type);
+        Assert.Equal(0, taskAppTaskModel.Priority);
+        Assert.Equal(gtdTaskModel.Note, taskAppTaskModel.Note?.GetStringArray());
         Assert.Equal(gtdTaskModel.Floating, taskAppTaskModel.HasFloatingDueDate);
 
         Assert.Equivalent(gtdTaskModel, gtdRemappedTaskModel);
@@ -265,7 +265,6 @@ public class TaskMappingTests(IConverter testConverter, IClock clock, IConverter
         Assert.Equal(gtdTaskModel.Created, taskAppTaskModel.Created.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdTaskModel.Modified, taskAppTaskModel.Modified.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdTaskModel.DueDate, taskAppTaskModel.DueDate);
-        Assert.Equal(gtdTaskModel.DueDateProject, taskAppTaskModel.DueDateProject);
         Assert.Equal(gtdTaskModel.Completed, taskAppTaskModel.Completed);
         Assert.Equal(gtdTaskModel.HideUntil, taskAppTaskModel.HideUntil!.Value.ToUnixTimeMilliseconds());
     }

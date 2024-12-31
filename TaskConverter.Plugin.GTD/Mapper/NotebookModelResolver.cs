@@ -15,7 +15,7 @@ public class NotebookModelResolver : IValueResolver<GTDDataModel, TaskAppDataMod
         source.Notebook
             ?.Select(s =>
             {
-                var model = new NotebookModel(destination, s.FolderId == 0 ? null : s.FolderId.ToString());
+                var model = new NotebookModel(new ModelWithKeyWordsContext(destination), s.FolderId == 0 ? null : s.FolderId.ToString());
                 return context.Mapper.Map(s, model);
             })
             .ToList() ?? [];
