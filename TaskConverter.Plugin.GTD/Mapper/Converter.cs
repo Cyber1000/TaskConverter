@@ -1,7 +1,6 @@
-using TaskConverter.Model.Mapper;
-using TaskConverter.Model.Model;
-using TaskConverter.Plugin.GTD.Model;
+using Ical.Net;
 using NodaTime;
+using TaskConverter.Plugin.GTD.Model;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
@@ -10,8 +9,8 @@ public interface IConverter
 {
     IClock Clock { get; }
     IConverterDateTimeZoneProvider DateTimeZoneProvider { get; }
-    TaskAppDataModel MapToModel(GTDDataModel taskInfo);
-    GTDDataModel MapFromModel(TaskAppDataModel model);
+    Calendar MapToModel(GTDDataModel taskInfo);
+    GTDDataModel MapFromModel(Calendar model);
 }
 
 public class Converter(IClock clock, IConverterDateTimeZoneProvider dateTimeZoneProvider) : IConverter
@@ -20,7 +19,7 @@ public class Converter(IClock clock, IConverterDateTimeZoneProvider dateTimeZone
     public IClock Clock { get; } = clock;
     public IConverterDateTimeZoneProvider DateTimeZoneProvider { get; set; } = dateTimeZoneProvider;
 
-    public TaskAppDataModel MapToModel(GTDDataModel taskInfo) => GTDMapper.Mapper.Map<TaskAppDataModel>(taskInfo);
+    public Calendar MapToModel(GTDDataModel taskInfo) => GTDMapper.MapToCalendar(taskInfo);
 
-    public GTDDataModel MapFromModel(TaskAppDataModel model) => GTDMapper.Mapper.Map<GTDDataModel>(model);
+    public GTDDataModel MapFromModel(Calendar model) => GTDMapper.MapToGTDDataModel(model);
 }

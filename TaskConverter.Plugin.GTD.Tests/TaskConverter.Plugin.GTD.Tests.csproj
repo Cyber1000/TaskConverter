@@ -27,6 +27,5 @@
   <ItemGroup>
     <ProjectReference Include="..\TaskConverter.Plugin.GTD\TaskConverter.Plugin.GTD.csproj" />
     <ProjectReference Include="..\TaskConverter.Commons\TaskConverter.Commons.csproj" />
-    <ProjectReference Include="..\TaskConverter.Model\TaskConverter.Model.csproj" />
   </ItemGroup>
 </Project>

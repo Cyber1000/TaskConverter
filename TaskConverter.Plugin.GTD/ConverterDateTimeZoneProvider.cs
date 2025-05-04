@@ -1,7 +1,12 @@
 using NodaTime;
-using TaskConverter.Model.Mapper;
 
 namespace TaskConverter.Plugin.GTD;
+
+//TODO HH: move interface to base?
+public interface IConverterDateTimeZoneProvider
+{
+    DateTimeZone CurrentDateTimeZone { get; }
+}
 
 public class ConverterDateTimeZoneProvider(GTDConverterPlugin converterPlugin) : IConverterDateTimeZoneProvider
 {

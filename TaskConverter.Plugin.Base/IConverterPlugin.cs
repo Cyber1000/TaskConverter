@@ -1,4 +1,4 @@
-using TaskConverter.Model.Model;
+using Ical.Net;
 
 namespace TaskConverter.Plugin.Base;
 
@@ -8,9 +8,9 @@ public interface IConverterPlugin
 
     bool SetLocation(string fromLocation);
 
-    (ConversionResult result, Exception? exception) CanConvertToTaskAppDataModel();
+    (ConversionResult result, Exception? exception) CanConvertToCalendar();
 
-    TaskAppDataModel? ConvertToTaskAppDataModel();
+    Calendar? ConvertToCalendar();
 
     public (bool isError, string validationError) ValidateSource();
 }

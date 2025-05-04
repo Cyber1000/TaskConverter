@@ -1,5 +1,4 @@
 using NodaTime;
-using TaskConverter.Model.Mapper;
 using TaskConverter.Plugin.GTD.Mapper;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;
@@ -14,7 +13,7 @@ public class GeneralMappingTests(IConverter testConverter, IClock clock, IConver
     {
         var gtdMapper = new GTDMapper(clock, converterDateTimeZoneProvider);
 
-        gtdMapper.Mapper.ConfigurationProvider.AssertConfigurationIsValid();
+        gtdMapper.AssertConfigurationIsValid();
     }
 
     [Fact]
@@ -22,12 +21,10 @@ public class GeneralMappingTests(IConverter testConverter, IClock clock, IConver
     {
         var gtdDataModel = CreateGTDDataModel();
 
-        var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
+        var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdVersionModel = gtdDataModel.Version;
-        var taskAppVersionModel = taskAppDataModel?.Version;
         var gtdRemappedVersionModel = gtdDataMappedRemappedModel?.Version;
 
-        Assert.Equal(gtdVersionModel, taskAppVersionModel);
         Assert.Equal(gtdVersionModel, gtdRemappedVersionModel);
     }
 

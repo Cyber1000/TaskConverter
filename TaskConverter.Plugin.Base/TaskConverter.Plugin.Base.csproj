@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\TaskConverter.Model\TaskConverter.Model.csproj" />
     <ProjectReference Include="..\TaskConverter.Commons\TaskConverter.Commons.csproj" />
   </ItemGroup>
 
@@ -10,5 +9,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+      <PackageReference Include="Ical.Net" Version="4.3.1" />
+  </ItemGroup>
 
 </Project>

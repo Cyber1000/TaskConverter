@@ -1,29 +1,30 @@
 using AutoMapper;
-using TaskConverter.Model.Model;
-using TaskConverter.Plugin.GTD.Model;
+using Ical.Net.CalendarComponents;
+using Ical.Net.DataTypes;
 using NodaTime;
-using Period = TaskConverter.Model.Model.Period;
+using TaskConverter.Plugin.GTD.Model;
+using TaskConverter.Plugin.GTD.Utils;
+using Period = TaskConverter.Plugin.GTD.Model.Period;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
-public class HideResolver(DateTimeZone dateTimeZone) : IValueResolver<TaskModel, GTDTaskModel, Hide>
+public class HideResolver(DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDTaskModel, Hide>
 {
     public enum HideBase
     {
-        FromDueDate
+        FromDueDate,
     }
 
-    private readonly (int Interval, Period Period, (Hide Type, HideBase Base)[] BaseInfo)[] hideMapper =
-    [
-        (6, Period.Month, new[] { (Hide.SixMonthsBeforeDue, HideBase.FromDueDate) })
-    ];
+    private readonly (int Interval, Period Period, (Hide Type, HideBase Base)[] BaseInfo)[] hideMapper = [(6, Period.Month, new[] { (Hide.SixMonthsBeforeDue, HideBase.FromDueDate) })];
 
     public DateTimeZone DateTimeZone { get; } = dateTimeZone;
 
-    public Hide Resolve(TaskModel source, GTDTaskModel destination, Hide destMember, ResolutionContext context)
+    public Hide Resolve(Todo source, GTDTaskModel destination, Hide destMember, ResolutionContext context)
     {
-        var dueDate = source.DueDate;
-        var hideUntil = source.HideUntil;
+        var dueDate = source.Due;
+        var hideUntil = source.Properties.Get<CalDateTime>("X-HIDE-UNTIL");
+        if (hideUntil == null)
+            return Hide.DontHide;
 
         foreach (var hideMapperItem in hideMapper)
         {
@@ -37,13 +38,13 @@ public class HideResolver(DateTimeZone dateTimeZone) : IValueResolver<TaskModel,
                 if (baseInfo.Base != HideBase.FromDueDate)
                     throw new NotImplementedException($"Base {baseInfo.Base} not implemented");
 
-                if (dueDate.HasValue && dueDate.Value.Plus(period).InZoneLeniently(DateTimeZone).ToInstant() == hideUntil)
+                if (dueDate != null && dueDate.GetLocalDateTime(dateTimeZone).Plus(period) == hideUntil.GetLocalDateTime(dateTimeZone))
                 {
                     return baseInfo.Type;
                 }
             }
         }
 
-        return hideUntil == null ? Hide.DontHide : Hide.GivenDate;
+        return Hide.GivenDate;
     }
 }

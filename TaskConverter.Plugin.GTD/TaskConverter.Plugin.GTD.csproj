@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TaskConverter.Commons\TaskConverter.Commons.csproj" />
-    <ProjectReference Include="..\TaskConverter.Model\TaskConverter.Model.csproj" />
     <ProjectReference Include="..\TaskConverter.Plugin.Base\TaskConverter.Plugin.Base.csproj" />
   </ItemGroup>
 
@@ -14,6 +13,7 @@
     <PackageReference Include="NodaTime.Serialization.SystemTextJson" Version="1.2.0" />
     <PackageReference Include="SystemTextJson.JsonDiffPatch" Version="2.0.0" />
     <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="21.1.7" />
+    <PackageReference Include="Ical.Net" Version="4.3.1" />
   </ItemGroup>
 
   <PropertyGroup>

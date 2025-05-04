@@ -98,7 +98,7 @@ class Programm
 
     private static void CanMap(IConverterPlugin command, TextWriter errorConsole)
     {
-        var (result, exception) = command.CanConvertToTaskAppDataModel();
+        var (result, exception) = command.CanConvertToCalendar();
         switch (result)
         {
             case ConversionResult.CanConvert:

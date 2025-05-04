@@ -1,9 +1,9 @@
 using NodaTime;
-using TaskConverter.Model.Mapper;
-using TaskConverter.Model.Model;
 using TaskConverter.Plugin.GTD.Mapper;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;
+using TaskConverter.Plugin.GTD.TodoModel;
+using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
@@ -17,7 +17,7 @@ public class KeywordMappingTests(IConverter testConverter, IClock clock, IConver
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdFolderModel = gtdDataModel.Folder![0];
-        var taskAppFolderModel = taskAppDataModel!.KeyWords!.First(t => t.KeyWordType == GTDKeyWordEnum.Folder);
+        var taskAppFolderModel = taskAppDataModel!.Todos.Select(t => t.GetKeyWordMetaDataList(CurrentDateTimeZone)).SelectMany(t => t).First(t => t.KeyWordType == KeyWordType.Folder);
         var gtdRemappedFolderModel = gtdDataMappedRemappedModel?.Folder?[0]!;
 
         AssertMappedModelEquivalence(gtdFolderModel, taskAppFolderModel, gtdRemappedFolderModel);
@@ -30,7 +30,7 @@ public class KeywordMappingTests(IConverter testConverter, IClock clock, IConver
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdContextModel = gtdDataModel.Context![0];
-        var taskAppContextModel = taskAppDataModel!.KeyWords!.First(t => t.KeyWordType == GTDKeyWordEnum.Context);
+        var taskAppContextModel = taskAppDataModel!.Todos.Select(t => t.GetKeyWordMetaDataList(CurrentDateTimeZone)).SelectMany(t => t).First(t => t.KeyWordType == KeyWordType.Context);
         var gtdRemappedContextModel = gtdDataMappedRemappedModel?.Context?[0]!;
 
         AssertCommonProperties(gtdContextModel, taskAppContextModel);
@@ -44,7 +44,7 @@ public class KeywordMappingTests(IConverter testConverter, IClock clock, IConver
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdTagModel = gtdDataModel.Tag![0];
-        var taskAppTagModel = taskAppDataModel!.KeyWords!.First(t => t.KeyWordType == KeyWordEnum.Tag);
+        var taskAppTagModel = taskAppDataModel!.Todos.Select(t => t.GetKeyWordMetaDataList(CurrentDateTimeZone)).SelectMany(t => t).First(t => t.KeyWordType == KeyWordType.Tag);
         var gtdRemappedTagModel = gtdDataMappedRemappedModel?.Tag?[0]!;
 
         AssertMappedModelEquivalence(gtdTagModel, taskAppTagModel, gtdRemappedTagModel);
@@ -52,16 +52,19 @@ public class KeywordMappingTests(IConverter testConverter, IClock clock, IConver
 
     private static GTDDataModel CreateGTDDataModelWithFolder()
     {
-        return Create.A.GTDDataModel().AddFolder(TestConstants.DefaultFolderId).Build();
+        var taskListBuilder = new List<GTDTaskModelBuilder> { Create.A.GTDTaskModel(TestConstants.DefaultTaskId).WithFolder(TestConstants.DefaultFolderId) };
+        return Create.A.GTDDataModel().AddTaskList(() => taskListBuilder.Select(t => t.Build()).ToList()).AddFolder(TestConstants.DefaultFolderId).Build();
     }
 
     private static GTDDataModel CreateGTDDataModelWithContext()
     {
-        return Create.A.GTDDataModel().AddContext(TestConstants.DefaultContextId).Build();
+        var taskListBuilder = new List<GTDTaskModelBuilder> { Create.A.GTDTaskModel(TestConstants.DefaultTaskId).WithContext(TestConstants.DefaultContextId) };
+        return Create.A.GTDDataModel().AddTaskList(() => taskListBuilder.Select(t => t.Build()).ToList()).AddContext(TestConstants.DefaultContextId).Build();
     }
 
     private static GTDDataModel CreateGTDDataModelWithTag()
     {
-        return Create.A.GTDDataModel().AddTag(TestConstants.DefaultTagId).Build();
+        var taskListBuilder = new List<GTDTaskModelBuilder> { Create.A.GTDTaskModel(TestConstants.DefaultTaskId).WithTags([TestConstants.DefaultTagId]) };
+        return Create.A.GTDDataModel().AddTaskList(() => taskListBuilder.Select(t => t.Build()).ToList()).AddTag(TestConstants.DefaultTagId).Build();
     }
 }

@@ -1,4 +1,4 @@
-namespace TaskConverter.Model.Model;
+namespace TaskConverter.Plugin.GTD.Model;
 
 public enum GTDRepeatFrom
 {

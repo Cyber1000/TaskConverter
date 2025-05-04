@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using TaskConverter.Model.Model;
 
 namespace TaskConverter.Plugin.GTD.Model;
 

@@ -1,20 +1,19 @@
 using AutoMapper;
-using TaskConverter.Model.Model;
-using TaskConverter.Plugin.GTD.Model;
+using Ical.Net.CalendarComponents;
+using Ical.Net.DataTypes;
 using NodaTime;
+using TaskConverter.Plugin.GTD.Model;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
-public class ReminderInstantResolver(DateTimeZone dateTimeZone) : IValueResolver<GTDTaskModel, TaskModel, ReminderInstant?>
+public class ReminderInstantResolver() : IValueResolver<GTDTaskModel, Todo, Alarm?>
 {
-    private DateTimeZone DateTimeZone { get; } = dateTimeZone;
-
-    public ReminderInstant? Resolve(GTDTaskModel source, TaskModel destination, ReminderInstant? destMember, ResolutionContext context)
+    public Alarm? Resolve(GTDTaskModel source, Todo destination, Alarm? destMember, ResolutionContext context)
     {
         if (source.Reminder > 43200)
-            return new ReminderInstant(destination, DateTimeZone, BaseDateOfReminderInstant.FromUnixEpoch, source.Reminder);
+            return new Alarm { Trigger = new Trigger { DateTime = new CalDateTime(DateTimeOffset.FromUnixTimeSeconds(source.Reminder).UtcDateTime) } };
         else if (source.Reminder >= 0)
-            return new ReminderInstant(destination, DateTimeZone, BaseDateOfReminderInstant.FromDueDate, -(source.Reminder * 60 * 1000));
+            return new Alarm { Trigger = new Trigger { Duration = TimeSpan.FromMinutes(-source.Reminder) } };
 
         return null;
     }

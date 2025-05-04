@@ -1,10 +1,11 @@
 using System.IO.Abstractions;
+using Ical.Net;
 using NodaTime;
-using TaskConverter.Model.Model;
 using TaskConverter.Plugin.Base;
 
 namespace TaskConverter.Plugin.GTD;
 
+//TODO HH: TaskConverter.Plugin.GTD compiled twice
 public class GTDConverterPlugin : IConverterPlugin
 {
     private JsonConfigurationReader? jsonReader = null;
@@ -39,14 +40,14 @@ public class GTDConverterPlugin : IConverterPlugin
         }
     }
 
-    public (ConversionResult result, Exception? exception) CanConvertToTaskAppDataModel()
+    public (ConversionResult result, Exception? exception) CanConvertToCalendar()
     {
         if (jsonReader?.TaskInfo == null)
             return (ConversionResult.NoTasks, null);
 
         try
         {
-            ConvertToTaskAppDataModel();
+            ConvertToCalendar();
             return (ConversionResult.CanConvert, null);
         }
         catch (Exception ex)
@@ -55,7 +56,7 @@ public class GTDConverterPlugin : IConverterPlugin
         }
     }
 
-    public TaskAppDataModel? ConvertToTaskAppDataModel()
+    public Calendar? ConvertToCalendar()
     {
         return jsonReader?.TaskInfo == null ? null : converter.MapToModel(jsonReader.TaskInfo);
     }

@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 using NodaTime;
 using TaskConverter.Commons.ConversionHelper;
-using TaskConverter.Model.Model;
 using TaskConverter.Plugin.GTD.ConversionHelper;
 
 namespace TaskConverter.Plugin.GTD.Model;
@@ -77,16 +76,6 @@ public enum Hide
 
 public class GTDTaskModel : GTDBaseModel
 {
-    public GTDTaskModel() { }
-
-    public GTDTaskModel(int parentId, List<int> tagIds, int folderId, int contextId)
-    {
-        Parent = parentId;
-        Tag = tagIds;
-        Folder = folderId;
-        Context = contextId;
-    }
-
     [JsonPropertyOrder(-850)]
     public int Parent { get; set; }
 

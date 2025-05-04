@@ -1,70 +1,48 @@
 using AutoMapper;
-using TaskConverter.Model.Model;
-using TaskConverter.Plugin.GTD.Model;
+using Ical.Net.CalendarComponents;
 using NodaTime;
+using TaskConverter.Plugin.GTD.Model;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
-public class ReminderResolver(DateTimeZone dateTimeZone) : IValueResolver<TaskModel, GTDTaskModel, long>
+public class ReminderResolver(DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDTaskModel, long>
 {
-    readonly int[] fixedDiffsFromDueDate =
-    [
-        0,
-        1,
-        5,
-        10,
-        15,
-        30,
-        45,
-        60,
-        90,
-        120,
-        180,
-        240,
-        360,
-        480,
-        600,
-        720,
-        1080,
-        1440,
-        2880,
-        4320,
-        5760,
-        7200,
-        8640,
-        10080,
-        20160,
-        43200
-    ];
+    readonly int[] fixedDiffsFromDueDate = [0, 1, 5, 10, 15, 30, 45, 60, 90, 120, 180, 240, 360, 480, 600, 720, 1080, 1440, 2880, 4320, 5760, 7200, 8640, 10080, 20160, 43200];
 
     public DateTimeZone DateTimeZone { get; } = dateTimeZone;
 
-    public long Resolve(TaskModel source, GTDTaskModel destination, long destMember, ResolutionContext context)
+    public long Resolve(Todo source, GTDTaskModel destination, long destMember, ResolutionContext context)
     {
-        var reminder = source.Reminder;
-        if (reminder == null)
+        //TODO HH: FirstOrDefault not exact
+        var alarm = source.Alarms?.FirstOrDefault()?.Trigger;
+        if (alarm == null)
             return -1;
 
-        if (reminder.ReminderInstantType == BaseDateOfReminderInstant.FromUnixEpoch)
+        if (alarm.DateTime != null)
         {
-            return reminder.MillisecondsFromBaseDate;
+            return new DateTimeOffset(alarm.DateTime.Value).ToUnixTimeMilliseconds();
         }
-        else if (!source.DueDate.HasValue)
+        else if (source.Due == null)
         {
             return -1;
         }
         else
         {
-            var dueDate = source.DueDate.Value.InZoneLeniently(DateTimeZone).ToInstant();
-            foreach (var fixedDiffFromDueDate in fixedDiffsFromDueDate)
+            var dueDate = new DateTimeOffset(source.Due.Value).ToUnixTimeMilliseconds();
+            if (alarm.Duration.HasValue)
             {
-                var durationInMiliseconds = Duration.FromMinutes(fixedDiffFromDueDate);
-                if (dueDate.Plus(-durationInMiliseconds) == reminder.AbsoluteInstant)
+                // attention: alarm.Duration is negative, so we have to invert this here
+                var duration = -alarm.Duration.Value;
+                foreach (var fixedDiffFromDueDateInMinutes in fixedDiffsFromDueDate)
                 {
-                    return fixedDiffFromDueDate;
+                    if (fixedDiffFromDueDateInMinutes == duration.TotalMinutes)
+                    {
+                        return fixedDiffFromDueDateInMinutes;
+                    }
                 }
+                return dueDate - (long)duration.TotalMilliseconds;
             }
-            return reminder.AbsoluteInstant.HasValue ? reminder.AbsoluteInstant.Value.ToUnixTimeMilliseconds() : -1;
+            return -1;
         }
     }
 }

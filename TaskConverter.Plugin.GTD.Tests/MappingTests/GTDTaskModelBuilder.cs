@@ -1,5 +1,4 @@
 using NodaTime;
-using TaskConverter.Model.Model;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;
 
