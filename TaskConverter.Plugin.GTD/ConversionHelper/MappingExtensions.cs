@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using AutoMapper;
-using AutoMapper.Configuration;
 
 namespace TaskConverter.Plugin.GTD.ConversionHelper;
 

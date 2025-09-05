@@ -4,6 +4,7 @@ using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
 using NodaTime;
+using TaskConverter.Commons.ConversionHelper;
 using TaskConverter.Commons.Utils;
 using TaskConverter.Plugin.GTD.ConversionHelper;
 using TaskConverter.Plugin.GTD.Model;
@@ -67,7 +68,7 @@ public class GTDMapper
                 dest => dest.Group
             )
             .ReverseMapWithValidation()
-            .ForMember(dest => dest.Id, opt => opt.ConvertUsing(new StringToIntConverter(), src => src.Uid))
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Uid.ToIntWithHashFallback()))
             .ForMember(dest => dest.Uuid, opt => opt.MapFrom(src => string.Empty))
             .IgnoreMembers(dest => dest.Created, dest => dest.Modified, dest => dest.Title!);
 
@@ -120,14 +121,14 @@ public class GTDMapper
             .AfterMap(
                 (src, dest) =>
                 {
-                    dest.AddProperty(new CalendarProperty(nameof(src.Color), Color.FromArgb(src.Color)));
+                    dest.AddProperty(new CalendarProperty(nameof(src.Color), src.Color.FromArgbWithFallback()));
                     dest.AddProperty(nameof(src.Visible), src.Visible.ToString().ToLowerInvariant());
                 }
             )
             .ReverseMapWithValidation()
             .IncludeBase<RecurringComponent, GTDBaseModel>()
-            .ForMember(dest => dest.Color, opt => opt.ConvertUsing(new NullableColorToIntConverter(), src => src.Properties.Get<Color?>(nameof(GTDExtendedModel.Color))))
-            .ForMember(dest => dest.Visible, opt => opt.ConvertUsing(new NullableStringToBoolConverter(), src => src.Properties.Get<string>(nameof(GTDExtendedModel.Visible))));
+            .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Properties.Get<Color?>(nameof(GTDExtendedModel.Color)).ToArgbWithFallback()))
+            .ForMember(dest => dest.Visible, opt => opt.MapFrom(src => src.Properties.Get<string>(nameof(GTDExtendedModel.Visible)).ToBool()));
 
         cfg.CreateMap<LocalDateTime, IDateTime>().ConvertUsing(s => s.GetIDateTime(timeZone));
         cfg.CreateMap<LocalDateTime?, IDateTime?>().ConvertUsing(s => s.GetIDateTime(timeZone));
@@ -302,7 +303,7 @@ public class GTDMapper
             .ReverseMapWithValidation()
             .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Description != null ? src.Description.GetStringArray() : null))
             .IgnoreMembers(dest => dest.Private, dest => dest.FolderId)
-            .ForMember(dest => dest.Visible, opt => opt.ConvertUsing(new NullableStringToBoolConverter(), src => src.Properties.Get<string>(nameof(GTDExtendedModel.Visible))))
+            .ForMember(dest => dest.Visible, opt => opt.MapFrom(src => src.Properties.Get<string>(nameof(GTDExtendedModel.Visible)).ToBool()))
             .IncludeBase<RecurringComponent, GTDExtendedModel>();
 
         cfg.CreateMap<KeyWordMetaData, GTDBaseModel>()

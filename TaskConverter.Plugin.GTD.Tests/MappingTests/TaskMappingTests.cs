@@ -1,4 +1,3 @@
-//TODO HH: fix tests
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;

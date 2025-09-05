@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using NodaTime;
-using TaskConverter.Commons.ConversionHelper;
+using TaskConverter.Commons.ConversionHelper.Json;
 using TaskConverter.Plugin.GTD.ConversionHelper;
 
 namespace TaskConverter.Plugin.GTD.Model;

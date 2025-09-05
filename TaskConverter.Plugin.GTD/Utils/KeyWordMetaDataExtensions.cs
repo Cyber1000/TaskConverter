@@ -2,6 +2,7 @@ using System.Drawing;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using NodaTime;
+using TaskConverter.Commons.ConversionHelper;
 using TaskConverter.Plugin.GTD.Mapper;
 using TaskConverter.Plugin.GTD.TodoModel;
 
@@ -20,11 +21,17 @@ namespace TaskConverter.Plugin.GTD.Utils
 
         private static KeyWordMetaData GetKeyWordMetaDataOrCreate(Dictionary<string, ICalendarProperty> propertiesOfTodo, string keyWordName, DateTimeZone timeZone)
         {
-            //TODO HH: Maybe use StringToIntConverter instead of GetHashCode
             //TODO HH: map to other types as well additional to KeyWordType.Tag, by first char of string (e.g. @, #)
             return propertiesOfTodo.TryGetValue(KeyWordMappingBaseAction.CategoryMetaData(keyWordName), out var prop) && prop.Value is KeyWordMetaData metadata
                 ? metadata
-                : new KeyWordMetaData(keyWordName.GetHashCode(), keyWordName, KeyWordType.Tag, DateTimeExtensions.GetCurrentDateTime(timeZone), DateTimeExtensions.GetCurrentDateTime(timeZone), Color.FromArgb(0));
+                : new KeyWordMetaData(
+                    keyWordName.ToIntWithHashFallback(),
+                    keyWordName,
+                    KeyWordType.Tag,
+                    DateTimeExtensions.GetCurrentDateTime(timeZone),
+                    DateTimeExtensions.GetCurrentDateTime(timeZone),
+                    Color.FromArgb(0)
+                );
         }
     }
 }

@@ -1,4 +1,4 @@
-namespace TaskConverter.Commons.ConversionHelper;
+namespace TaskConverter.Commons.ConversionHelper.DateTime;
 
 public class ExactLocalDateTimeConverter<T> : NodaNullablePatternConverter<T>
 {

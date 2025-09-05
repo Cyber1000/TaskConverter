@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace TaskConverter.Commons.ConversionHelper;
+namespace TaskConverter.Commons.ConversionHelper.Json;
 
 public class TaskInfoBoolConverter : JsonConverter<bool>
 {

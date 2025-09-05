@@ -17,8 +17,6 @@ public class HideResolver(DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDT
 
     private readonly (int Interval, Period Period, (Hide Type, HideBase Base)[] BaseInfo)[] hideMapper = [(6, Period.Month, new[] { (Hide.SixMonthsBeforeDue, HideBase.FromDueDate) })];
 
-    public DateTimeZone DateTimeZone { get; } = dateTimeZone;
-
     public Hide Resolve(Todo source, GTDTaskModel destination, Hide destMember, ResolutionContext context)
     {
         var dueDate = source.Due;

@@ -1,6 +1,7 @@
 using AutoMapper;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
+using TaskConverter.Commons.ConversionHelper;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 using TaskConverter.Plugin.GTD.Utils;
@@ -13,7 +14,8 @@ public class GTDTaskModelResolver : IValueResolver<Calendar, GTDDataModel, List<
     {
         var timeZone = resolutionContext.GetTimeZone();
         var todos = GetTodos(source);
-        return todos.Select(todo =>
+        return todos
+                .Select(todo =>
                 {
                     var propertiesOfTodo = todo.Properties.ToDictionary(p => p.Name);
                     var keyWordMetaData = propertiesOfTodo.GetKeyWordMetaData(todo.Categories, timeZone);
@@ -23,12 +25,10 @@ public class GTDTaskModelResolver : IValueResolver<Calendar, GTDDataModel, List<
                     var context = keyWordMetaData.Where(k => k.KeyWordType == KeyWordType.Context)?.SingleOrDefault().Id ?? 0;
 
                     var foreignId = (todo.Parent as Todo)?.Uid;
-                    //TODO HH: use from StringToIntConverter
-                    int parentId = int.TryParse(foreignId, out var parentParsedId) ? parentParsedId : Math.Abs(foreignId?.GetHashCode() ?? 0);
 
                     var model = new GTDTaskModel
                     {
-                        Parent = parentId,
+                        Parent = foreignId.ToIntWithHashFallback(),
                         Tag = tags,
                         Folder = folder,
                         Context = context,

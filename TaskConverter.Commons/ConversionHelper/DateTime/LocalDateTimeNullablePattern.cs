@@ -2,7 +2,7 @@ using System.Text;
 using NodaTime;
 using NodaTime.Text;
 
-namespace TaskConverter.Commons.ConversionHelper;
+namespace TaskConverter.Commons.ConversionHelper.DateTime;
 
 public class LocalDateTimeNullablePattern<T> : IPattern<T>
 {

@@ -5,7 +5,6 @@ using TaskConverter.Plugin.Base;
 
 namespace TaskConverter.Plugin.GTD;
 
-//TODO HH: TaskConverter.Plugin.GTD compiled twice
 public class GTDConverterPlugin : IConverterPlugin
 {
     private JsonConfigurationReader? jsonReader = null;
