@@ -14,13 +14,13 @@ using Period = TaskConverter.Plugin.GTD.Model.Period;
 
 namespace TaskConverter.Plugin.GTD.Mapper;
 
-public class GTDMapper
+public class ConversionService : IConversionService<GTDDataModel>
 {
     private IMapper Mapper { get; }
 
     private DateTimeZone TimeZone { get; }
 
-    public GTDMapper(IClock clock, IConverterDateTimeZoneProvider dateTimeZoneProvider)
+    public ConversionService(IClock clock, IConverterDateTimeZoneProvider dateTimeZoneProvider)
     {
         TimeZone = dateTimeZoneProvider.CurrentDateTimeZone;
         var config = new MapperConfiguration(cfg =>
@@ -32,12 +32,12 @@ public class GTDMapper
         Mapper = config.CreateMapper();
     }
 
-    public Calendar MapToCalendar(GTDDataModel taskInfo)
+    public Calendar MapToIntermediateFormat(GTDDataModel taskInfo)
     {
         return Mapper.Map<Calendar>(taskInfo, opt => opt.InitializeResolutionContextForCalendarMapping(taskInfo, TimeZone));
     }
 
-    public GTDDataModel MapToGTDDataModel(Calendar model)
+    public GTDDataModel MapFromIntermediateFormat(Calendar model)
     {
         return Mapper.Map<GTDDataModel>(model, opt => opt.InitializeResolutionContextForGDTMapping(TimeZone));
     }

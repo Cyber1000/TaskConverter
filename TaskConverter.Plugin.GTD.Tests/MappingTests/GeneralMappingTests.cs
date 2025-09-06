@@ -5,13 +5,13 @@ using TaskConverter.Plugin.GTD.Tests.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class GeneralMappingTests(IConverter testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
+public class GeneralMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
     : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
 {
     [Fact]
     public void Automapper_CheckConfig()
     {
-        var gtdMapper = new GTDMapper(clock, converterDateTimeZoneProvider);
+        var gtdMapper = new ConversionService(clock, converterDateTimeZoneProvider);
 
         gtdMapper.AssertConfigurationIsValid();
     }

@@ -8,7 +8,7 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class NotebookMappingTests(IConverter testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
+public class NotebookMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
     : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
 {
     [Fact]

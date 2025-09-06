@@ -6,11 +6,12 @@ public interface IConverterPlugin
 {
     string Name { get; }
 
+    //TODO HH: only fromLocation?
     bool SetLocation(string fromLocation);
 
-    (ConversionResult result, Exception? exception) CanConvertToCalendar();
+    (ConversionResult result, Exception? exception) CanConvertToIntermediateFormat();
 
-    Calendar? ConvertToCalendar();
+    Calendar? ConvertToIntermediateFormat();
 
     public (bool isError, string validationError) ValidateSource();
 }

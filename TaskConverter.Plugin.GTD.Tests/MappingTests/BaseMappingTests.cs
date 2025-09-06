@@ -10,12 +10,12 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public abstract class BaseMappingTests(IConverter testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
+public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
 {
-    protected readonly IConverter TestConverter = testConverter;
+    protected readonly IConversionService<GTDDataModel> TestConverter = testConverter;
     protected readonly IClock clock = clock;
     protected readonly IConverterDateTimeZoneProvider converterDateTimeZoneProvider = converterDateTimeZoneProvider;
-    protected DateTimeZone CurrentDateTimeZone => TestConverter.DateTimeZoneProvider.CurrentDateTimeZone;
+    protected DateTimeZone CurrentDateTimeZone => converterDateTimeZoneProvider.CurrentDateTimeZone;
 
     public static class TestConstants
     {
@@ -32,8 +32,8 @@ public abstract class BaseMappingTests(IConverter testConverter, IClock clock, I
     {
         if (gtdDataModel == null)
             return (null, null);
-        var taskAppDataModel = TestConverter.MapToModel(gtdDataModel);
-        var gtdDataMappedRemappedModel = TestConverter.MapFromModel(taskAppDataModel);
+        var taskAppDataModel = TestConverter.MapToIntermediateFormat(gtdDataModel);
+        var gtdDataMappedRemappedModel = TestConverter.MapFromIntermediateFormat(taskAppDataModel);
 
         return (taskAppDataModel, gtdDataMappedRemappedModel);
     }

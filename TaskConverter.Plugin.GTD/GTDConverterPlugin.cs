@@ -2,6 +2,7 @@ using System.IO.Abstractions;
 using Ical.Net;
 using NodaTime;
 using TaskConverter.Plugin.Base;
+using TaskConverter.Plugin.GTD.Mapper;
 
 namespace TaskConverter.Plugin.GTD;
 
@@ -11,7 +12,7 @@ public class GTDConverterPlugin : IConverterPlugin
 
     internal ConversionAppSettings ConversionAppData;
     private readonly FileSystem _fileSystem;
-    private readonly Mapper.Converter converter;
+    private readonly ConversionService _conversionService;
     private readonly IJsonConfigurationSerializer _jsonConfigurationSerializer;
 
     public GTDConverterPlugin(ConversionAppSettings conversionAppData)
@@ -21,7 +22,7 @@ public class GTDConverterPlugin : IConverterPlugin
         _jsonConfigurationSerializer = new JsonConfigurationSerializer();
         var clock = SystemClock.Instance;
         var converterDateTimeZoneProvider = new ConverterDateTimeZoneProvider(this);
-        converter = new Mapper.Converter(clock, converterDateTimeZoneProvider);
+        _conversionService = new ConversionService(clock, converterDateTimeZoneProvider);
     }
 
     public string Name => "GTD";
@@ -39,14 +40,14 @@ public class GTDConverterPlugin : IConverterPlugin
         }
     }
 
-    public (ConversionResult result, Exception? exception) CanConvertToCalendar()
+    public (ConversionResult result, Exception? exception) CanConvertToIntermediateFormat()
     {
         if (jsonReader?.TaskInfo == null)
             return (ConversionResult.NoTasks, null);
 
         try
         {
-            ConvertToCalendar();
+            ConvertToIntermediateFormat();
             return (ConversionResult.CanConvert, null);
         }
         catch (Exception ex)
@@ -55,9 +56,9 @@ public class GTDConverterPlugin : IConverterPlugin
         }
     }
 
-    public Calendar? ConvertToCalendar()
+    public Calendar? ConvertToIntermediateFormat()
     {
-        return jsonReader?.TaskInfo == null ? null : converter.MapToModel(jsonReader.TaskInfo);
+        return jsonReader?.TaskInfo == null ? null : _conversionService.MapToIntermediateFormat(jsonReader.TaskInfo);
     }
 
     public (bool isError, string validationError) ValidateSource()

@@ -11,7 +11,7 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class TaskMappingTests(IConverter testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
+public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
     : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
 {
     public enum HideTestCase
@@ -183,7 +183,7 @@ public class TaskMappingTests(IConverter testConverter, IClock clock, IConverter
     [InlineData(1, false)]
     public void Map_TaskWithAlarm(int addMinutes, bool shouldHaveAlarm)
     {
-        var currentDateTime = TestConverter.Clock.GetCurrentInstant();
+        var currentDateTime = clock.GetCurrentInstant();
         var reminder = currentDateTime.Plus(Duration.FromMinutes(addMinutes)).ToUnixTimeMilliseconds();
 
         var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithReminder(reminder)]);

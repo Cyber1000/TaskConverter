@@ -25,22 +25,26 @@ class Programm
         var commands = LoadPluginsAndGetCommands();
         fromModelOption.Description = $"Convert from Model. Valid plugins: {string.Join(", ", GetAvailablePlugins(commands))}";
 
-        rootCommand.SetHandler((command, model, location) =>
-        {
-            var errorWriter = Console.Error;
-            model = model?.ToLowerInvariant() ?? string.Empty;
+        rootCommand.SetHandler(
+            (command, model, location) =>
+            {
+                var errorWriter = Console.Error;
+                model = model?.ToLowerInvariant() ?? string.Empty;
 
-            if (!ValidateFromModel(model, commands, errorWriter))
-                return Task.FromResult(1);
+                if (!ValidateFromModel(model, commands, errorWriter))
+                    return Task.FromResult(1);
 
-            var fromCommand = commands[model];
-            if (!ValidateFromLocation(location, fromCommand, errorWriter))
-                return Task.FromResult(1);
+                var fromCommand = commands[model];
+                if (!ValidateFromLocation(location, fromCommand, errorWriter))
+                    return Task.FromResult(1);
 
-            ExecuteCommand(command, fromCommand, errorWriter);
-            return Task.FromResult(0);
-
-        }, commandTypeOption, fromModelOption, fromLocationOption);
+                ExecuteCommand(command, fromCommand, errorWriter);
+                return Task.FromResult(0);
+            },
+            commandTypeOption,
+            fromModelOption,
+            fromLocationOption
+        );
 
         return await rootCommand.InvokeAsync(args);
     }
@@ -82,8 +86,7 @@ class Programm
         }
     }
 
-    private static List<string> GetAvailablePlugins(IDictionary<string, IConverterPlugin> commands) =>
-        commands.Select(c => c.Key).ToList();
+    private static List<string> GetAvailablePlugins(IDictionary<string, IConverterPlugin> commands) => commands.Select(c => c.Key).ToList();
 
     private static Dictionary<string, IConverterPlugin> LoadPluginsAndGetCommands()
     {
@@ -92,13 +95,12 @@ class Programm
             return [];
 
         var pluginLoader = new PluginHandler(pluginBaseDir);
-        return pluginLoader.GetAllCommands<IConverterPlugin>(SettingsHelper.GetAppSettings())
-                         .ToDictionary(c => c.Name.ToLowerInvariant(), c => c);
+        return pluginLoader.GetAllCommands<IConverterPlugin>(SettingsHelper.GetAppSettings()).ToDictionary(c => c.Name.ToLowerInvariant(), c => c);
     }
 
     private static void CanMap(IConverterPlugin command, TextWriter errorConsole)
     {
-        var (result, exception) = command.CanConvertToCalendar();
+        var (result, exception) = command.CanConvertToIntermediateFormat();
         switch (result)
         {
             case ConversionResult.CanConvert:
