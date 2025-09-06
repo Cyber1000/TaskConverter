@@ -6,7 +6,7 @@ using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Utils;
 using Period = TaskConverter.Plugin.GTD.Model.Period;
 
-namespace TaskConverter.Plugin.GTD.Mapper;
+namespace TaskConverter.Plugin.GTD.Conversion;
 
 public class HideResolver(DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDTaskModel, Hide>
 {

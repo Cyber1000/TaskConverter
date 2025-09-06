@@ -3,7 +3,7 @@ using Ical.Net;
 using Ical.Net.CalendarComponents;
 using TaskConverter.Plugin.GTD.Model;
 
-namespace TaskConverter.Plugin.GTD.Mapper;
+namespace TaskConverter.Plugin.GTD.Conversion;
 
 public class NotebookMappingAction : IMappingAction<GTDDataModel, Calendar>
 {

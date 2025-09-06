@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
-using TaskConverter.Plugin.GTD.Mapper;
+using TaskConverter.Commons;
+using TaskConverter.Plugin.GTD.Conversion;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;
 

@@ -4,7 +4,7 @@ using Ical.Net.DataTypes;
 using NodaTime;
 using TaskConverter.Plugin.GTD.Model;
 
-namespace TaskConverter.Plugin.GTD.Mapper;
+namespace TaskConverter.Plugin.GTD.Conversion;
 
 public class ReminderInstantResolver() : IValueResolver<GTDTaskModel, Todo, Alarm?>
 {

@@ -2,7 +2,7 @@ using Ical.Net.CalendarComponents;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 
-namespace TaskConverter.Plugin.GTD.Mapper;
+namespace TaskConverter.Plugin.GTD.Conversion;
 
 public class KeyWordMappingJournalAction : KeyWordMappingBaseAction<GTDNotebookModel, Journal>
 {

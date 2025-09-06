@@ -6,7 +6,7 @@ using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 using TaskConverter.Plugin.GTD.Utils;
 
-namespace TaskConverter.Plugin.GTD.Mapper;
+namespace TaskConverter.Plugin.GTD.Conversion;
 
 public class GTDTaskModelResolver : IValueResolver<Calendar, GTDDataModel, List<GTDTaskModel>?>
 {

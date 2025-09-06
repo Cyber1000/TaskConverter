@@ -4,6 +4,7 @@ using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
 using NodaTime;
+using TaskConverter.Commons;
 using TaskConverter.Commons.ConversionHelper;
 using TaskConverter.Commons.Utils;
 using TaskConverter.Plugin.GTD.ConversionHelper;
@@ -12,7 +13,7 @@ using TaskConverter.Plugin.GTD.TodoModel;
 using TaskConverter.Plugin.GTD.Utils;
 using Period = TaskConverter.Plugin.GTD.Model.Period;
 
-namespace TaskConverter.Plugin.GTD.Mapper;
+namespace TaskConverter.Plugin.GTD.Conversion;
 
 public class ConversionService : IConversionService<GTDDataModel>
 {

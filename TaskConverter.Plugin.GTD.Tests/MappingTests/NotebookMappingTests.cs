@@ -1,6 +1,7 @@
 using NodaTime;
+using TaskConverter.Commons;
 using TaskConverter.Commons.Utils;
-using TaskConverter.Plugin.GTD.Mapper;
+using TaskConverter.Plugin.GTD.Conversion;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;
 using TaskConverter.Plugin.GTD.TodoModel;

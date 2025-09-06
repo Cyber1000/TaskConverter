@@ -3,7 +3,7 @@ using NodaTime;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 
-namespace TaskConverter.Plugin.GTD.Mapper;
+namespace TaskConverter.Plugin.GTD.Conversion;
 
 public static class GTDDataModelExtensions
 {
