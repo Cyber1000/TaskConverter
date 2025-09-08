@@ -8,7 +8,7 @@ using Period = TaskConverter.Plugin.GTD.Model.Period;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
-public class HideResolver(DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDTaskModel, Hide>
+public class MapHideFromIntermediateFormat(DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDTaskModel, Hide>
 {
     public enum HideBase
     {
@@ -20,7 +20,7 @@ public class HideResolver(DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDT
     public Hide Resolve(Todo source, GTDTaskModel destination, Hide destMember, ResolutionContext context)
     {
         var dueDate = source.Due;
-        var hideUntil = source.Properties.Get<CalDateTime>("X-HIDE-UNTIL");
+        var hideUntil = source.Properties.Get<CalDateTime>(IntermediateFormatPropertyNames.HideUntil);
         if (hideUntil == null)
             return Hide.DontHide;
 

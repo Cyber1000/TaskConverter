@@ -4,7 +4,7 @@ using TaskConverter.Plugin.GTD.TodoModel;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
-public class KeyWordMappingJournalAction : KeyWordMappingBaseAction<GTDNotebookModel, Journal>
+public class MapKeyWordsOfJournalToIntermediateFormat : MapKeyWordsToIntermediateFormatBase<GTDNotebookModel, Journal>
 {
     protected override IEnumerable<(int Id, KeyWordType keyWordType)> GetKeyWords(GTDNotebookModel source)
     {

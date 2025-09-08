@@ -22,7 +22,7 @@ namespace TaskConverter.Plugin.GTD.Utils
         private static KeyWordMetaData GetKeyWordMetaDataOrCreate(Dictionary<string, ICalendarProperty> propertiesOfTodo, string keyWordName, DateTimeZone timeZone)
         {
             //TODO HH: map to other types as well additional to KeyWordType.Tag, by first char of string (e.g. @, #)
-            return propertiesOfTodo.TryGetValue(KeyWordMappingBaseAction.CategoryMetaData(keyWordName), out var prop) && prop.Value is KeyWordMetaData metadata
+            return propertiesOfTodo.TryGetValue(IntermediateFormatPropertyNames.CategoryMetaData(keyWordName), out var prop) && prop.Value is KeyWordMetaData metadata
                 ? metadata
                 : new KeyWordMetaData(
                     keyWordName.ToIntWithHashFallback(),

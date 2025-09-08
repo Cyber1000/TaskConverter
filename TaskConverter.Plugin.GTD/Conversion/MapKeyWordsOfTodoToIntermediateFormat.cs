@@ -4,7 +4,7 @@ using TaskConverter.Plugin.GTD.TodoModel;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
-public class KeyWordMappingTodoAction : KeyWordMappingBaseAction<GTDTaskModel, Todo>
+public class MapKeyWordsOfTodoToIntermediateFormat : MapKeyWordsToIntermediateFormatBase<GTDTaskModel, Todo>
 {
     protected override IEnumerable<(int Id, KeyWordType keyWordType)> GetKeyWords(GTDTaskModel source)
     {

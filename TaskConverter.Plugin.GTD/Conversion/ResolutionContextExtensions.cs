@@ -5,12 +5,12 @@ using TaskConverter.Plugin.GTD.TodoModel;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
-public static class GTDDataModelExtensions
+public static class ResolutionContextExtensions
 {
     private const string keyWordListName = "KeyWordList";
     private const string timeZoneName = "TimeZone";
 
-    public static void InitializeResolutionContextForCalendarMapping(this IMappingOperationOptions options, GTDDataModel source, DateTimeZone timeZone)
+    public static void InitializeResolutionContextForMappingToIntermediateFormat(this IMappingOperationOptions options, GTDDataModel source, DateTimeZone timeZone)
     {
         var keyWordList = (source.Context?.Select(c => ((KeyWordType.Context, c.Id), c as GTDExtendedModel)) ?? [])
             .Concat(source.Folder?.Select(f => ((KeyWordType.Folder, f.Id), f as GTDExtendedModel)) ?? [])
@@ -21,7 +21,7 @@ public static class GTDDataModelExtensions
         options.Items[timeZoneName] = timeZone;
     }
 
-    public static void InitializeResolutionContextForGDTMapping(this IMappingOperationOptions options, DateTimeZone timeZone)
+    public static void InitializeResolutionContextForMappingFromIntermediateFormat(this IMappingOperationOptions options, DateTimeZone timeZone)
     {
         options.Items[timeZoneName] = timeZone;
     }

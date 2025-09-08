@@ -11,7 +11,6 @@ using TaskConverter.Plugin.GTD.ConversionHelper;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 using TaskConverter.Plugin.GTD.Utils;
-using Period = TaskConverter.Plugin.GTD.Model.Period;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
@@ -35,14 +34,15 @@ public class ConversionService : IConversionService<GTDDataModel>
 
     public Calendar MapToIntermediateFormat(GTDDataModel taskInfo)
     {
-        return Mapper.Map<Calendar>(taskInfo, opt => opt.InitializeResolutionContextForCalendarMapping(taskInfo, TimeZone));
+        return Mapper.Map<Calendar>(taskInfo, opt => opt.InitializeResolutionContextForMappingToIntermediateFormat(taskInfo, TimeZone));
     }
 
     public GTDDataModel MapFromIntermediateFormat(Calendar model)
     {
-        return Mapper.Map<GTDDataModel>(model, opt => opt.InitializeResolutionContextForGDTMapping(TimeZone));
+        return Mapper.Map<GTDDataModel>(model, opt => opt.InitializeResolutionContextForMappingFromIntermediateFormat(TimeZone));
     }
 
+    //TODO HH: add to interface?
     public void AssertConfigurationIsValid()
     {
         Mapper.ConfigurationProvider.AssertConfigurationIsValid();
@@ -122,14 +122,14 @@ public class ConversionService : IConversionService<GTDDataModel>
             .AfterMap(
                 (src, dest) =>
                 {
-                    dest.AddProperty(new CalendarProperty(nameof(src.Color), src.Color.FromArgbWithFallback()));
-                    dest.AddProperty(nameof(src.Visible), src.Visible.ToString().ToLowerInvariant());
+                    dest.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.Color, src.Color.FromArgbWithFallback()));
+                    dest.AddProperty(IntermediateFormatPropertyNames.IsVisible, src.Visible.ToString().ToLowerInvariant());
                 }
             )
             .ReverseMapWithValidation()
             .IncludeBase<RecurringComponent, GTDBaseModel>()
-            .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Properties.Get<Color?>(nameof(GTDExtendedModel.Color)).ToArgbWithFallback()))
-            .ForMember(dest => dest.Visible, opt => opt.MapFrom(src => src.Properties.Get<string>(nameof(GTDExtendedModel.Visible)).ToBool()));
+            .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Properties.Get<Color?>(IntermediateFormatPropertyNames.Color).ToArgbWithFallback()))
+            .ForMember(dest => dest.Visible, opt => opt.MapFrom(src => src.Properties.Get<string>(IntermediateFormatPropertyNames.IsVisible).ToBool()));
 
         cfg.CreateMap<LocalDateTime, IDateTime>().ConvertUsing(s => s.GetIDateTime(timeZone));
         cfg.CreateMap<LocalDateTime?, IDateTime?>().ConvertUsing(s => s.GetIDateTime(timeZone));
@@ -163,13 +163,13 @@ public class ConversionService : IConversionService<GTDDataModel>
                 dest => dest.Column,
                 dest => dest.Group
             )
-            .AfterMap<TodosMappingAction>()
-            .AfterMap<NotebookMappingAction>()
+            .AfterMap<MapTodosToIntermediateFormat>()
+            .AfterMap<MapJournalsToIntermediateFormat>()
             .ReverseMapWithValidation()
-            .BeforeMap<GTDKeyWordMappingAction>()
+            .BeforeMap<MapKeyWordsFromIntermediateFormat>()
             .ForMember(dest => dest.Version, opt => opt.MapFrom(src => 3))
-            .ForMember(dest => dest.Task, opt => opt.MapFrom<GTDTaskModelResolver>())
-            .ForMember(dest => dest.Notebook, opt => opt.MapFrom<GTDNotebookModelResolver>())
+            .ForMember(dest => dest.Task, opt => opt.MapFrom<MapTodoFromIntermediateFormat>())
+            .ForMember(dest => dest.Notebook, opt => opt.MapFrom<MapJournalFromIntermediateFormat>())
             .IgnoreMembers(dest => dest.Folder!, dest => dest.Context!, dest => dest.Tag!, dest => dest.Preferences!, dest => dest.GetAllEntries, dest => dest.TaskNote!);
 
         cfg.CreateMap<GTDTaskModel, Todo>()
@@ -195,36 +195,14 @@ public class ConversionService : IConversionService<GTDDataModel>
                 dest => dest.Start,
                 dest => dest.Alarms
             )
-            .AfterMap(
-                (src, dest, context) =>
-                {
-                    var alarm = CreateAlarmFromReminder(src.Reminder);
-                    if (alarm != null)
-                        dest.Alarms.Add(alarm);
-                    dest.RecurrenceRules = CreateRecurrenceRules(src.RepeatNew);
-                    //TODO HH: not really exact, since Completed may be null at the time of mapping
-                    var start = src.RepeatFrom == GTDRepeatFrom.FromDueDate ? src.DueDate : src.Completed;
-                    dest.Start = start.HasValue && src.RepeatNew != null ? context.Mapper.Map<IDateTime>(start.Value) : null;
-                    if (src.HideUntil > 0)
-                    {
-                        var hideUntil = new CalDateTime(DateTimeOffset.FromUnixTimeMilliseconds(src.HideUntil).UtcDateTime, "UTC");
-                        //TODO HH: add X-HIDE-UNTIL as const
-                        dest.Properties.Add(new CalendarProperty("X-HIDE-UNTIL", hideUntil));
-                    }
-                    dest.AddProperty("X-DUE-FLOAT", src.Floating.ToString().ToLowerInvariant());
-                    dest.AddProperty("X-STARRED", src.Starred.ToString().ToLowerInvariant());
-
-                    //TODO HH: state should be completed if this is set
-                    dest.Completed = src.Completed.GetIDateTime(timeZone); // need to set this here, since Status-Map would overwrite this
-                }
-            )
-            .AfterMap<KeyWordMappingTodoAction>()
+            .AfterMap<AfterMapTodoToIntermediateFormat>()
+            .AfterMap<MapKeyWordsOfTodoToIntermediateFormat>()
             .IncludeBase<GTDBaseModel, RecurringComponent>()
             .ReverseMapWithValidation()
             .ForMember(dest => dest.DueTimeSet, opt => opt.MapFrom(src => src.Due != null && src.Due.GetLocalDateTime(timeZone).TimeOfDay > new LocalTime()))
-            .ForMember(dest => dest.Reminder, opt => opt.MapFrom(new ReminderResolver(timeZone)))
-            .ForMember(dest => dest.Alarm, opt => opt.MapFrom(new AlarmResolver(clock, timeZone)))
-            .ForMember(dest => dest.Hide, opt => opt.MapFrom(new HideResolver(timeZone)))
+            .ForMember(dest => dest.Reminder, opt => opt.MapFrom(new MapReminderFromIntermediateFormat(timeZone)))
+            .ForMember(dest => dest.Alarm, opt => opt.MapFrom(new MapAlarmFromIntermediateFormat(clock, timeZone)))
+            .ForMember(dest => dest.Hide, opt => opt.MapFrom(new MapHideFromIntermediateFormat(timeZone)))
             .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Description != null ? src.Description.GetStringArray() : null))
             //TODO HH: fix
             .IgnoreMembers(
@@ -248,29 +226,7 @@ public class ConversionService : IConversionService<GTDDataModel>
                 dest => dest.HideUntil,
                 dest => dest.Starred
             )
-            .AfterMap(
-                (src, dest) =>
-                {
-                    var hideUntil = src.Properties.Get<CalDateTime>("X-HIDE-UNTIL");
-                    if (hideUntil != null)
-                        dest.HideUntil = new DateTimeOffset(hideUntil.Value).ToUnixTimeMilliseconds();
-
-                    if (bool.TryParse(src.Properties.Get<string>("X-DUE-FLOAT"), out var floating) && floating)
-                    {
-                        dest.Floating = floating;
-                        dest.DueDateModifier = DueDateModifier.OptionallyOn;
-                    }
-
-                    if (bool.TryParse(src.Properties.Get<string>("X-STARRED"), out var starred) && starred)
-                    {
-                        dest.Starred = starred;
-                    }
-
-                    dest.RepeatFrom = src.Start?.Equals(src.Due) ?? true ? GTDRepeatFrom.FromDueDate : GTDRepeatFrom.FromCompletion;
-                    //TODO HH: maybe more than one rule - exception or warning (or configurable)
-                    dest.RepeatNew = CreateGTDRepeatInfoModel(src.RecurrenceRules?.FirstOrDefault());
-                }
-            )
+            .AfterMap<AfterMapTodoFromIntermediateFormat>()
             .IncludeBase<RecurringComponent, GTDBaseModel>();
 
         cfg.CreateMap<GTDNotebookModel, Journal>()
@@ -296,15 +252,15 @@ public class ConversionService : IConversionService<GTDDataModel>
             .AfterMap(
                 (src, dest) =>
                 {
-                    dest.AddProperty(nameof(src.Visible), src.Visible.ToString().ToLowerInvariant());
+                    dest.AddProperty(IntermediateFormatPropertyNames.IsVisible, src.Visible.ToString().ToLowerInvariant());
                 }
             )
-            .AfterMap<KeyWordMappingJournalAction>()
+            .AfterMap<MapKeyWordsOfJournalToIntermediateFormat>()
             .IncludeBase<GTDExtendedModel, RecurringComponent>()
             .ReverseMapWithValidation()
             .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Description != null ? src.Description.GetStringArray() : null))
             .IgnoreMembers(dest => dest.Private, dest => dest.FolderId)
-            .ForMember(dest => dest.Visible, opt => opt.MapFrom(src => src.Properties.Get<string>(nameof(GTDExtendedModel.Visible)).ToBool()))
+            .ForMember(dest => dest.Visible, opt => opt.MapFrom(src => src.Properties.Get<string>(IntermediateFormatPropertyNames.IsVisible).ToBool()))
             .IncludeBase<RecurringComponent, GTDExtendedModel>();
 
         cfg.CreateMap<KeyWordMetaData, GTDBaseModel>()
@@ -320,52 +276,5 @@ public class ConversionService : IConversionService<GTDDataModel>
         cfg.CreateMap<KeyWordMetaData, GTDTagModel>();
         cfg.CreateMap<KeyWordMetaData, GTDFolderModel>().IgnoreMembers(dest => dest.Ordinal, dest => dest.Children, dest => dest.Parent);
         cfg.CreateMap<KeyWordMetaData, GTDContextModel>().IgnoreMembers(dest => dest.Children, dest => dest.Parent);
-    }
-
-    private static List<RecurrencePattern>? CreateRecurrenceRules(GTDRepeatInfoModel? repeatInfo)
-    {
-        if (!repeatInfo.HasValue)
-            return null;
-
-        var freq = repeatInfo.Value.Period switch
-        {
-            Period.Day => FrequencyType.Daily,
-            Period.Week => FrequencyType.Weekly,
-            Period.Month => FrequencyType.Monthly,
-            Period.Year => FrequencyType.Yearly,
-            _ => throw new ArgumentOutOfRangeException($"{repeatInfo.Value.Period} not supported"),
-        };
-
-        return [new(freq, repeatInfo.Value.Interval)];
-    }
-
-    private static GTDRepeatInfoModel? CreateGTDRepeatInfoModel(RecurrencePattern? recurrencePattern)
-    {
-        if (recurrencePattern == null)
-            return null;
-
-        var period = recurrencePattern.Frequency switch
-        {
-            FrequencyType.Daily => Period.Day,
-            FrequencyType.Weekly => Period.Week,
-            FrequencyType.Monthly => Period.Month,
-            FrequencyType.Yearly => Period.Year,
-            _ => throw new ArgumentOutOfRangeException($"{recurrencePattern.Frequency} not supported"),
-        };
-
-        return new GTDRepeatInfoModel(recurrencePattern.Interval, period);
-    }
-
-    private static Alarm? CreateAlarmFromReminder(long reminder)
-    {
-        if (reminder > 43200)
-        {
-            var reminderDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(reminder);
-            return new Alarm { Trigger = new Trigger { DateTime = new CalDateTime() { Value = reminderDateTime } } };
-        }
-        else if (reminder >= 0)
-            return new Alarm { Trigger = new Trigger { Duration = TimeSpan.FromMinutes(-reminder) } };
-
-        return null;
     }
 }

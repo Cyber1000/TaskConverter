@@ -6,7 +6,7 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
-public class GTDNotebookModelResolver : IValueResolver<Calendar, GTDDataModel, List<GTDNotebookModel>?>
+public class MapJournalFromIntermediateFormat : IValueResolver<Calendar, GTDDataModel, List<GTDNotebookModel>?>
 {
     public List<GTDNotebookModel>? Resolve(Calendar source, GTDDataModel destination, List<GTDNotebookModel>? destMember, ResolutionContext resolutionContext)
     {

@@ -5,7 +5,7 @@ using TaskConverter.Plugin.GTD.Model;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
-public class ReminderResolver(DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDTaskModel, long>
+public class MapReminderFromIntermediateFormat(DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDTaskModel, long>
 {
     readonly int[] fixedDiffsFromDueDate = [0, 1, 5, 10, 15, 30, 45, 60, 90, 120, 180, 240, 360, 480, 600, 720, 1080, 1440, 2880, 4320, 5760, 7200, 8640, 10080, 20160, 43200];
 

@@ -9,13 +9,7 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
-public abstract class KeyWordMappingBaseAction
-{
-    //TODO HH: move to other class?
-    public static string CategoryMetaData(string keyWordName) => $"X-Category-{keyWordName}";
-}
-
-public abstract class KeyWordMappingBaseAction<TSource, TDestination> : KeyWordMappingBaseAction, IMappingAction<TSource, TDestination>
+public abstract class MapKeyWordsToIntermediateFormatBase<TSource, TDestination> : IMappingAction<TSource, TDestination>
     where TDestination : RecurringComponent
 {
     public void Process(TSource source, TDestination destination, ResolutionContext context)
@@ -29,9 +23,8 @@ public abstract class KeyWordMappingBaseAction<TSource, TDestination> : KeyWordM
         foreach (var keyWordMetaData in keyWordMetaDataList)
         {
             destination.Categories.Add(keyWordMetaData.Name);
-            //TODO HH: fix spaces
             //TODO HH: serialize custom properties in ICal (Color and others too)
-            destination.AddProperty(new CalendarProperty(CategoryMetaData(keyWordMetaData.Name), keyWordMetaData));
+            destination.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.CategoryMetaData(keyWordMetaData.Name), keyWordMetaData));
         }
     }
 

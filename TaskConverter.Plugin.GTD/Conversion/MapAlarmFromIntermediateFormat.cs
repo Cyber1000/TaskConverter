@@ -5,7 +5,7 @@ using TaskConverter.Plugin.GTD.Model;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
-public class AlarmResolver(IClock clock, DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDTaskModel, LocalDateTime?>
+public class MapAlarmFromIntermediateFormat(IClock clock, DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDTaskModel, LocalDateTime?>
 {
     public DateTimeZone DateTimeZone { get; } = dateTimeZone;
 

@@ -248,7 +248,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
         var gtdRemappedTaskModel = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
-        var taskAppTaskModelHideUntil = taskAppTaskModel.Properties.Get<CalDateTime>("X-HIDE-UNTIL");
+        var taskAppTaskModelHideUntil = taskAppTaskModel.Properties.Get<CalDateTime>(IntermediateFormatPropertyNames.HideUntil);
         Assert.Equal(hideUntil, taskAppTaskModelHideUntil?.GetInstant());
         Assert.Equal(hideInMilliseconds, gtdRemappedTaskModel.HideUntil);
         Assert.Equal(hide, gtdRemappedTaskModel.Hide);
@@ -260,11 +260,11 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         Assert.IsType<Calendar>(taskAppTaskModel.Parent);
         Assert.Equal(gtdTaskModel.Title, taskAppTaskModel.Summary);
         Assert.Equal("NextAction", taskAppTaskModel.Status);
-        var starred = bool.Parse(taskAppTaskModel.Properties.Get<string>("X-STARRED"));
+        var starred = bool.Parse(taskAppTaskModel.Properties.Get<string>(IntermediateFormatPropertyNames.Starred));
         Assert.Equal(gtdTaskModel.Starred, starred);
         Assert.Equal(0, taskAppTaskModel.Priority);
         Assert.Equal(gtdTaskModel.Note, taskAppTaskModel.Description?.GetStringArray());
-        var floating = bool.Parse(taskAppTaskModel.Properties.Get<string>("X-DUE-FLOAT"));
+        var floating = bool.Parse(taskAppTaskModel.Properties.Get<string>(IntermediateFormatPropertyNames.DueFloat));
         Assert.Equal(gtdTaskModel.Floating, floating);
         Assert.Equivalent(gtdTaskModel, gtdRemappedTaskModel);
     }
@@ -275,7 +275,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         Assert.Equal(gtdTaskModel.Modified, taskAppTaskModel.LastModified.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdTaskModel.DueDate, taskAppTaskModel.Due.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdTaskModel.Completed, taskAppTaskModel.Completed.GetLocalDateTime(CurrentDateTimeZone));
-        var hideUntil = taskAppTaskModel.Properties.Get<CalDateTime>("X-HIDE-UNTIL");
+        var hideUntil = taskAppTaskModel.Properties.Get<CalDateTime>(IntermediateFormatPropertyNames.HideUntil);
         var hideUntilMilliseconds = new DateTimeOffset(hideUntil.Value).ToUnixTimeMilliseconds();
         Assert.Equal(gtdTaskModel.HideUntil, hideUntilMilliseconds);
     }

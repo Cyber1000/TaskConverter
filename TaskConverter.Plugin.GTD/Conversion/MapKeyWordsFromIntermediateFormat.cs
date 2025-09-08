@@ -6,7 +6,7 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
-public class GTDKeyWordMappingAction : IMappingAction<Calendar, GTDDataModel>
+public class MapKeyWordsFromIntermediateFormat : IMappingAction<Calendar, GTDDataModel>
 {
     public void Process(Calendar source, GTDDataModel destination, ResolutionContext resolutionContext)
     {

@@ -8,7 +8,7 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
-public class GTDTaskModelResolver : IValueResolver<Calendar, GTDDataModel, List<GTDTaskModel>?>
+public class MapTodoFromIntermediateFormat : IValueResolver<Calendar, GTDDataModel, List<GTDTaskModel>?>
 {
     public List<GTDTaskModel>? Resolve(Calendar source, GTDDataModel destination, List<GTDTaskModel>? destMember, ResolutionContext resolutionContext)
     {
