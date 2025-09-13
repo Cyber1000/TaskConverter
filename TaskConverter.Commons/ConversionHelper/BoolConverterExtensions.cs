@@ -7,5 +7,8 @@ public static class BoolConverterExtensions
         return bool.TryParse(input, out var boolConvert) && boolConvert;
     }
 
-    //TODO HH: other direction?
+    public static string ToStringRepresentation(this bool input)
+    {
+        return input.ToString().ToLowerInvariant();
+    }
 }

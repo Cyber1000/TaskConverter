@@ -2,7 +2,6 @@ using AutoMapper;
 using Ical.Net;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
-using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
@@ -10,17 +9,11 @@ public class MapKeyWordsFromIntermediateFormat : IMappingAction<Calendar, GTDDat
 {
     public void Process(Calendar source, GTDDataModel destination, ResolutionContext resolutionContext)
     {
-        var timeZone = resolutionContext.GetTimeZone();
-        var keyWordMetaData = source
-            .Todos.Select(t => t.GetKeyWordMetaDataList(timeZone))
-            .Union(source.Journals.Select(j => j.GetKeyWordMetaDataList(timeZone)))
-            .SelectMany(t => t)
-            .Distinct()
-            .ToList();
+        var keyWordMetaDataList = resolutionContext.GetKeyWordMetaDataIntermediateFormatDictionary();
 
-        var tags = keyWordMetaData.Where(k => k.KeyWordType == KeyWordType.Tag)?.Select(k => resolutionContext.Mapper.Map<GTDTagModel>(k)).ToList() ?? [];
-        var folder = keyWordMetaData.Where(k => k.KeyWordType == KeyWordType.Folder)?.Select(k => resolutionContext.Mapper.Map<GTDFolderModel>(k)).ToList() ?? [];
-        var contexts = keyWordMetaData.Where(k => k.KeyWordType == KeyWordType.Context)?.Select(k => resolutionContext.Mapper.Map<GTDContextModel>(k)).ToList() ?? [];
+        var tags = keyWordMetaDataList?.Values.Where(k => k.KeyWordType == KeyWordType.Tag)?.Select(k => resolutionContext.Mapper.Map<GTDTagModel>(k)).ToList() ?? [];
+        var folder = keyWordMetaDataList?.Values.Where(k => k.KeyWordType == KeyWordType.Folder)?.Select(k => resolutionContext.Mapper.Map<GTDFolderModel>(k)).ToList() ?? [];
+        var contexts = keyWordMetaDataList?.Values.Where(k => k.KeyWordType == KeyWordType.Context)?.Select(k => resolutionContext.Mapper.Map<GTDContextModel>(k)).ToList() ?? [];
 
         destination.Tag = tags;
         destination.Folder = folder;

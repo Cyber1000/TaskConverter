@@ -8,6 +8,4 @@ public static class StringConverterExtensions
     {
         return int.TryParse(input, out var id) ? id : HashUtil.Fnv1aHashInt(input);
     }
-
-    //TODO HH: other direction?
 }

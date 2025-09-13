@@ -4,25 +4,24 @@ using Ical.Net.CalendarComponents;
 using TaskConverter.Commons.ConversionHelper;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
-using TaskConverter.Plugin.GTD.Utils;
+using TaskConverter.Commons.Utils;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
-public class MapTodoFromIntermediateFormat : IValueResolver<Calendar, GTDDataModel, List<GTDTaskModel>?>
+public class MapTodoFromIntermediateFormat : IMappingAction<Calendar, GTDDataModel>
 {
-    public List<GTDTaskModel>? Resolve(Calendar source, GTDDataModel destination, List<GTDTaskModel>? destMember, ResolutionContext resolutionContext)
+    public void Process(Calendar source, GTDDataModel destination, ResolutionContext resolutionContext)
     {
-        var timeZone = resolutionContext.GetTimeZone();
+        var keyWordMetaDataList = resolutionContext.GetKeyWordMetaDataIntermediateFormatDictionary();
         var todos = GetTodos(source);
-        return todos
+        destination.Task = todos
                 .Select(todo =>
                 {
-                    var propertiesOfTodo = todo.Properties.ToDictionary(p => p.Name);
-                    var keyWordMetaData = propertiesOfTodo.GetKeyWordMetaData(todo.Categories, timeZone);
+                    var keyWordMetaDataForCurrentTodo = todo.Categories.GetExistingValues(keyWordMetaDataList);
 
-                    var tags = keyWordMetaData.Where(k => k.KeyWordType == KeyWordType.Tag)?.Select(k => k.Id).ToList() ?? [];
-                    var folder = keyWordMetaData.Where(k => k.KeyWordType == KeyWordType.Folder)?.SingleOrDefault().Id ?? 0;
-                    var context = keyWordMetaData.Where(k => k.KeyWordType == KeyWordType.Context)?.SingleOrDefault().Id ?? 0;
+                    var tags = keyWordMetaDataForCurrentTodo.Where(k => k.KeyWordType == KeyWordType.Tag)?.Select(k => k.Id).ToList() ?? [];
+                    var folder = keyWordMetaDataForCurrentTodo.Where(k => k.KeyWordType == KeyWordType.Folder)?.SingleOrDefault().Id ?? 0;
+                    var context = keyWordMetaDataForCurrentTodo.Where(k => k.KeyWordType == KeyWordType.Context)?.SingleOrDefault().Id ?? 0;
 
                     var foreignId = (todo.Parent as Todo)?.Uid;
 

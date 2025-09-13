@@ -39,7 +39,7 @@ public class ConversionService : IConversionService<GTDDataModel>
 
     public GTDDataModel MapFromIntermediateFormat(Calendar model)
     {
-        return Mapper.Map<GTDDataModel>(model, opt => opt.InitializeResolutionContextForMappingFromIntermediateFormat(TimeZone));
+        return Mapper.Map<GTDDataModel>(model, opt => opt.InitializeResolutionContextForMappingFromIntermediateFormat(model, TimeZone));
     }
 
     //TODO HH: add to interface?
@@ -123,7 +123,7 @@ public class ConversionService : IConversionService<GTDDataModel>
                 (src, dest) =>
                 {
                     dest.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.Color, src.Color.FromArgbWithFallback()));
-                    dest.AddProperty(IntermediateFormatPropertyNames.IsVisible, src.Visible.ToString().ToLowerInvariant());
+                    dest.AddProperty(IntermediateFormatPropertyNames.IsVisible, src.Visible.ToStringRepresentation());
                 }
             )
             .ReverseMapWithValidation()
@@ -168,9 +168,9 @@ public class ConversionService : IConversionService<GTDDataModel>
             .ReverseMapWithValidation()
             .BeforeMap<MapKeyWordsFromIntermediateFormat>()
             .ForMember(dest => dest.Version, opt => opt.MapFrom(src => 3))
-            .ForMember(dest => dest.Task, opt => opt.MapFrom<MapTodoFromIntermediateFormat>())
-            .ForMember(dest => dest.Notebook, opt => opt.MapFrom<MapJournalFromIntermediateFormat>())
-            .IgnoreMembers(dest => dest.Folder!, dest => dest.Context!, dest => dest.Tag!, dest => dest.Preferences!, dest => dest.GetAllEntries, dest => dest.TaskNote!);
+            .IgnoreMembers(dest => dest.Folder!, dest => dest.Context!, dest => dest.Tag!, dest => dest.Preferences!, dest => dest.GetAllEntries, dest => dest.TaskNote!, dest => dest.Notebook!, dest => dest.Task!)
+            .AfterMap<MapTodoFromIntermediateFormat>()
+            .AfterMap<MapJournalFromIntermediateFormat>();
 
         cfg.CreateMap<GTDTaskModel, Todo>()
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Note != null ? src.Note.GetString() : null))
