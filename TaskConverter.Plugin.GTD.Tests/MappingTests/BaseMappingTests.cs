@@ -11,12 +11,12 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
+public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, ISettingsProvider settingsProvider)
 {
     protected readonly IConversionService<GTDDataModel> TestConverter = testConverter;
     protected readonly IClock clock = clock;
-    protected readonly IConverterDateTimeZoneProvider converterDateTimeZoneProvider = converterDateTimeZoneProvider;
-    protected DateTimeZone CurrentDateTimeZone => converterDateTimeZoneProvider.CurrentDateTimeZone;
+    protected readonly ISettingsProvider settingsProvider = settingsProvider;
+    protected DateTimeZone CurrentDateTimeZone => settingsProvider.CurrentDateTimeZone;
 
     public static class TestConstants
     {
@@ -59,8 +59,9 @@ public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConv
         Assert.Equal(gtdModel.Title, keyWordMetaData.Name);
         Assert.Equal(GetKeyWordType(gtdModel), keyWordMetaData.KeyWordType);
         Assert.Equal(Color.FromArgb(gtdModel.Color), keyWordMetaData.Color);
+        Assert.Equal(gtdModel.Visible, keyWordMetaData.IsVisible);
 
-        KeyWordType GetKeyWordType(T gtdModel)
+        static KeyWordType GetKeyWordType(T gtdModel)
         {
             return gtdModel switch
             {

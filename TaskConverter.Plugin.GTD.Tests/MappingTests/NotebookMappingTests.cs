@@ -8,8 +8,8 @@ using TaskConverter.Plugin.GTD.TodoModel;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class NotebookMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider, IKeyWordMapperService keyWordMapperService)
-    : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
+public class NotebookMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, ISettingsProvider settingsProvider, IKeyWordMapperService keyWordMapperService)
+    : BaseMappingTests(testConverter, clock, settingsProvider)
 {
     [Fact]
     public void Map_Notebook()

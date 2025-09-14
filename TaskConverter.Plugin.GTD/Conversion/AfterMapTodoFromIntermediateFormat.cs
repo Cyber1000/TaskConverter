@@ -14,7 +14,7 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
         MapHide(source, destination);
         MapFloatingDate(source, destination);
         MapStarred(source, destination);
-        MapRepetition(source, destination);
+        MapRepetition(source, destination, context);
     }
 
     private static void MapFloatingDate(Todo source, GTDTaskModel destination)
@@ -34,10 +34,18 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
         }
     }
 
-    private static void MapRepetition(Todo source, GTDTaskModel destination)
+    private static void MapRepetition(Todo source, GTDTaskModel destination, ResolutionContext context)
     {
+        var settingsProvider = context.GetSettingsProvider();
+
         destination.RepeatFrom = source.Start?.Equals(source.Due) ?? true ? GTDRepeatFrom.FromDueDate : GTDRepeatFrom.FromCompletion;
-        //TODO HH: maybe more than one rule - exception or warning (or configurable)
+        if (source.RecurrenceRules?.Count > 1)
+        {
+            if (settingsProvider.AllowIncompleteMappingIfMoreThanOneItem)
+                Console.WriteLine("More than one RecurrenceRule, can only convert the first.");
+            else
+                throw new Exception("More than one RecurrenceRule. This is only allowed if AllowIncompleteMappingIfMoreThanOneItem is true.");
+        }
         destination.RepeatNew = CreateGTDRepeatInfoModel(source.RecurrenceRules?.FirstOrDefault());
     }
 

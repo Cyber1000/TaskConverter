@@ -18,7 +18,7 @@ public abstract class MapKeyWordsToIntermediateFormatBase<TSource, TDestination>
 
         foreach (var keyWordMetaData in keyWordMetaDataList)
         {
-            //TODO HH: handle same name of different Types?
+            //TODO HH: handle same name of different Types? base on first char (e.g. @, #)
             destination.Categories.Add(keyWordMetaData.Name);
             destination.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.CategoryMetaData(keyWordMetaData.Name), keyWordMetaData));
         }

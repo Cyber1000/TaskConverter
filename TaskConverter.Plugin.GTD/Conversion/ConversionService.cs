@@ -18,31 +18,31 @@ public class ConversionService : IConversionService<GTDDataModel>
 {
     private IMapper Mapper { get; }
 
-    private DateTimeZone TimeZone { get; }
+    public ISettingsProvider SettingsProvider { get; }
 
-    public ConversionService(IClock clock, IConverterDateTimeZoneProvider dateTimeZoneProvider)
+    public ConversionService(IClock clock, ISettingsProvider settingsProvider)
     {
-        TimeZone = dateTimeZoneProvider.CurrentDateTimeZone;
+        SettingsProvider = settingsProvider;
+        var timeZone = settingsProvider.CurrentDateTimeZone;
         var config = new MapperConfiguration(cfg =>
         {
-            CreateBasicMappings(cfg, TimeZone);
+            CreateBasicMappings(cfg, timeZone);
 
-            CreateMainMappings(clock, cfg, TimeZone);
+            CreateMainMappings(clock, cfg, timeZone);
         });
         Mapper = config.CreateMapper();
     }
 
     public Calendar MapToIntermediateFormat(GTDDataModel taskInfo)
     {
-        return Mapper.Map<Calendar>(taskInfo, opt => opt.InitializeResolutionContextForMappingToIntermediateFormat(taskInfo, TimeZone));
+        return Mapper.Map<Calendar>(taskInfo, opt => opt.InitializeResolutionContextForMappingToIntermediateFormat(taskInfo, SettingsProvider));
     }
 
     public GTDDataModel MapFromIntermediateFormat(Calendar model)
     {
-        return Mapper.Map<GTDDataModel>(model, opt => opt.InitializeResolutionContextForMappingFromIntermediateFormat(model, TimeZone));
+        return Mapper.Map<GTDDataModel>(model, opt => opt.InitializeResolutionContextForMappingFromIntermediateFormat(model, SettingsProvider));
     }
 
-    //TODO HH: add to interface?
     public void AssertConfigurationIsValid()
     {
         Mapper.ConfigurationProvider.AssertConfigurationIsValid();
@@ -168,7 +168,16 @@ public class ConversionService : IConversionService<GTDDataModel>
             .ReverseMapWithValidation()
             .BeforeMap<MapKeyWordsFromIntermediateFormat>()
             .ForMember(dest => dest.Version, opt => opt.MapFrom(src => 3))
-            .IgnoreMembers(dest => dest.Folder!, dest => dest.Context!, dest => dest.Tag!, dest => dest.Preferences!, dest => dest.GetAllEntries, dest => dest.TaskNote!, dest => dest.Notebook!, dest => dest.Task!)
+            .IgnoreMembers(
+                dest => dest.Folder!,
+                dest => dest.Context!,
+                dest => dest.Tag!,
+                dest => dest.Preferences!,
+                dest => dest.GetAllEntries,
+                dest => dest.TaskNote!,
+                dest => dest.Notebook!,
+                dest => dest.Task!
+            )
             .AfterMap<MapTodoFromIntermediateFormat>()
             .AfterMap<MapJournalFromIntermediateFormat>();
 
@@ -204,7 +213,6 @@ public class ConversionService : IConversionService<GTDDataModel>
             .ForMember(dest => dest.Alarm, opt => opt.MapFrom(new MapAlarmFromIntermediateFormat(clock, timeZone)))
             .ForMember(dest => dest.Hide, opt => opt.MapFrom(new MapHideFromIntermediateFormat(timeZone)))
             .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Description != null ? src.Description.GetStringArray() : null))
-            //TODO HH: fix
             .IgnoreMembers(
                 dest => dest.DueDateProject!,
                 dest => dest.StartDate!,
@@ -271,7 +279,10 @@ public class ConversionService : IConversionService<GTDDataModel>
             .ForMember(dest => dest.Modified, opt => opt.MapFrom(src => src.Modified))
             .ForMember(dest => dest.Uuid, opt => opt.MapFrom(src => string.Empty));
 
-        cfg.CreateMap<KeyWordMetaData, GTDExtendedModel>().IncludeAllDerived().ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Color.ToArgb())).IgnoreMembers(dest => dest.Visible);
+        cfg.CreateMap<KeyWordMetaData, GTDExtendedModel>()
+            .IncludeAllDerived()
+            .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Color.ToArgbWithFallback()))
+            .ForMember(dest => dest.Visible, opt => opt.MapFrom(src => src.IsVisible));
 
         cfg.CreateMap<KeyWordMetaData, GTDTagModel>();
         cfg.CreateMap<KeyWordMetaData, GTDFolderModel>().IgnoreMembers(dest => dest.Ordinal, dest => dest.Children, dest => dest.Parent);

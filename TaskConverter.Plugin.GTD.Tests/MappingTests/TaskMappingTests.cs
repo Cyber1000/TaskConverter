@@ -12,8 +12,8 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider, IKeyWordMapperService keyWordMapperService)
-    : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
+public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, ISettingsProvider settingsProvider, IKeyWordMapperService keyWordMapperService)
+    : BaseMappingTests(testConverter, clock, settingsProvider)
 {
     public enum HideTestCase
     {
@@ -232,6 +232,54 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         Assert.Equal(repeatInfoString?.ToLowerInvariant(), gtdRemappedTaskModel.RepeatNew?.ToString().ToLowerInvariant());
     }
 
+    [Fact]
+    public void Map_MultipleRecurrencesWithFalseAllowIncompleteMappingIfMoreThanOneItem_ThrowsException()
+    {
+        ((TestSettingsProvider)TestConverter.SettingsProvider).AllowIncompleteMappingIfMoreThanOneItem = false;
+
+        var todo = Create.A.Todo().AddRecurrenceRule(new RecurrencePattern(FrequencyType.Daily, 5)).AddRecurrenceRule(new RecurrencePattern(FrequencyType.Weekly, 10)).Build();
+        var calendar = Create.A.Calendar().WithTask(todo).Build();
+
+        var exception = Assert.Throws<Exception>(() => TestConverter.MapFromIntermediateFormat(calendar));
+        Assert.Equal("More than one RecurrenceRule. This is only allowed if AllowIncompleteMappingIfMoreThanOneItem is true.", exception.Message);
+    }
+
+    [Fact]
+    public void Map_MultipleRecurrencesWithTrueAllowIncompleteMappingIfMoreThanOneItem_DoesNotThrow()
+    {
+        ((TestSettingsProvider)TestConverter.SettingsProvider).AllowIncompleteMappingIfMoreThanOneItem = true;
+
+        var todo = Create.A.Todo().AddRecurrenceRule(new RecurrencePattern(FrequencyType.Daily, 5)).AddRecurrenceRule(new RecurrencePattern(FrequencyType.Weekly, 10)).Build();
+        var calendar = Create.A.Calendar().WithTask(todo).Build();
+
+        var ex = Record.Exception(() => TestConverter.MapFromIntermediateFormat(calendar));
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void Map_MultipleAlarmsWithFalseAllowIncompleteMappingIfMoreThanOneItem_ThrowsException()
+    {
+        ((TestSettingsProvider)TestConverter.SettingsProvider).AllowIncompleteMappingIfMoreThanOneItem = false;
+
+        var todo = Create.A.Todo().AddAlarm(new Alarm()).AddAlarm(new Alarm()).Build();
+        var calendar = Create.A.Calendar().WithTask(todo).Build();
+
+        var exception = Assert.Throws<AutoMapper.AutoMapperMappingException>(() => TestConverter.MapFromIntermediateFormat(calendar));
+        Assert.Equal("More than one Alarm. This is only allowed if AllowIncompleteMappingIfMoreThanOneItem is true.", exception.InnerException!.Message);
+    }
+
+    [Fact]
+    public void Map_MultipleAlarmsWithTrueAllowIncompleteMappingIfMoreThanOneItem_DoesNotThrow()
+    {
+        ((TestSettingsProvider)TestConverter.SettingsProvider).AllowIncompleteMappingIfMoreThanOneItem = true;
+
+        var todo = Create.A.Todo().AddAlarm(new Alarm()).AddAlarm(new Alarm()).Build();
+        var calendar = Create.A.Calendar().WithTask(todo).Build();
+
+        var ex = Record.Exception(() => TestConverter.MapFromIntermediateFormat(calendar));
+        Assert.Null(ex);
+    }
+
     [Theory]
     [InlineData(HideTestCase.SixMonthsBeforeDue)]
     [InlineData(HideTestCase.GivenDate)]
@@ -281,7 +329,6 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
 
     private void AssertTaskKeywords(GTDTaskModel gtdTaskModel, Calendar taskAppDataModel)
     {
-
         var keyWordMetaDataList = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentDateTimeZone).Values;
         Assert.Equal(gtdTaskModel.Context, GetFirstIdOfKeyWord(KeyWordType.Context));
         Assert.Equal(gtdTaskModel.Folder, GetFirstIdOfKeyWord(KeyWordType.Folder));

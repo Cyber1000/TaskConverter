@@ -21,8 +21,8 @@ public class GTDConverterPlugin : IConverterPlugin
         _fileSystem = new FileSystem();
         _jsonConfigurationSerializer = new JsonConfigurationSerializer();
         var clock = SystemClock.Instance;
-        var converterDateTimeZoneProvider = new ConverterDateTimeZoneProvider(this);
-        _conversionService = new ConversionService(clock, converterDateTimeZoneProvider);
+        var settingsProvider = new SettingsProvider(this);
+        _conversionService = new ConversionService(clock, settingsProvider);
     }
 
     public string Name => "GTD";

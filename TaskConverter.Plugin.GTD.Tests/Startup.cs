@@ -13,7 +13,7 @@ public class Startup
     {
         services.AddTransient<IClock, ConverterClock>();
         services.AddTransient<IConversionService<GTDDataModel>, ConversionService>();
-        services.AddTransient<IConverterDateTimeZoneProvider, TestDateTimeZoneProvider>();
+        services.AddTransient<ISettingsProvider, TestSettingsProvider>();
         services.AddTransient<IKeyWordMapperService, KeyWordMapperService>();
     }
 }

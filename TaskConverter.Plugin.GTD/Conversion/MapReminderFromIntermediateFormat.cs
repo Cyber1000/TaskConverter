@@ -13,7 +13,14 @@ public class MapReminderFromIntermediateFormat(DateTimeZone dateTimeZone) : IVal
 
     public long Resolve(Todo source, GTDTaskModel destination, long destMember, ResolutionContext context)
     {
-        //TODO HH: FirstOrDefault not exact
+        var settingsProvider = context.GetSettingsProvider();
+        if (source.Alarms?.Count > 1)
+        {
+            if (settingsProvider.AllowIncompleteMappingIfMoreThanOneItem)
+                Console.WriteLine("More than one Alarm, can only convert the first.");
+            else
+                throw new Exception("More than one Alarm. This is only allowed if AllowIncompleteMappingIfMoreThanOneItem is true.");
+        }
         var alarm = source.Alarms?.FirstOrDefault()?.Trigger;
         if (alarm == null)
             return -1;

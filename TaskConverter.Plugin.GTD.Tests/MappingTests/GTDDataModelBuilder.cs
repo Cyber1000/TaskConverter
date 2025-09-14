@@ -81,8 +81,8 @@ public class GTDDataModelBuilder
                 Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
                 Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
                 Title = $"Tag {id}",
-                Color = -694050399,
-                Visible = false,
+                Color = -1048832,
+                Visible = true,
             }
         );
         return this;

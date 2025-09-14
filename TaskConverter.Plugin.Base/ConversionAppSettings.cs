@@ -2,15 +2,32 @@ namespace TaskConverter.Plugin.Base;
 
 public class ConversionAppSettings(Dictionary<string, string> appsettings)
 {
-    private readonly Dictionary<string, string> appsettings = appsettings;
+    private readonly Dictionary<string, string> _appsettings = appsettings ?? throw new ArgumentNullException(nameof(appsettings));
 
-    public string GetAppSetting(string Key, string? defaultValue = null)
+    public T GetAppSetting<T>(string key, T? defaultValue = default)
     {
-        if (defaultValue == null && !appsettings.ContainsKey(Key))
+        if (!_appsettings.TryGetValue(key, out var rawValue) || string.IsNullOrWhiteSpace(rawValue))
         {
-            throw new Exception($@"Key ""{Key}"" nicht gefunden");
+            if (defaultValue is not null)
+                return defaultValue;
+
+            throw new KeyNotFoundException($@"Key ""{key}"" not found in appsettings.");
         }
 
-        return appsettings[Key] ?? defaultValue ?? "";
+        try
+        {
+            var targetType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+
+            var converted = Convert.ChangeType(rawValue, targetType);
+            return (T)converted!;
+        }
+        catch (Exception ex)
+        {
+            if (defaultValue is not null)
+                return defaultValue;
+
+            throw new InvalidCastException(
+                $@"Value ""{rawValue}"" for key ""{key}"" could not be converted to {typeof(T).Name}.", ex);
+        }
     }
 }

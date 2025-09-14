@@ -2,7 +2,8 @@ using NodaTime;
 
 namespace TaskConverter.Commons;
 
-public interface IConverterDateTimeZoneProvider
+public interface ISettingsProvider
 {
     DateTimeZone CurrentDateTimeZone { get; }
+    bool AllowIncompleteMappingIfMoreThanOneItem { get; }
 }

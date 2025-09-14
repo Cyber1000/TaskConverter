@@ -32,12 +32,13 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
 
     private static void MapDates(GTDTaskModel source, Todo destination, ResolutionContext context)
     {
+        var settingsProvider = context.GetSettingsProvider();
         //TODO HH: not really exact, since Completed may be null at the time of mapping
         var start = source.RepeatFrom == GTDRepeatFrom.FromDueDate ? source.DueDate : source.Completed;
         destination.Start = start.HasValue && source.RepeatNew != null ? context.Mapper.Map<IDateTime>(start.Value) : null;
 
         //TODO HH: state should be completed if this is set
-        destination.Completed = source.Completed.GetIDateTime(context.GetTimeZone()); // need to set this here, since Status-Map would overwrite this
+        destination.Completed = source.Completed.GetIDateTime(settingsProvider.CurrentDateTimeZone); // need to set this here, since Status-Map would overwrite this
     }
 
     private static void AddProperties(GTDTaskModel source, Todo destination)

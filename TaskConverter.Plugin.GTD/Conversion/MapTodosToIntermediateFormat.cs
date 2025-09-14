@@ -23,7 +23,10 @@ public class MapTodosToIntermediateFormat : IMappingAction<GTDDataModel, Calenda
             {
                 parentTodo.destination.Children.Add(todo.destination);
             }
-            //TODO HH: error if not found?
+            else
+            {
+                throw new Exception($"Parent {parentId} not found");
+            }
         }
     }
 }

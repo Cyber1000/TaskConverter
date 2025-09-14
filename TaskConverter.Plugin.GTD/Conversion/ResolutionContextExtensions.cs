@@ -1,5 +1,6 @@
 using AutoMapper;
 using NodaTime;
+using TaskConverter.Commons;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 
@@ -9,22 +10,22 @@ public static class ResolutionContextExtensions
 {
     private const string keyWordGTDFormatDictionaryName = "KeyWordGTDFormatDictionary";
     private const string keyWordMetaDataIntermediateFormatDictionaryName = "KeyWordMetaDataIntermediateFormatDictionary";
-    private const string timeZoneName = "TimeZone";
+    private const string settingsProviderName = "SettingsProvider";
 
-    public static void InitializeResolutionContextForMappingToIntermediateFormat(this IMappingOperationOptions options, GTDDataModel source, DateTimeZone timeZone)
+    public static void InitializeResolutionContextForMappingToIntermediateFormat(this IMappingOperationOptions options, GTDDataModel source, ISettingsProvider settingsProvider)
     {
         var keyWordMapperService = new KeyWordMapperService();
 
-        options.Items[keyWordGTDFormatDictionaryName] = keyWordMapperService.CreateKeyWordMetaDataList(source, timeZone);
-        options.Items[timeZoneName] = timeZone;
+        options.Items[keyWordGTDFormatDictionaryName] = keyWordMapperService.GetKeyWordMetaDataGTDFormatDictionary(source, settingsProvider.CurrentDateTimeZone);
+        options.Items[settingsProviderName] = settingsProvider;
     }
 
-    public static void InitializeResolutionContextForMappingFromIntermediateFormat(this IMappingOperationOptions options, Ical.Net.Calendar source, DateTimeZone timeZone)
+    public static void InitializeResolutionContextForMappingFromIntermediateFormat(this IMappingOperationOptions options, Ical.Net.Calendar source, ISettingsProvider settingsProvider)
     {
         var keyWordMapperService = new KeyWordMapperService();
 
-        options.Items[keyWordMetaDataIntermediateFormatDictionaryName] = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(source, timeZone);
-        options.Items[timeZoneName] = timeZone;
+        options.Items[keyWordMetaDataIntermediateFormatDictionaryName] = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(source, settingsProvider.CurrentDateTimeZone);
+        options.Items[settingsProviderName] = settingsProvider;
     }
 
     public static Dictionary<(KeyWordType keyWordType, int Id), KeyWordMetaData>? GetKeyWordMetaDataGTDFormatDictionary(this ResolutionContext context)
@@ -37,8 +38,8 @@ public static class ResolutionContextExtensions
         return context.Items[keyWordMetaDataIntermediateFormatDictionaryName] as Dictionary<string, KeyWordMetaData>;
     }
 
-    public static DateTimeZone GetTimeZone(this ResolutionContext context)
+    public static ISettingsProvider GetSettingsProvider(this ResolutionContext context)
     {
-        return (context.Items[timeZoneName] as DateTimeZone)!;
+        return (context.Items[settingsProviderName] as ISettingsProvider)!;
     }
 }

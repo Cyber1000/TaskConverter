@@ -1,4 +1,3 @@
-using System.Drawing;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using NodaTime;
@@ -11,7 +10,7 @@ namespace TaskConverter.Plugin.GTD.Conversion
 {
     public class KeyWordMapperService : IKeyWordMapperService
     {
-        public Dictionary<(KeyWordType keyWordType, int Id), KeyWordMetaData> CreateKeyWordMetaDataList(GTDDataModel gtdDataModel, DateTimeZone timeZone)
+        public Dictionary<(KeyWordType keyWordType, int Id), KeyWordMetaData> GetKeyWordMetaDataGTDFormatDictionary(GTDDataModel gtdDataModel, DateTimeZone timeZone)
         {
             return (gtdDataModel.Context?.Select(c => ((KeyWordType.Context, c.Id), c as GTDExtendedModel)) ?? [])
                 .Concat(gtdDataModel.Folder?.Select(f => ((KeyWordType.Folder, f.Id), f as GTDExtendedModel)) ?? [])
@@ -22,15 +21,16 @@ namespace TaskConverter.Plugin.GTD.Conversion
 
         private static KeyWordMetaData CreateKeyWordMetaData((KeyWordType keyWordType, int Id) keyWord, GTDExtendedModel keyWordModel, DateTimeZone timeZone)
         {
-            //TODO HH: exception if not found?
+            var color = keyWordModel?.Color ?? -2;
+
             return new KeyWordMetaData(
                 keyWord.Id,
                 keyWordModel?.Title ?? "",
                 keyWord.keyWordType,
                 keyWordModel?.Created.GetIDateTime(timeZone) ?? DateTimeExtensions.GetCurrentDateTime(timeZone),
                 keyWordModel?.Modified.GetIDateTime(timeZone) ?? DateTimeExtensions.GetCurrentDateTime(timeZone),
-                //TODO HH: Add Color only for Folder, Context - Visible for all Keywords
-                Color.FromArgb(keyWordModel?.Color ?? 0)
+                color.FromArgbWithFallback(),
+                keyWordModel?.Visible ?? true
             );
         }
 
@@ -56,16 +56,17 @@ namespace TaskConverter.Plugin.GTD.Conversion
 
         private static KeyWordMetaData CreateOrGetMetaData(Dictionary<string, ICalendarProperty> properties, string category, DateTimeZone timeZone)
         {
-            //TODO HH: Map to other types besides KeyWordType.Tag, based on first char (e.g. @, #)
+            //TODO HH: Map to other types besides KeyWordType.Tag, based on first char (e.g. @, #) and add color to fallback
             if (properties.TryGetValue(IntermediateFormatPropertyNames.CategoryMetaData(category), out var prop) && prop.Value is KeyWordMetaData existingMeta)
             {
                 return existingMeta;
             }
 
-            //TODO HH: add tests
+            //TODO HH: add tests for fallback
             var now = DateTimeExtensions.GetCurrentDateTime(timeZone);
 
-            return new KeyWordMetaData(category.ToIntWithHashFallback(), category, KeyWordType.Tag, now, now, Color.FromArgb(0));
+            var color = -1;
+            return new KeyWordMetaData(category.ToIntWithHashFallback(), category, KeyWordType.Tag, now, now, color.FromArgbWithFallback(), true);
         }
     }
 }
