@@ -4,11 +4,10 @@ using TaskConverter.Plugin.GTD.Conversion;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;
 using TaskConverter.Plugin.GTD.TodoModel;
-using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class KeywordMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
+public class KeywordMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider, IKeyWordMapperService keyWordMapperService)
     : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
 {
     [Fact]
@@ -18,7 +17,8 @@ public class KeywordMappingTests(IConversionService<GTDDataModel> testConverter,
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdFolderModel = gtdDataModel.Folder![0];
-        var taskAppFolderModel = taskAppDataModel!.Todos.Select(t => t.GetKeyWordMetaDataList(CurrentDateTimeZone)).SelectMany(t => t).First(t => t.KeyWordType == KeyWordType.Folder);
+        var taskAppFolderModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentDateTimeZone).Values
+            .First(t => t.KeyWordType == KeyWordType.Folder);
         var gtdRemappedFolderModel = gtdDataMappedRemappedModel?.Folder?[0]!;
 
         AssertMappedModelEquivalence(gtdFolderModel, taskAppFolderModel, gtdRemappedFolderModel);
@@ -31,7 +31,8 @@ public class KeywordMappingTests(IConversionService<GTDDataModel> testConverter,
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdContextModel = gtdDataModel.Context![0];
-        var taskAppContextModel = taskAppDataModel!.Todos.Select(t => t.GetKeyWordMetaDataList(CurrentDateTimeZone)).SelectMany(t => t).First(t => t.KeyWordType == KeyWordType.Context);
+        var taskAppContextModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentDateTimeZone).Values
+            .First(t => t.KeyWordType == KeyWordType.Context);
         var gtdRemappedContextModel = gtdDataMappedRemappedModel?.Context?[0]!;
 
         AssertCommonProperties(gtdContextModel, taskAppContextModel);
@@ -45,7 +46,7 @@ public class KeywordMappingTests(IConversionService<GTDDataModel> testConverter,
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdTagModel = gtdDataModel.Tag![0];
-        var taskAppTagModel = taskAppDataModel!.Todos.Select(t => t.GetKeyWordMetaDataList(CurrentDateTimeZone)).SelectMany(t => t).First(t => t.KeyWordType == KeyWordType.Tag);
+        var taskAppTagModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentDateTimeZone).Values.First(t => t.KeyWordType == KeyWordType.Tag);
         var gtdRemappedTagModel = gtdDataMappedRemappedModel?.Tag?[0]!;
 
         AssertMappedModelEquivalence(gtdTagModel, taskAppTagModel, gtdRemappedTagModel);

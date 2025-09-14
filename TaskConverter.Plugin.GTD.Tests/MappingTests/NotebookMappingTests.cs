@@ -5,11 +5,10 @@ using TaskConverter.Plugin.GTD.Conversion;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;
 using TaskConverter.Plugin.GTD.TodoModel;
-using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class NotebookMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
+public class NotebookMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider, IKeyWordMapperService keyWordMapperService)
     : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
 {
     [Fact]
@@ -24,7 +23,7 @@ public class NotebookMappingTests(IConversionService<GTDDataModel> testConverter
 
         AssertMappedModelEquivalence(gtdNotebookModel, taskAppNotebookModel, gtdRemappedNotebookModel);
         Assert.Equal(gtdNotebookModel.Note, taskAppNotebookModel.Description?.GetStringArray());
-        var taskAppFolderModel = taskAppNotebookModel.GetKeyWordMetaDataList(CurrentDateTimeZone).First(t => t.KeyWordType == KeyWordType.Folder);
+        var taskAppFolderModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentDateTimeZone).Values.First(t => t.KeyWordType == KeyWordType.Folder);
         Assert.Equal(gtdNotebookModel.FolderId, taskAppFolderModel.Id);
     }
 

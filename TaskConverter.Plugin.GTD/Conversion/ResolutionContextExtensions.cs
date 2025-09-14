@@ -2,7 +2,6 @@ using AutoMapper;
 using NodaTime;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
-using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
@@ -14,32 +13,23 @@ public static class ResolutionContextExtensions
 
     public static void InitializeResolutionContextForMappingToIntermediateFormat(this IMappingOperationOptions options, GTDDataModel source, DateTimeZone timeZone)
     {
-        var keyWordGTDFormatDictionary = (source.Context?.Select(c => ((KeyWordType.Context, c.Id), c as GTDExtendedModel)) ?? [])
-            .Concat(source.Folder?.Select(f => ((KeyWordType.Folder, f.Id), f as GTDExtendedModel)) ?? [])
-            .Concat(source.Tag?.Select(t => ((KeyWordType.Tag, t.Id), t as GTDExtendedModel)) ?? [])
-            .ToDictionary();
+        var keyWordMapperService = new KeyWordMapperService();
 
-        options.Items[keyWordGTDFormatDictionaryName] = keyWordGTDFormatDictionary;
+        options.Items[keyWordGTDFormatDictionaryName] = keyWordMapperService.CreateKeyWordMetaDataList(source, timeZone);
         options.Items[timeZoneName] = timeZone;
     }
 
     public static void InitializeResolutionContextForMappingFromIntermediateFormat(this IMappingOperationOptions options, Ical.Net.Calendar source, DateTimeZone timeZone)
     {
-        var keyWordMetaDataIntermediateFormatDictionary = source
-            .Todos.Select(t => t.GetKeyWordMetaDataList(timeZone))
-            .Union(source.Journals.Select(j => j.GetKeyWordMetaDataList(timeZone)))
-            .SelectMany(t => t)
-            .Distinct()
-            .ToList()
-            .ToDictionary(k => k.Name, k => k);
-        
-        options.Items[keyWordMetaDataIntermediateFormatDictionaryName] = keyWordMetaDataIntermediateFormatDictionary;       
+        var keyWordMapperService = new KeyWordMapperService();
+
+        options.Items[keyWordMetaDataIntermediateFormatDictionaryName] = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(source, timeZone);
         options.Items[timeZoneName] = timeZone;
     }
 
-    public static Dictionary<(KeyWordType, int), GTDExtendedModel>? GetKeyWordGTDFormatDictionary(this ResolutionContext context)
+    public static Dictionary<(KeyWordType keyWordType, int Id), KeyWordMetaData>? GetKeyWordMetaDataGTDFormatDictionary(this ResolutionContext context)
     {
-        return context.Items[keyWordGTDFormatDictionaryName] as Dictionary<(KeyWordType, int), GTDExtendedModel>;
+        return context.Items[keyWordGTDFormatDictionaryName] as Dictionary<(KeyWordType keyWordType, int Id), KeyWordMetaData>;
     }
 
     public static Dictionary<string, KeyWordMetaData>? GetKeyWordMetaDataIntermediateFormatDictionary(this ResolutionContext context)

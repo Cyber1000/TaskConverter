@@ -12,7 +12,7 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider)
+public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IConverterDateTimeZoneProvider converterDateTimeZoneProvider, IKeyWordMapperService keyWordMapperService)
     : BaseMappingTests(testConverter, clock, converterDateTimeZoneProvider)
 {
     public enum HideTestCase
@@ -77,9 +77,8 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
 
         var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
         var gtdTaskModel = gtdDataModel.Task![0];
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
 
-        AssertTaskKeywords(gtdTaskModel, taskAppTaskModel);
+        AssertTaskKeywords(gtdTaskModel, taskAppDataModel!);
     }
 
     [Fact]
@@ -280,15 +279,17 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         Assert.Equal(gtdTaskModel.HideUntil, hideUntilMilliseconds);
     }
 
-    private void AssertTaskKeywords(GTDTaskModel gtdTaskModel, Todo taskAppTaskModel)
+    private void AssertTaskKeywords(GTDTaskModel gtdTaskModel, Calendar taskAppDataModel)
     {
-        Assert.Equal(gtdTaskModel.Context, GetFirstIdOfKeyWord(taskAppTaskModel, KeyWordType.Context));
-        Assert.Equal(gtdTaskModel.Folder, GetFirstIdOfKeyWord(taskAppTaskModel, KeyWordType.Folder));
-        Assert.Equal(gtdTaskModel.Tag.Select(t => t), taskAppTaskModel.GetKeyWordMetaDataList(CurrentDateTimeZone).Where(t => t.KeyWordType == KeyWordType.Tag).Select(t => t.Id));
 
-        int GetFirstIdOfKeyWord(Todo taskModel, KeyWordType keyWordEnum)
+        var keyWordMetaDataList = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentDateTimeZone).Values;
+        Assert.Equal(gtdTaskModel.Context, GetFirstIdOfKeyWord(KeyWordType.Context));
+        Assert.Equal(gtdTaskModel.Folder, GetFirstIdOfKeyWord(KeyWordType.Folder));
+        Assert.Equal(gtdTaskModel.Tag.Select(t => t), keyWordMetaDataList.Where(t => t.KeyWordType == KeyWordType.Tag).Select(t => t.Id));
+
+        int GetFirstIdOfKeyWord(KeyWordType keyWordEnum)
         {
-            return taskModel.GetKeyWordMetaDataList(CurrentDateTimeZone).FirstOrDefault(t => t.KeyWordType == keyWordEnum)!.Id;
+            return keyWordMetaDataList.FirstOrDefault(t => t.KeyWordType == keyWordEnum)!.Id;
         }
     }
 
