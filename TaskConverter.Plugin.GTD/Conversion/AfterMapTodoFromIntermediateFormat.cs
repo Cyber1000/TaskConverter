@@ -3,6 +3,7 @@ using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
 using TaskConverter.Plugin.GTD.Model;
+using TaskConverter.Plugin.GTD.Utils;
 using Period = TaskConverter.Plugin.GTD.Model.Period;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
@@ -38,10 +39,14 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
     {
         var settingsProvider = context.GetSettingsProvider();
 
-        destination.RepeatFrom = source.Start?.Equals(source.Due) ?? true ? GTDRepeatFrom.FromDueDate : GTDRepeatFrom.FromCompletion;
+        if (!source.RecurrenceRules?.Any() ?? true)
+            destination.RepeatFrom = GTDRepeatFrom.FromDueDate;
+        else
+            destination.RepeatFrom = source.Start?.Equals(source.Due) ?? true ? GTDRepeatFrom.FromDueDate : GTDRepeatFrom.FromCompletion;
+
         if (source.RecurrenceRules?.Count > 1)
         {
-            if (settingsProvider.AllowIncompleteMappingIfMoreThanOneItem)
+            if (settingsProvider.AllowIncompleteMappingIfMoreThanOneItem())
                 Console.WriteLine("More than one RecurrenceRule, can only convert the first.");
             else
                 throw new Exception("More than one RecurrenceRule. This is only allowed if AllowIncompleteMappingIfMoreThanOneItem is true.");

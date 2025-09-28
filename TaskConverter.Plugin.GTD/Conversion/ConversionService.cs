@@ -20,8 +20,11 @@ public class ConversionService : IConversionService<GTDDataModel>
 
     public ISettingsProvider SettingsProvider { get; }
 
-    public ConversionService(IClock clock, ISettingsProvider settingsProvider)
+    public System.IO.Abstractions.IFileSystem FileSystem { get; }
+
+    public ConversionService(IClock clock, ISettingsProvider settingsProvider, System.IO.Abstractions.IFileSystem fileSystem)
     {
+        FileSystem = fileSystem;
         SettingsProvider = settingsProvider;
         var timeZone = settingsProvider.CurrentDateTimeZone;
         var config = new MapperConfiguration(cfg =>
@@ -35,12 +38,12 @@ public class ConversionService : IConversionService<GTDDataModel>
 
     public Calendar MapToIntermediateFormat(GTDDataModel taskInfo)
     {
-        return Mapper.Map<Calendar>(taskInfo, opt => opt.InitializeResolutionContextForMappingToIntermediateFormat(taskInfo, SettingsProvider));
+        return Mapper.Map<Calendar>(taskInfo, opt => opt.InitializeResolutionContextForMappingToIntermediateFormat(taskInfo, SettingsProvider, FileSystem));
     }
 
     public GTDDataModel MapFromIntermediateFormat(Calendar model)
     {
-        return Mapper.Map<GTDDataModel>(model, opt => opt.InitializeResolutionContextForMappingFromIntermediateFormat(model, SettingsProvider));
+        return Mapper.Map<GTDDataModel>(model, opt => opt.InitializeResolutionContextForMappingFromIntermediateFormat(model, SettingsProvider, FileSystem));
     }
 
     public void AssertConfigurationIsValid()
@@ -139,7 +142,6 @@ public class ConversionService : IConversionService<GTDDataModel>
 
     private static void CreateMainMappings(IClock clock, IMapperConfigurationExpression cfg, DateTimeZone timeZone)
     {
-        //TODO HH: convert Preferences as extra property?
         cfg.CreateMap<GTDDataModel, Calendar>()
             .IgnoreMembers(
                 dest => dest.UniqueComponents,
@@ -165,6 +167,7 @@ public class ConversionService : IConversionService<GTDDataModel>
             )
             .AfterMap<MapTodosToIntermediateFormat>()
             .AfterMap<MapJournalsToIntermediateFormat>()
+            .AfterMap<HandlePreferencesToIntermediateFormat>()
             .ReverseMapWithValidation()
             .BeforeMap<MapKeyWordsFromIntermediateFormat>()
             .ForMember(dest => dest.Version, opt => opt.MapFrom(src => 3))
@@ -179,11 +182,13 @@ public class ConversionService : IConversionService<GTDDataModel>
                 dest => dest.Task!
             )
             .AfterMap<MapTodoFromIntermediateFormat>()
-            .AfterMap<MapJournalFromIntermediateFormat>();
+            .AfterMap<MapJournalFromIntermediateFormat>()
+            .AfterMap<HandlePreferencesFromIntermediateFormat>();
 
         cfg.CreateMap<GTDTaskModel, Todo>()
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Note != null ? src.Note.GetString() : null))
             .ForMember(dest => dest.Due, opt => opt.MapFrom(src => src.DueDate))
+            .ForMember(dest => dest.Start, opt => opt.MapFrom(src => src.StartDate))
             .IgnoreMembers(
                 dest => dest.DtStart,
                 dest => dest.GeographicLocation,
@@ -201,7 +206,7 @@ public class ConversionService : IConversionService<GTDDataModel>
                 dest => dest.RecurrenceId,
                 dest => dest.RelatedComponents,
                 dest => dest.Sequence,
-                dest => dest.Start,
+                dest => dest.Status,
                 dest => dest.Alarms
             )
             .AfterMap<AfterMapTodoToIntermediateFormat>()
@@ -213,9 +218,9 @@ public class ConversionService : IConversionService<GTDDataModel>
             .ForMember(dest => dest.Alarm, opt => opt.MapFrom(new MapAlarmFromIntermediateFormat(clock, timeZone)))
             .ForMember(dest => dest.Hide, opt => opt.MapFrom(new MapHideFromIntermediateFormat(timeZone)))
             .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Description != null ? src.Description.GetStringArray() : null))
+            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.Properties.Get<IDateTime>(IntermediateFormatPropertyNames.Start) ?? src.Start))
             .IgnoreMembers(
                 dest => dest.DueDateProject!,
-                dest => dest.StartDate!,
                 dest => dest.StartTimeSet,
                 dest => dest.Duration,
                 dest => dest.Context,

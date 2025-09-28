@@ -22,7 +22,7 @@ public class GTDConverterPlugin : IConverterPlugin
         _jsonConfigurationSerializer = new JsonConfigurationSerializer();
         var clock = SystemClock.Instance;
         var settingsProvider = new SettingsProvider(this);
-        _conversionService = new ConversionService(clock, settingsProvider);
+        _conversionService = new ConversionService(clock, settingsProvider, _fileSystem);
     }
 
     public string Name => "GTD";

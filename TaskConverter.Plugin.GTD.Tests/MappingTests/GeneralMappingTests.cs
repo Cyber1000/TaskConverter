@@ -6,15 +6,12 @@ using TaskConverter.Plugin.GTD.Tests.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class GeneralMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, ISettingsProvider settingsProvider)
-    : BaseMappingTests(testConverter, clock, settingsProvider)
+public class GeneralMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, ISettingsProvider settingsProvider) : BaseMappingTests(testConverter, clock, settingsProvider)
 {
     [Fact]
     public void Automapper_CheckConfig()
     {
-        var gtdMapper = new ConversionService(clock, settingsProvider);
-
-        gtdMapper.AssertConfigurationIsValid();
+        ((ConversionService)TestConverter).AssertConfigurationIsValid();
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using AutoMapper;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
+using NodaTime;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Utils;
 using Period = TaskConverter.Plugin.GTD.Model.Period;
@@ -12,10 +13,16 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
 {
     public void Process(GTDTaskModel source, Todo destination, ResolutionContext context)
     {
+        MapStartDate(source, destination, context);
+        MapStatus(source, destination, context);
         MapAlarm(source, destination);
-        MapRecurrenceRule(source, destination);
-        MapDates(source, destination, context);
+        MapRecurrenceRule(source, destination, context);
         AddProperties(source, destination);
+    }
+
+    private static void MapStartDate(GTDTaskModel source, Todo destination, ResolutionContext context)
+    {
+        destination.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.Start, context.Mapper.Map<IDateTime>(source.StartDate)));
     }
 
     private static void MapAlarm(GTDTaskModel source, Todo destination)
@@ -25,20 +32,30 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
             destination.Alarms.Add(alarm);
     }
 
-    private static void MapRecurrenceRule(GTDTaskModel source, Todo destination)
+    private static void MapRecurrenceRule(GTDTaskModel source, Todo destination, ResolutionContext context)
     {
-        destination.RecurrenceRules = CreateRecurrenceRule(source.RepeatNew);
+        if (!source.RepeatNew.HasValue)
+            return;
+
+        // RFC 5545 (and therefore ical.net) use Start (=DTSTART) as base for recurrence, so we need to set this here this way-
+        // Completed may be null and so a fallback of DueDate may be ok here
+        // DueDate should not be null if RepeatNew is set, but maybe, therefore find another starting point
+        var startOfRecurrence = GetRecurrenceStart(source.RepeatFrom, source.DueDate, source.Completed, source.StartDate, source.Created);
+        destination.Start = context.Mapper.Map<IDateTime>(startOfRecurrence);
+
+        destination.RecurrenceRules = CreateRecurrenceRule(source.RepeatNew.Value);
+
+        static LocalDateTime? GetRecurrenceStart(GTDRepeatFrom repeatFrom, LocalDateTime? dueDate, LocalDateTime? completed, LocalDateTime? startDate, LocalDateTime created)
+        {
+            return repeatFrom == GTDRepeatFrom.FromDueDate ? dueDate ?? completed ?? startDate ?? created : completed ?? dueDate ?? startDate ?? created;
+        }
     }
 
-    private static void MapDates(GTDTaskModel source, Todo destination, ResolutionContext context)
+    private static void MapStatus(GTDTaskModel source, Todo destination, ResolutionContext context)
     {
-        var settingsProvider = context.GetSettingsProvider();
-        //TODO HH: not really exact, since Completed may be null at the time of mapping
-        var start = source.RepeatFrom == GTDRepeatFrom.FromDueDate ? source.DueDate : source.Completed;
-        destination.Start = start.HasValue && source.RepeatNew != null ? context.Mapper.Map<IDateTime>(start.Value) : null;
-
-        //TODO HH: state should be completed if this is set
-        destination.Completed = source.Completed.GetIDateTime(settingsProvider.CurrentDateTimeZone); // need to set this here, since Status-Map would overwrite this
+        destination.Status = source.MapStatus();
+        // need to set completed here after setting Status, since Status-Map would overwrite this
+        destination.Completed = context.Mapper.Map<IDateTime>(source.Completed);
     }
 
     private static void AddProperties(GTDTaskModel source, Todo destination)
@@ -65,20 +82,17 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
         return null;
     }
 
-    private static List<RecurrencePattern>? CreateRecurrenceRule(GTDRepeatInfoModel? repeatInfo)
+    private static List<RecurrencePattern>? CreateRecurrenceRule(GTDRepeatInfoModel repeatInfo)
     {
-        if (!repeatInfo.HasValue)
-            return null;
-
-        var freq = repeatInfo.Value.Period switch
+        var freq = repeatInfo.Period switch
         {
             Period.Day => FrequencyType.Daily,
             Period.Week => FrequencyType.Weekly,
             Period.Month => FrequencyType.Monthly,
             Period.Year => FrequencyType.Yearly,
-            _ => throw new ArgumentOutOfRangeException($"{repeatInfo.Value.Period} not supported"),
+            _ => throw new ArgumentOutOfRangeException($"{repeatInfo.Period} not supported"),
         };
 
-        return [new(freq, repeatInfo.Value.Interval)];
+        return [new(freq, repeatInfo.Interval)];
     }
 }

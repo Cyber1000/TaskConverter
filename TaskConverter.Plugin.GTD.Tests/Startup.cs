@@ -1,3 +1,5 @@
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using TaskConverter.Commons;
@@ -14,6 +16,7 @@ public class Startup
         services.AddTransient<IClock, ConverterClock>();
         services.AddTransient<IConversionService<GTDDataModel>, ConversionService>();
         services.AddTransient<ISettingsProvider, TestSettingsProvider>();
+        services.AddTransient<IFileSystem, MockFileSystem>();
         services.AddTransient<IKeyWordMapperService, KeyWordMapperService>();
     }
 }

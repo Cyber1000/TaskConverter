@@ -10,5 +10,8 @@ public class SettingsProvider(GTDConverterPlugin converterPlugin) : ISettingsPro
     public DateTimeZone CurrentDateTimeZone =>
         DateTimeZoneProviders.Tzdb.GetZoneOrNull(ConverterPlugin!.ConversionAppData.GetAppSetting("TimeZoneId", "")) ?? DateTimeZoneProviders.Tzdb.GetSystemDefault();
 
-    public bool AllowIncompleteMappingIfMoreThanOneItem => ConverterPlugin!.ConversionAppData.GetAppSetting("GTD.AllowIncompleteMappingIfMoreThanOneItem", false);
+    public T GetPluginSpecificSetting<T>(string settingName, T? defaultValue = default)
+    {
+        return ConverterPlugin!.ConversionAppData.GetAppSetting($"GTD.{settingName}", defaultValue);
+    }
 }

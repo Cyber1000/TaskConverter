@@ -9,4 +9,5 @@ public static class IntermediateFormatPropertyNames
     public static string Starred => "X-DGT-STARRED";
     public static string Color => "X-DGT-COLOR";
     public static string IsVisible => "X-DGT-ISVISIBLE";
+    public static string Start => "X-DGT-START";
 }

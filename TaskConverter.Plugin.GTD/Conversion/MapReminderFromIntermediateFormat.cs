@@ -2,6 +2,7 @@ using AutoMapper;
 using Ical.Net.CalendarComponents;
 using NodaTime;
 using TaskConverter.Plugin.GTD.Model;
+using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
@@ -16,7 +17,7 @@ public class MapReminderFromIntermediateFormat(DateTimeZone dateTimeZone) : IVal
         var settingsProvider = context.GetSettingsProvider();
         if (source.Alarms?.Count > 1)
         {
-            if (settingsProvider.AllowIncompleteMappingIfMoreThanOneItem)
+            if (settingsProvider.AllowIncompleteMappingIfMoreThanOneItem())
                 Console.WriteLine("More than one Alarm, can only convert the first.");
             else
                 throw new Exception("More than one Alarm. This is only allowed if AllowIncompleteMappingIfMoreThanOneItem is true.");

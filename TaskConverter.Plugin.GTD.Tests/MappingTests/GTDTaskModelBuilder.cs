@@ -17,6 +17,8 @@ public class GTDTaskModelBuilder
     private int contextId;
     private List<int> tagIds = [];
     private LocalDateTime? dueDate;
+    private LocalDateTime? completedDate;
+    private LocalDateTime? startDate;
     private GTDRepeatInfoModel? repeatNew;
     private bool? floating;
     private long? reminder;
@@ -32,6 +34,8 @@ public class GTDTaskModelBuilder
         WithContext(0);
         WithTags([]);
         WithDueDate(new LocalDateTime(2023, 02, 23, 0, 0, 0));
+        WithCompletedDate(new LocalDateTime(2023, 02, 25, 10, 0, 0));
+        WithStartDate(new LocalDateTime(2023, 02, 26, 10, 0, 0));
         WithRepeat(new GTDRepeatInfoModel("Every 1 week"), GTDRepeatFrom.FromDueDate);
         WithFloating(false);
         WithReminder(-1);
@@ -66,6 +70,36 @@ public class GTDTaskModelBuilder
     public GTDTaskModelBuilder WithDueDate(LocalDateTime? date)
     {
         dueDate = date;
+        return this;
+    }
+
+    public GTDTaskModelBuilder WithoutDueDate()
+    {
+        dueDate = null;
+        return this;
+    }
+
+    public GTDTaskModelBuilder WithCompletedDate(LocalDateTime? date)
+    {
+        completedDate = date;
+        return this;
+    }
+
+    public GTDTaskModelBuilder WithoutCompletedDate()
+    {
+        completedDate = null;
+        return this;
+    }
+
+    public GTDTaskModelBuilder WithStartDate(LocalDateTime? date)
+    {
+        startDate = date;
+        return this;
+    }
+
+    public GTDTaskModelBuilder WithoutStartDate()
+    {
+        startDate = null;
         return this;
     }
 
@@ -110,7 +144,7 @@ public class GTDTaskModelBuilder
             Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
             Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
             Title = $"Task {_id}",
-            StartDate = null,
+            StartDate = startDate,
             StartTimeSet = false,
             DueDate = dueDate,
             DueDateProject = null,
@@ -121,16 +155,16 @@ public class GTDTaskModelBuilder
             RepeatNew = repeatNew,
             RepeatFrom = repeatFrom,
             Duration = 0,
-            Status = Plugin.GTD.Model.Status.NextAction,
+            Status = Status.NextAction,
             Context = contextId,
             Goal = 0,
             Folder = folderId,
             Tag = tagIds,
             Starred = true,
-            Priority = Plugin.GTD.Model.Priority.Low,
+            Priority = Priority.Low,
             Note = ["Note"],
-            Completed = new LocalDateTime(2023, 02, 25, 10, 0, 0),
-            Type = Plugin.GTD.Model.TaskType.Task,
+            Completed = completedDate,
+            Type = TaskType.Task,
             TrashBin = "",
             Importance = 0,
             MetaInformation = "",

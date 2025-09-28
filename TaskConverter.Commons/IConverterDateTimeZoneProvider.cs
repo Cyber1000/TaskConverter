@@ -5,5 +5,5 @@ namespace TaskConverter.Commons;
 public interface ISettingsProvider
 {
     DateTimeZone CurrentDateTimeZone { get; }
-    bool AllowIncompleteMappingIfMoreThanOneItem { get; }
+    T GetPluginSpecificSetting<T>(string settingName, T? defaultValue = default);
 }

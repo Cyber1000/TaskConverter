@@ -233,6 +233,104 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     }
 
     [Fact]
+    public void Map_RepeatFromDueDateWithoutDueDate_TestFallbackToCompletedDate()
+    {
+        var repeatInfoString = GetRepeatInfoString(RepeatTestCase.EveryDay);
+        var repeatNew = new GTDRepeatInfoModel(repeatInfoString!);
+        var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithRepeat(repeatNew, GTDRepeatFrom.FromDueDate).WithoutDueDate()]);
+        var gtdTaskModel = gtdDataModel.Task!.First();
+
+        var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+
+        Assert.Equal(gtdTaskModel.Completed.GetIDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
+    }
+
+    [Fact]
+    public void Map_RepeatFromDueDateWithoutDueDateAndCompletedDate_TestFallbackToStartDate()
+    {
+        var repeatInfoString = GetRepeatInfoString(RepeatTestCase.EveryDay);
+        var repeatNew = new GTDRepeatInfoModel(repeatInfoString!);
+        var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithRepeat(repeatNew, GTDRepeatFrom.FromDueDate).WithoutDueDate().WithoutCompletedDate()]);
+        var gtdTaskModel = gtdDataModel.Task!.First();
+
+        var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+
+        Assert.Equal(gtdTaskModel.StartDate.GetIDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
+    }
+
+    [Fact]
+    public void Map_RepeatFromDueDateWithoutDueDateAndCompletedDateAndStartDate_TestFallbackToCreated()
+    {
+        var repeatInfoString = GetRepeatInfoString(RepeatTestCase.EveryDay);
+        var repeatNew = new GTDRepeatInfoModel(repeatInfoString!);
+        var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithRepeat(repeatNew, GTDRepeatFrom.FromDueDate).WithoutDueDate().WithoutCompletedDate().WithoutStartDate()]);
+        var gtdTaskModel = gtdDataModel.Task!.First();
+
+        var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+
+        Assert.Equal(gtdTaskModel.Created.GetIDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
+    }
+
+    [Fact]
+    public void Map_RepeatFromCompletionWithoutDueDate_UsesCompletedDate()
+    {
+        var repeatInfoString = GetRepeatInfoString(RepeatTestCase.EveryDay);
+        var repeatNew = new GTDRepeatInfoModel(repeatInfoString!);
+        var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithRepeat(repeatNew, GTDRepeatFrom.FromCompletion).WithoutDueDate()]);
+        var gtdTaskModel = gtdDataModel.Task!.First();
+
+        var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+
+        Assert.Equal(gtdTaskModel.Completed.GetIDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
+    }
+
+    [Fact]
+    public void Map_RepeatFromCompletionWithoutCompletedDate_TestFallbackToDueDate()
+    {
+        var repeatInfoString = GetRepeatInfoString(RepeatTestCase.EveryDay);
+        var repeatNew = new GTDRepeatInfoModel(repeatInfoString!);
+        var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithRepeat(repeatNew, GTDRepeatFrom.FromCompletion).WithoutCompletedDate()]);
+        var gtdTaskModel = gtdDataModel.Task!.First();
+
+        var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+
+        Assert.Equal(gtdTaskModel.DueDate.GetIDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
+    }
+
+    [Fact]
+    public void Map_RepeatFromCompletionWithoutCompletedDateAndDueDate_TestFallbackToStartDate()
+    {
+        var repeatInfoString = GetRepeatInfoString(RepeatTestCase.EveryDay);
+        var repeatNew = new GTDRepeatInfoModel(repeatInfoString!);
+        var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithRepeat(repeatNew, GTDRepeatFrom.FromCompletion).WithoutCompletedDate().WithoutDueDate()]);
+        var gtdTaskModel = gtdDataModel.Task!.First();
+
+        var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+
+        Assert.Equal(gtdTaskModel.StartDate.GetIDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
+    }
+
+    [Fact]
+    public void Map_RepeatFromCompletionWithoutCompletedDateAndDueDateAndStartDate_TestFallbackToCreatedDate()
+    {
+        var repeatInfoString = GetRepeatInfoString(RepeatTestCase.EveryDay);
+        var repeatNew = new GTDRepeatInfoModel(repeatInfoString!);
+        var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithRepeat(repeatNew, GTDRepeatFrom.FromCompletion).WithoutCompletedDate().WithoutDueDate().WithoutStartDate()]);
+        var gtdTaskModel = gtdDataModel.Task!.First();
+
+        var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+
+        Assert.Equal(gtdTaskModel.Created.GetIDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
+    }
+
+    [Fact]
     public void Map_MultipleRecurrencesWithFalseAllowIncompleteMappingIfMoreThanOneItem_ThrowsException()
     {
         ((TestSettingsProvider)TestConverter.SettingsProvider).AllowIncompleteMappingIfMoreThanOneItem = false;
@@ -385,7 +483,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     private static IDateTime? GetExpectedStartDate(bool? repeatFromDueDate, Todo? taskAppTaskModel)
     {
         if (repeatFromDueDate == null)
-            return null;
+            return taskAppTaskModel?.Start;
 
         return repeatFromDueDate.Value ? taskAppTaskModel?.Due : taskAppTaskModel?.Completed;
     }
