@@ -82,6 +82,25 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     }
 
     [Fact]
+    public void Map_TaskKeywordsWithSameNames_ShouldMapCorrectly()
+    {
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Folder, "+");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Context, "@");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Folder, "");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Context, "@");
+
+        var gtdDataModel = CreateGTDDataModelWithTask();
+        gtdDataModel.Folder!.First().Title = "Test";
+        gtdDataModel.Context!.First().Title = "Test";
+        gtdDataModel.Tag!.First().Title = "Test";
+
+        var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
+        var gtdTaskModel = gtdDataModel.Task![0];
+
+        AssertTaskKeywords(gtdTaskModel, taskAppDataModel!);
+    }
+
+    [Fact]
     public void Map_TaskWithoutParent()
     {
         var gtdDataModel = CreateGTDDataModelWithTask();
@@ -399,6 +418,27 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         Assert.Equal(hide, gtdRemappedTaskModel.Hide);
     }
 
+    [Fact]
+    public void Map_TodoFromIntermediateFormat_CategoryIsCorrectlyMapped()
+    {
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Folder, "+");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Context, "@");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Folder, "");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Context, "@");
+
+        var todo = Create.A.Todo().AddCategory("@home").AddCategory("+Ideen").AddCategory("Bestellen").Build();
+        var calendar = Create.A.Calendar().WithTask(todo).Build();
+
+        var gtdDataModel = TestConverter.MapFromIntermediateFormat(calendar);
+        Assert.Single(gtdDataModel.Tag!);
+        Assert.Single(gtdDataModel.Folder!);
+        Assert.Single(gtdDataModel.Context!);
+
+        Assert.Equal("Bestellen", gtdDataModel.Tag?.First().Title);
+        Assert.Equal("Ideen", gtdDataModel.Folder?.First().Title);
+        Assert.Equal("@home", gtdDataModel.Context?.First().Title);
+    }
+
     private static void AssertBasicTaskProperties(GTDTaskModel gtdTaskModel, Todo taskAppTaskModel, GTDTaskModel gtdRemappedTaskModel)
     {
         Assert.Equal(gtdTaskModel.Id.ToString(), taskAppTaskModel.Uid);
@@ -427,7 +467,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
 
     private void AssertTaskKeywords(GTDTaskModel gtdTaskModel, Calendar taskAppDataModel)
     {
-        var keyWordMetaDataList = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentDateTimeZone).Values;
+        var keyWordMetaDataList = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, settingsProvider).Values;
         Assert.Equal(gtdTaskModel.Context, GetFirstIdOfKeyWord(KeyWordType.Context));
         Assert.Equal(gtdTaskModel.Folder, GetFirstIdOfKeyWord(KeyWordType.Folder));
         Assert.Equal(gtdTaskModel.Tag.Select(t => t), keyWordMetaDataList.Where(t => t.KeyWordType == KeyWordType.Tag).Select(t => t.Id));

@@ -23,7 +23,7 @@ public class NotebookMappingTests(IConversionService<GTDDataModel> testConverter
 
         AssertMappedModelEquivalence(gtdNotebookModel, taskAppNotebookModel, gtdRemappedNotebookModel);
         Assert.Equal(gtdNotebookModel.Note, taskAppNotebookModel.Description?.GetStringArray());
-        var taskAppFolderModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentDateTimeZone).Values.First(t => t.KeyWordType == KeyWordType.Folder);
+        var taskAppFolderModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, settingsProvider).Values.First(t => t.KeyWordType == KeyWordType.Folder);
         Assert.Equal(gtdNotebookModel.FolderId, taskAppFolderModel.Id);
     }
 

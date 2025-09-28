@@ -17,7 +17,7 @@ public class KeywordMappingTests(IConversionService<GTDDataModel> testConverter,
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdFolderModel = gtdDataModel.Folder![0];
-        var taskAppFolderModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentDateTimeZone).Values.First(t => t.KeyWordType == KeyWordType.Folder);
+        var taskAppFolderModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, settingsProvider).Values.First(t => t.KeyWordType == KeyWordType.Folder);
         var gtdRemappedFolderModel = gtdDataMappedRemappedModel?.Folder?[0]!;
 
         AssertMappedModelEquivalence(gtdFolderModel, taskAppFolderModel, gtdRemappedFolderModel);
@@ -30,7 +30,7 @@ public class KeywordMappingTests(IConversionService<GTDDataModel> testConverter,
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdContextModel = gtdDataModel.Context![0];
-        var taskAppContextModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentDateTimeZone).Values.First(t => t.KeyWordType == KeyWordType.Context);
+        var taskAppContextModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, settingsProvider).Values.First(t => t.KeyWordType == KeyWordType.Context);
         var gtdRemappedContextModel = gtdDataMappedRemappedModel?.Context?[0]!;
 
         AssertCommonProperties(gtdContextModel, taskAppContextModel);
@@ -44,7 +44,7 @@ public class KeywordMappingTests(IConversionService<GTDDataModel> testConverter,
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdTagModel = gtdDataModel.Tag![0];
-        var taskAppTagModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentDateTimeZone).Values.First(t => t.KeyWordType == KeyWordType.Tag);
+        var taskAppTagModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, settingsProvider).Values.First(t => t.KeyWordType == KeyWordType.Tag);
         var gtdRemappedTagModel = gtdDataMappedRemappedModel?.Tag?[0]!;
 
         AssertMappedModelEquivalence(gtdTagModel, taskAppTagModel, gtdRemappedTagModel);

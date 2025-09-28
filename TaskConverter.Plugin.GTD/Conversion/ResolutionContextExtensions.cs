@@ -22,7 +22,7 @@ public static class ResolutionContextExtensions
     {
         var keyWordMapperService = new KeyWordMapperService();
 
-        options.Items[keyWordGTDFormatDictionaryName] = keyWordMapperService.GetKeyWordMetaDataGTDFormatDictionary(source, settingsProvider.CurrentDateTimeZone);
+        options.Items[keyWordGTDFormatDictionaryName] = keyWordMapperService.GetKeyWordMetaDataGTDFormatDictionary(source, settingsProvider);
         options.Items[settingsProviderName] = settingsProvider;
         options.Items[fileSystemName] = fileSystem;
     }
@@ -36,7 +36,7 @@ public static class ResolutionContextExtensions
     {
         var keyWordMapperService = new KeyWordMapperService();
 
-        options.Items[keyWordMetaDataIntermediateFormatDictionaryName] = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(source, settingsProvider.CurrentDateTimeZone);
+        options.Items[keyWordMetaDataIntermediateFormatDictionaryName] = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(source, settingsProvider);
         options.Items[settingsProviderName] = settingsProvider;
         options.Items[fileSystemName] = fileSystem;
     }

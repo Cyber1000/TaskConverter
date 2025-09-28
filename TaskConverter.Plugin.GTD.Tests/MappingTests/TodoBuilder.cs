@@ -14,6 +14,7 @@ public class TodoBuilder
     private string? _description;
     private IDateTime _created = new CalDateTime(DateTime.Now);
     private IDateTime _lastModified = new CalDateTime(DateTime.Now);
+    private IList<string> _categories = [];
     private readonly List<RecurrencePattern> _recurrencePatterns = [];
     private readonly List<Alarm> _alarms = [];
 
@@ -61,6 +62,12 @@ public class TodoBuilder
         return this;
     }
 
+    public TodoBuilder AddCategory(string category)
+    {
+        _categories.Add(category);
+        return this;
+    }
+
     public Todo Build()
     {
         var todo = new Todo
@@ -70,6 +77,7 @@ public class TodoBuilder
             Created = _created,
             LastModified = _lastModified,
             RecurrenceRules = _recurrencePatterns,
+            Categories = _categories
         };
         _alarms.ForEach(a => todo.Alarms.Add(a));
 
