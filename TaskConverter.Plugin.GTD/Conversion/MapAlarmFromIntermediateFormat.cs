@@ -32,7 +32,7 @@ public class MapAlarmFromIntermediateFormat(IClock clock, DateTimeZone dateTimeZ
             return null;
         }
 
-        var absoluteInstant = Instant.FromDateTimeUtc(alarm.DateTime.Value);
+        var absoluteInstant = Instant.FromDateTimeUtc(alarm.DateTime.Value.ToUniversalTime());
 
         return absoluteInstant <= currentDateTime ? absoluteInstant.InZone(DateTimeZone).LocalDateTime : null;
     }

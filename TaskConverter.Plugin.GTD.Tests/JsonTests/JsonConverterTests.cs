@@ -1,5 +1,6 @@
 using System.IO.Abstractions.TestingHelpers;
-using System.Text.Json.JsonDiffPatch.Xunit;
+using System.Text;
+using System.Text.Json.JsonDiffPatch;
 using System.Xml;
 using NodaTime;
 using TaskConverter.Plugin.GTD.Model;
@@ -131,8 +132,17 @@ public class JsonConverterTests
         jsonReader.Write(mockFileSystem.FileInfo.New("outfile"));
         var outFile = mockFileSystem.GetFile("outfile");
         var recreatedJson = outFile.TextContents;
-        JsonAssert.Equal(JsonUtil.NormalizeText(originalJson), recreatedJson, JsonUtil.GetDiffOptions(), true);
+        AssertJsonEqual(originalJson, recreatedJson);
 
         verifyAction(jsonReader.TaskInfo as T);
+    }
+
+    private static void AssertJsonEqual(string expectedJson, string actualJson)
+    {
+        var expectedBytes = Encoding.UTF8.GetBytes(JsonUtil.NormalizeText(expectedJson));
+        var actualBytes = Encoding.UTF8.GetBytes(actualJson);
+
+        var diff = JsonDiffPatcher.Diff(expectedBytes, actualBytes, JsonUtil.GetDiffOptions());
+        Assert.Null(diff);
     }
 }

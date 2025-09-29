@@ -1,6 +1,5 @@
 using Ical.Net;
 using Ical.Net.CalendarComponents;
-using NodaTime;
 using TaskConverter.Commons;
 using TaskConverter.Commons.ConversionHelper;
 using TaskConverter.Plugin.GTD.Model;
@@ -30,8 +29,8 @@ namespace TaskConverter.Plugin.GTD.Conversion
                 keyWord.Id,
                 MapCategory(keyWordModel?.Title ?? "", keyWord.keyWordType, settingsProvider),
                 keyWord.keyWordType,
-                keyWordModel?.Created.GetIDateTime(timeZone) ?? DateTimeExtensions.GetCurrentDateTime(timeZone),
-                keyWordModel?.Modified.GetIDateTime(timeZone) ?? DateTimeExtensions.GetCurrentDateTime(timeZone),
+                keyWordModel?.Created.GetCalDateTime(timeZone) ?? DateTimeExtensions.GetCurrentDateTime(timeZone),
+                keyWordModel?.Modified.GetCalDateTime(timeZone) ?? DateTimeExtensions.GetCurrentDateTime(timeZone),
                 color.FromArgbWithFallback(),
                 keyWordModel?.Visible ?? true
             );

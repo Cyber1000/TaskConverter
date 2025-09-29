@@ -10,7 +10,9 @@ public class MapTodosToIntermediateFormat : IMappingAction<GTDDataModel, Calenda
     public void Process(GTDDataModel source, Calendar destination, ResolutionContext context)
     {
         var todoDict =
-            source.Task?.Select(sourceTask => (source: sourceTask, destination: context.Mapper.Map<Todo>(sourceTask))).ToDictionary(taskInfo => taskInfo.destination.Uid, taskInfo => taskInfo) ?? [];
+            source.Task?.Select(sourceTask => (source: sourceTask, destination: context.Mapper.Map<Todo>(sourceTask)))
+            .Where(taskInfo => taskInfo.destination.Uid is not null)
+            .ToDictionary(taskInfo => taskInfo.destination.Uid!, taskInfo => taskInfo) ?? [];
 
         foreach (var todo in todoDict.Values)
         {

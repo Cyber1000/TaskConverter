@@ -12,9 +12,9 @@ public class TodoBuilder
 {
     private string _summary = string.Empty;
     private string? _description;
-    private IDateTime _created = new CalDateTime(DateTime.Now);
-    private IDateTime _lastModified = new CalDateTime(DateTime.Now);
-    private IList<string> _categories = [];
+    private CalDateTime _created = new(DateTime.UtcNow);
+    private CalDateTime _lastModified = new(DateTime.UtcNow);
+    private readonly IList<string> _categories = [];
     private readonly List<RecurrencePattern> _recurrencePatterns = [];
     private readonly List<Alarm> _alarms = [];
 
@@ -22,8 +22,8 @@ public class TodoBuilder
     {
         WithSummary("Test");
         WithDescription("Test");
-        WithCreated(new CalDateTime(DateTime.Now));
-        WithLastModified(new CalDateTime(DateTime.Now));
+        WithCreated(new CalDateTime(DateTime.UtcNow));
+        WithLastModified(new CalDateTime(DateTime.UtcNow));
     }
 
     public TodoBuilder WithSummary(string summary)
@@ -38,13 +38,13 @@ public class TodoBuilder
         return this;
     }
 
-    public TodoBuilder WithCreated(IDateTime created)
+    public TodoBuilder WithCreated(CalDateTime created)
     {
         _created = created ?? throw new ArgumentNullException(nameof(created));
         return this;
     }
 
-    public TodoBuilder WithLastModified(IDateTime lastModified)
+    public TodoBuilder WithLastModified(CalDateTime lastModified)
     {
         _lastModified = lastModified ?? throw new ArgumentNullException(nameof(lastModified));
         return this;
@@ -77,7 +77,7 @@ public class TodoBuilder
             Created = _created,
             LastModified = _lastModified,
             RecurrenceRules = _recurrencePatterns,
-            Categories = _categories
+            Categories = _categories,
         };
         _alarms.ForEach(a => todo.Alarms.Add(a));
 

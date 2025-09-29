@@ -43,11 +43,12 @@ public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConv
         where T : GTDExtendedModel
     {
         Assert.Equal(gtdModel.Id.ToString(), recurringComponent.Uid);
-        Assert.Equal(gtdModel.Created, recurringComponent.Created.GetLocalDateTime(CurrentDateTimeZone));
-        Assert.Equal(gtdModel.Modified, recurringComponent.LastModified.GetLocalDateTime(CurrentDateTimeZone));
+        Assert.Equal(gtdModel.Created, recurringComponent.Created!.GetLocalDateTime(CurrentDateTimeZone));
+        Assert.Equal(gtdModel.Modified, recurringComponent.LastModified!.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdModel.Title, recurringComponent.Summary);
         Assert.Equal(Color.FromArgb(gtdModel.Color), recurringComponent.Properties.Get<Color?>(IntermediateFormatPropertyNames.Color));
-        Assert.Equal(gtdModel.Visible, bool.Parse(recurringComponent.Properties.Get<string>(IntermediateFormatPropertyNames.IsVisible)));
+        Assert.True(bool.TryParse(recurringComponent.Properties.Get<string>(IntermediateFormatPropertyNames.IsVisible), out var visible));
+        Assert.Equal(gtdModel.Visible, visible);
     }
 
     protected void AssertCommonProperties<T>(T gtdModel, KeyWordMetaData keyWordMetaData)

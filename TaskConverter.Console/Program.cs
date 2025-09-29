@@ -14,39 +14,40 @@ class Programm
     static async Task<int> Main(string[] args)
     {
         var commandTypeOption = new Option<Command>("--command-type", "Execute different commands");
-        var fromModelOption = new Option<string>("--from-model") { IsRequired = true };
-        var fromLocationOption = new Option<string>("--from-location", "File or Url to interact") { IsRequired = true };
+        var fromModelOption = new Option<string>("--from-model") { Required = true };
+        var fromLocationOption = new Option<string>("--from-location", "File or Url to interact") { Required = true };
 
-        var rootCommand = new RootCommand("Command to map data between different todo/planning apps");
-        rootCommand.AddOption(commandTypeOption);
-        rootCommand.AddOption(fromModelOption);
-        rootCommand.AddOption(fromLocationOption);
+        var rootCommand = new RootCommand("Command to map data between different todo/planning apps")
+        {
+            commandTypeOption,
+            fromModelOption,
+            fromLocationOption
+        };
 
         var commands = LoadPluginsAndGetCommands();
         fromModelOption.Description = $"Convert from Model. Valid plugins: {string.Join(", ", GetAvailablePlugins(commands))}";
 
-        rootCommand.SetHandler(
-            (command, model, location) =>
+        rootCommand.SetAction(parseResult =>
             {
+                var command = parseResult.GetValue(commandTypeOption);
+                var model = parseResult.GetValue(fromModelOption)?.ToLowerInvariant() ?? string.Empty;
+                var location = parseResult.GetValue(fromLocationOption) ?? string.Empty;
+
                 var errorWriter = Console.Error;
-                model = model?.ToLowerInvariant() ?? string.Empty;
 
                 if (!ValidateFromModel(model, commands, errorWriter))
-                    return Task.FromResult(1);
+                    return 1;
 
                 var fromCommand = commands[model];
                 if (!ValidateFromLocation(location, fromCommand, errorWriter))
-                    return Task.FromResult(1);
+                    return 1;
 
                 ExecuteCommand(command, fromCommand, errorWriter);
-                return Task.FromResult(0);
-            },
-            commandTypeOption,
-            fromModelOption,
-            fromLocationOption
-        );
+                return 0;
+            });
 
-        return await rootCommand.InvokeAsync(args);
+        var parseResult = rootCommand.Parse(args);
+        return await parseResult.InvokeAsync();
     }
 
     private static bool ValidateFromModel(string fromModel, Dictionary<string, IConverterPlugin> commands, TextWriter errorWriter)

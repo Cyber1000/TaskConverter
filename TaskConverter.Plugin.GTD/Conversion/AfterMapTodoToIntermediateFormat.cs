@@ -22,7 +22,7 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
 
     private static void MapStartDate(GTDTaskModel source, Todo destination, ResolutionContext context)
     {
-        destination.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.Start, context.Mapper.Map<IDateTime>(source.StartDate)));
+        destination.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.Start, context.Mapper.Map<CalDateTime>(source.StartDate)));
     }
 
     private static void MapAlarm(GTDTaskModel source, Todo destination)
@@ -41,7 +41,7 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
         // Completed may be null and so a fallback of DueDate may be ok here
         // DueDate should not be null if RepeatNew is set, but maybe, therefore find another starting point
         var startOfRecurrence = GetRecurrenceStart(source.RepeatFrom, source.DueDate, source.Completed, source.StartDate, source.Created);
-        destination.Start = context.Mapper.Map<IDateTime>(startOfRecurrence);
+        destination.Start = context.Mapper.Map<CalDateTime>(startOfRecurrence);
 
         destination.RecurrenceRules = CreateRecurrenceRule(source.RepeatNew.Value);
 
@@ -55,7 +55,7 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
     {
         destination.Status = source.MapStatus();
         // need to set completed here after setting Status, since Status-Map would overwrite this
-        destination.Completed = context.Mapper.Map<IDateTime>(source.Completed);
+        destination.Completed = context.Mapper.Map<CalDateTime>(source.Completed);
     }
 
     private static void AddProperties(GTDTaskModel source, Todo destination)
@@ -73,16 +73,20 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
     {
         if (reminder > 43200)
         {
+            if (reminder % 1000 != 0)
+            {
+                throw new ArgumentException("Reminder must be a multiple of 1000");
+            }
             var reminderDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(reminder);
-            return new Alarm { Trigger = new Trigger { DateTime = new CalDateTime { Value = reminderDateTime } } };
+            return new Alarm { Trigger = new Trigger { DateTime = new CalDateTime(reminderDateTime) } };
         }
         else if (reminder >= 0)
-            return new Alarm { Trigger = new Trigger { Duration = TimeSpan.FromMinutes(-reminder) } };
+            return new Alarm { Trigger = new Trigger { Duration = Ical.Net.DataTypes.Duration.FromMinutes(-(int)reminder) } };
 
         return null;
     }
 
-    private static List<RecurrencePattern>? CreateRecurrenceRule(GTDRepeatInfoModel repeatInfo)
+    private static List<RecurrencePattern> CreateRecurrenceRule(GTDRepeatInfoModel repeatInfo)
     {
         var freq = repeatInfo.Period switch
         {

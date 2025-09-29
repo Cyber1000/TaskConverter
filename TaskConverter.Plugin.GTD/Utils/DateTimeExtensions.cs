@@ -5,27 +5,27 @@ namespace TaskConverter.Plugin.GTD.Utils
 {
     public static class DateTimeExtensions
     {
-        public static LocalDateTime GetLocalDateTime(this IDateTime dateTime, DateTimeZone timeZone)
+        public static LocalDateTime GetLocalDateTime(this CalDateTime dateTime, DateTimeZone timeZone)
         {
             return dateTime.GetInstant().InZone(timeZone).LocalDateTime;
         }
 
-        public static Instant GetInstant(this IDateTime dateTime)
+        public static Instant GetInstant(this CalDateTime dateTime)
         {
             return Instant.FromDateTimeUtc(DateTime.SpecifyKind(dateTime.Value, DateTimeKind.Utc));
         }
 
-        public static IDateTime GetIDateTime(this LocalDateTime localDateTime, DateTimeZone timeZone)
+        public static CalDateTime GetCalDateTime(this LocalDateTime localDateTime, DateTimeZone timeZone)
         {
             return new CalDateTime(localDateTime.InZoneLeniently(timeZone).ToDateTimeUtc(), "UTC");
         }
 
-        public static IDateTime? GetIDateTime(this LocalDateTime? localDateTime, DateTimeZone timeZone)
+        public static CalDateTime? GetCalDateTime(this LocalDateTime? localDateTime, DateTimeZone timeZone)
         {
-            return localDateTime.HasValue ? localDateTime.Value.GetIDateTime(timeZone) : null;
+            return localDateTime.HasValue ? localDateTime.Value.GetCalDateTime(timeZone) : null;
         }
 
-        public static IDateTime GetCurrentDateTime(DateTimeZone timeZone)
+        public static CalDateTime GetCurrentDateTime(DateTimeZone timeZone)
         {
             return new CalDateTime(SystemClock.Instance.GetCurrentInstant().InZone(timeZone).ToDateTimeUtc(), "UTC");
         }

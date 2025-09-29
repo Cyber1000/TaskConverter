@@ -43,12 +43,12 @@ public class MapReminderFromIntermediateFormat(DateTimeZone dateTimeZone) : IVal
                 var duration = -alarm.Duration.Value;
                 foreach (var fixedDiffFromDueDateInMinutes in fixedDiffsFromDueDate)
                 {
-                    if (fixedDiffFromDueDateInMinutes == duration.TotalMinutes)
+                    if (fixedDiffFromDueDateInMinutes == duration.ToTimeSpanUnspecified().TotalMinutes)
                     {
                         return fixedDiffFromDueDateInMinutes;
                     }
                 }
-                return dueDate - (long)duration.TotalMilliseconds;
+                return dueDate - (long)duration.ToTimeSpanUnspecified().TotalMilliseconds;
             }
             return -1;
         }

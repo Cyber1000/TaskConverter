@@ -3,6 +3,7 @@ using AutoMapper;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
+using Microsoft.Extensions.Logging;
 using NodaTime;
 using TaskConverter.Commons;
 using TaskConverter.Commons.ConversionHelper;
@@ -27,12 +28,17 @@ public class ConversionService : IConversionService<GTDDataModel>
         FileSystem = fileSystem;
         SettingsProvider = settingsProvider;
         var timeZone = settingsProvider.CurrentDateTimeZone;
-        var config = new MapperConfiguration(cfg =>
-        {
-            CreateBasicMappings(cfg, timeZone);
 
-            CreateMainMappings(clock, cfg, timeZone);
-        });
+        var loggerFactory = LoggerFactory.Create(builder => { });
+        var config = new MapperConfiguration(
+            cfg =>
+            {
+                CreateBasicMappings(cfg, timeZone);
+
+                CreateMainMappings(clock, cfg, timeZone);
+            },
+            loggerFactory
+        );
         Mapper = config.CreateMapper();
     }
 
@@ -58,15 +64,15 @@ public class ConversionService : IConversionService<GTDDataModel>
             .IgnoreMembers(
                 dest => dest.Attendees,
                 dest => dest.Comments,
-                dest => dest.DtStamp,
-                dest => dest.Organizer,
+                dest => dest.DtStamp!,
+                dest => dest.Organizer!,
                 dest => dest.RequestStatuses,
-                dest => dest.Url,
+                dest => dest.Url!,
                 dest => dest.Properties,
-                dest => dest.Parent,
+                dest => dest.Parent!,
                 dest => dest.Children,
                 dest => dest.Name,
-                dest => dest.Calendar,
+                dest => dest.Calendar!,
                 dest => dest.Line,
                 dest => dest.Column,
                 dest => dest.Group
@@ -80,19 +86,19 @@ public class ConversionService : IConversionService<GTDDataModel>
             .IgnoreMembers(
                 dest => dest.Attachments,
                 dest => dest.Categories,
-                dest => dest.Class,
+                dest => dest.Class!,
                 dest => dest.Contacts,
-                dest => dest.Description,
-                dest => dest.DtStart,
+                dest => dest.Description!,
+                dest => dest.DtStart!,
                 dest => dest.ExceptionDates,
                 dest => dest.ExceptionRules,
                 dest => dest.Priority,
                 dest => dest.RecurrenceDates,
                 dest => dest.RecurrenceRules,
-                dest => dest.RecurrenceId,
+                dest => dest.RecurrenceId!,
                 dest => dest.RelatedComponents,
                 dest => dest.Sequence,
-                dest => dest.Start,
+                dest => dest.Start!,
                 dest => dest.Alarms
             )
             .IncludeBase<GTDBaseModel, UniqueComponent>()
@@ -106,26 +112,28 @@ public class ConversionService : IConversionService<GTDDataModel>
             .IgnoreMembers(
                 dest => dest.Attachments,
                 dest => dest.Categories,
-                dest => dest.Class,
+                dest => dest.Class!,
                 dest => dest.Contacts,
-                dest => dest.Description,
-                dest => dest.DtStart,
+                dest => dest.Description!,
+                dest => dest.DtStart!,
                 dest => dest.ExceptionDates,
                 dest => dest.ExceptionRules,
                 dest => dest.Priority,
                 dest => dest.RecurrenceDates,
                 dest => dest.RecurrenceRules,
-                dest => dest.RecurrenceId,
+                dest => dest.RecurrenceId!,
                 dest => dest.RelatedComponents,
                 dest => dest.Sequence,
-                dest => dest.Start,
+                dest => dest.Start!,
                 dest => dest.Alarms
             )
             .IncludeBase<GTDBaseModel, RecurringComponent>()
             .AfterMap(
                 (src, dest) =>
                 {
-                    dest.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.Color, src.Color.FromArgbWithFallback()));
+                    var color = src.Color.FromArgbWithFallback();
+                    if (color != null)
+                        dest.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.Color, color));
                     dest.AddProperty(IntermediateFormatPropertyNames.IsVisible, src.Visible.ToStringRepresentation());
                 }
             )
@@ -134,10 +142,10 @@ public class ConversionService : IConversionService<GTDDataModel>
             .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Properties.Get<Color?>(IntermediateFormatPropertyNames.Color).ToArgbWithFallback()))
             .ForMember(dest => dest.Visible, opt => opt.MapFrom(src => src.Properties.Get<string>(IntermediateFormatPropertyNames.IsVisible).ToBool()));
 
-        cfg.CreateMap<LocalDateTime, IDateTime>().ConvertUsing(s => s.GetIDateTime(timeZone));
-        cfg.CreateMap<LocalDateTime?, IDateTime?>().ConvertUsing(s => s.GetIDateTime(timeZone));
+        cfg.CreateMap<LocalDateTime, CalDateTime>().ConvertUsing(s => s.GetCalDateTime(timeZone));
+        cfg.CreateMap<LocalDateTime?, CalDateTime?>().ConvertUsing(s => s.GetCalDateTime(timeZone));
 
-        cfg.CreateMap<IDateTime, LocalDateTime>().ConvertUsing(s => s.GetLocalDateTime(timeZone));
+        cfg.CreateMap<CalDateTime, LocalDateTime>().ConvertUsing(s => s.GetLocalDateTime(timeZone));
     }
 
     private static void CreateMainMappings(IClock clock, IMapperConfigurationExpression cfg, DateTimeZone timeZone)
@@ -151,16 +159,14 @@ public class ConversionService : IConversionService<GTDDataModel>
                 dest => dest.Journals,
                 dest => dest.TimeZones,
                 dest => dest.Todos,
-                dest => dest.ProductId,
-                dest => dest.Scale,
-                dest => dest.Method,
-                dest => dest.RecurrenceRestriction,
-                dest => dest.RecurrenceEvaluationMode,
+                dest => dest.ProductId!,
+                dest => dest.Scale!,
+                dest => dest.Method!,
                 dest => dest.Properties,
-                dest => dest.Parent,
+                dest => dest.Parent!,
                 dest => dest.Children,
                 dest => dest.Name,
-                dest => dest.Calendar,
+                dest => dest.Calendar!,
                 dest => dest.Line,
                 dest => dest.Column,
                 dest => dest.Group
@@ -190,23 +196,24 @@ public class ConversionService : IConversionService<GTDDataModel>
             .ForMember(dest => dest.Due, opt => opt.MapFrom(src => src.DueDate))
             .ForMember(dest => dest.Start, opt => opt.MapFrom(src => src.StartDate))
             .IgnoreMembers(
-                dest => dest.DtStart,
-                dest => dest.GeographicLocation,
-                dest => dest.Location,
+                dest => dest.Duration!,
+                dest => dest.DtStart!,
+                dest => dest.GeographicLocation!,
+                dest => dest.Location!,
                 dest => dest.PercentComplete,
                 dest => dest.Resources,
                 dest => dest.Attachments,
                 dest => dest.Categories,
-                dest => dest.Class,
+                dest => dest.Class!,
                 dest => dest.Contacts,
                 dest => dest.ExceptionDates,
                 dest => dest.ExceptionRules,
                 dest => dest.RecurrenceDates,
                 dest => dest.RecurrenceRules,
-                dest => dest.RecurrenceId,
+                dest => dest.RecurrenceId!,
                 dest => dest.RelatedComponents,
                 dest => dest.Sequence,
-                dest => dest.Status,
+                dest => dest.Status!,
                 dest => dest.Alarms
             )
             .AfterMap<AfterMapTodoToIntermediateFormat>()
@@ -218,7 +225,7 @@ public class ConversionService : IConversionService<GTDDataModel>
             .ForMember(dest => dest.Alarm, opt => opt.MapFrom(new MapAlarmFromIntermediateFormat(clock, timeZone)))
             .ForMember(dest => dest.Hide, opt => opt.MapFrom(new MapHideFromIntermediateFormat(timeZone)))
             .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Description != null ? src.Description.GetStringArray() : null))
-            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.Properties.Get<IDateTime>(IntermediateFormatPropertyNames.Start) ?? src.Start))
+            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.Properties.Get<CalDateTime>(IntermediateFormatPropertyNames.Start) ?? src.Start))
             .IgnoreMembers(
                 dest => dest.DueDateProject!,
                 dest => dest.StartTimeSet,
@@ -245,35 +252,28 @@ public class ConversionService : IConversionService<GTDDataModel>
         cfg.CreateMap<GTDNotebookModel, Journal>()
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Note != null ? src.Note.GetString() : null))
             .IgnoreMembers(
-                dest => dest.Status,
+                dest => dest.Status!,
                 dest => dest.Attachments,
                 dest => dest.Categories,
-                dest => dest.Class,
+                dest => dest.Class!,
                 dest => dest.Contacts,
-                dest => dest.DtStart,
+                dest => dest.DtStart!,
                 dest => dest.ExceptionDates,
                 dest => dest.ExceptionRules,
                 dest => dest.Priority,
                 dest => dest.RecurrenceDates,
                 dest => dest.RecurrenceRules,
-                dest => dest.RecurrenceId,
+                dest => dest.RecurrenceId!,
                 dest => dest.RelatedComponents,
                 dest => dest.Sequence,
-                dest => dest.Start,
+                dest => dest.Start!,
                 dest => dest.Alarms
-            )
-            .AfterMap(
-                (src, dest) =>
-                {
-                    dest.AddProperty(IntermediateFormatPropertyNames.IsVisible, src.Visible.ToString().ToLowerInvariant());
-                }
             )
             .AfterMap<MapKeyWordsOfJournalToIntermediateFormat>()
             .IncludeBase<GTDExtendedModel, RecurringComponent>()
             .ReverseMapWithValidation()
             .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Description != null ? src.Description.GetStringArray() : null))
             .IgnoreMembers(dest => dest.Private, dest => dest.FolderId)
-            .ForMember(dest => dest.Visible, opt => opt.MapFrom(src => src.Properties.Get<string>(IntermediateFormatPropertyNames.IsVisible).ToBool()))
             .IncludeBase<RecurringComponent, GTDExtendedModel>();
 
         cfg.CreateMap<KeyWordMetaData, GTDBaseModel>()
