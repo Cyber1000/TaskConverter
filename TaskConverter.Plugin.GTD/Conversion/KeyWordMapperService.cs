@@ -1,7 +1,9 @@
 using Ical.Net;
 using Ical.Net.CalendarComponents;
+using NodaTime;
 using TaskConverter.Commons;
 using TaskConverter.Commons.ConversionHelper;
+using TaskConverter.Commons.Utils;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 using TaskConverter.Plugin.GTD.Utils;
@@ -13,26 +15,37 @@ namespace TaskConverter.Plugin.GTD.Conversion
         public Dictionary<(KeyWordType keyWordType, int Id), KeyWordMetaData> GetKeyWordMetaDataGTDFormatDictionary(GTDDataModel gtdDataModel, ISettingsProvider settingsProvider)
         {
             var timeZone = settingsProvider.CurrentDateTimeZone;
-            return (gtdDataModel.Context?.Select(c => ((KeyWordType.Context, c.Id), c as GTDExtendedModel)) ?? [])
-                .Concat(gtdDataModel.Folder?.Select(f => ((KeyWordType.Folder, f.Id), f as GTDExtendedModel)) ?? [])
-                .Concat(gtdDataModel.Tag?.Select(t => ((KeyWordType.Tag, t.Id), t as GTDExtendedModel)) ?? [])
-                .Select(keyWordData => CreateKeyWordMetaData(keyWordData.Item1, keyWordData.Item2, settingsProvider))
+            return (gtdDataModel.Context?.Select(c => (Id: (KeyWordType.Context, c.Id), Data: (c.Title, c.Color, (LocalDateTime?)c.Created, (LocalDateTime?)c.Modified, c.Visible))) ?? [])
+                .Concat(gtdDataModel.Folder?.Select(f => (Id: (KeyWordType.Folder, f.Id), Data: (f.Title, f.Color, (LocalDateTime?)f.Created, (LocalDateTime?)f.Modified, f.Visible))) ?? [])
+                .Concat(gtdDataModel.Tag?.Select(t => (Id: (KeyWordType.Tag, t.Id), Data: (t.Title, t.Color, (LocalDateTime?)t.Created, (LocalDateTime?)t.Modified, t.Visible))) ?? [])
+                .Concat(GetStatusData().Select(t => (Id: (KeyWordType.Status, t.Id), Data: ((string?)t.Title, 5, (LocalDateTime?)null, (LocalDateTime?)null, true))) ?? [])
+                .Select(keyWordData => CreateKeyWordMetaData(keyWordData.Id, keyWordData.Data, settingsProvider))
                 .ToDictionary(k => (k.KeyWordType, k.Id), k => k);
         }
 
-        private static KeyWordMetaData CreateKeyWordMetaData((KeyWordType keyWordType, int Id) keyWord, GTDExtendedModel keyWordModel, ISettingsProvider settingsProvider)
+        private static IEnumerable<(int Id, string Title)> GetStatusData()
         {
-            var color = keyWordModel?.Color ?? -2;
+            var excludeStatuses = new List<Status> { Status.None, Status.Canceled };
+            return Enum.GetValues<Status>().Where(s => !excludeStatuses.Contains(s)).Select(s => (Id: s.ToString().ToIntWithHashFallback(), Title: s.ToString()));
+        }
+
+        private static KeyWordMetaData CreateKeyWordMetaData(
+            (KeyWordType keyWordType, int Id) keyWord,
+            (string? Title, int? Color, LocalDateTime? Created, LocalDateTime? Modified, bool? Visible) data,
+            ISettingsProvider settingsProvider
+        )
+        {
+            var color = data.Color ?? -2;
             var timeZone = settingsProvider.CurrentDateTimeZone;
 
             return new KeyWordMetaData(
                 keyWord.Id,
-                MapCategory(keyWordModel?.Title ?? "", keyWord.keyWordType, settingsProvider),
+                MapCategory(data.Title ?? "", keyWord.keyWordType, settingsProvider),
                 keyWord.keyWordType,
-                keyWordModel?.Created.GetCalDateTime(timeZone) ?? DateTimeExtensions.GetCurrentDateTime(timeZone),
-                keyWordModel?.Modified.GetCalDateTime(timeZone) ?? DateTimeExtensions.GetCurrentDateTime(timeZone),
+                data.Created.GetCalDateTime(timeZone) ?? DateTimeExtensions.GetCurrentDateTime(timeZone),
+                data.Modified.GetCalDateTime(timeZone) ?? DateTimeExtensions.GetCurrentDateTime(timeZone),
                 color.FromArgbWithFallback(),
-                keyWordModel?.Visible ?? true
+                data.Visible ?? true
             );
         }
 
@@ -75,21 +88,25 @@ namespace TaskConverter.Plugin.GTD.Conversion
         {
             var folderSymbol = settingsProvider.GetIntermediateFormatSymbol(KeyWordType.Folder);
             var contextSymbol = settingsProvider.GetIntermediateFormatSymbol(KeyWordType.Context);
+            var statusSymbol = settingsProvider.GetIntermediateFormatSymbol(KeyWordType.Status);
             var folderGTDSymbol = settingsProvider.GetGTDFormatSymbol(KeyWordType.Folder);
             var contextGTDSymbol = settingsProvider.GetGTDFormatSymbol(KeyWordType.Context);
-            if (folderSymbol?.Length > 0 && category.StartsWith(folderSymbol))
+            var statusGTDSymbol = settingsProvider.GetGTDFormatSymbol(KeyWordType.Status);
+
+            if (category.StartsWithPrefix(folderSymbol))
             {
-                category = category[folderSymbol.Length..];
-                if (folderGTDSymbol?.Length > 0)
-                    category = $"{folderGTDSymbol}{category}";
+                category = category.RemovePrefix(folderSymbol).AddPrefix(folderGTDSymbol);
                 return (category, KeyWordType.Folder);
             }
-            if (contextSymbol?.Length > 0 && category.StartsWith(contextSymbol))
+            if (category.StartsWithPrefix(contextSymbol))
             {
-                category = category[contextSymbol.Length..];
-                if (contextGTDSymbol?.Length > 0)
-                    category = $"{contextGTDSymbol}{category}";
+                category = category.RemovePrefix(contextSymbol).AddPrefix(contextGTDSymbol);
                 return (category, KeyWordType.Context);
+            }
+            if (category.StartsWithPrefix(statusSymbol))
+            {
+                category = category.RemovePrefix(statusSymbol).AddPrefix(statusGTDSymbol);
+                return (category, KeyWordType.Status);
             }
 
             return (category, KeyWordType.Tag);
@@ -99,14 +116,14 @@ namespace TaskConverter.Plugin.GTD.Conversion
         {
             var folderSymbol = settingsProvider.GetIntermediateFormatSymbol(KeyWordType.Folder);
             var contextSymbol = settingsProvider.GetIntermediateFormatSymbol(KeyWordType.Context);
-            if (keyWordType == KeyWordType.Folder && folderSymbol?.Length > 0 && !category.StartsWith(folderSymbol))
-            {
-                category = $"{folderSymbol}{category}";
-            }
-            if (keyWordType == KeyWordType.Context && contextSymbol?.Length > 0 && !category.StartsWith(contextSymbol))
-            {
-                category = $"{contextSymbol}{category}";
-            }
+            var statusSymbol = settingsProvider.GetIntermediateFormatSymbol(KeyWordType.Status);
+            if (keyWordType == KeyWordType.Folder)
+                category = category.AddPrefix(folderSymbol);
+            if (keyWordType == KeyWordType.Context)
+                category = category.AddPrefix(contextSymbol);
+            if (keyWordType == KeyWordType.Status)
+                category = category.AddPrefix(statusSymbol);
+
             return category;
         }
     }

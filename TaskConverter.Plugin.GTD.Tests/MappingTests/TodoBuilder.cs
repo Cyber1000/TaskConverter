@@ -10,6 +10,14 @@ public static class CalendarBuilderExtensions
 
 public class TodoBuilder
 {
+    public enum StatusEnum
+    {
+        NeedsAction,
+        InProcess,
+        Cancelled,
+        Completed
+    }
+
     private string _summary = string.Empty;
     private string? _description;
     private CalDateTime _created = new(DateTime.UtcNow);
@@ -17,6 +25,7 @@ public class TodoBuilder
     private readonly IList<string> _categories = [];
     private readonly List<RecurrencePattern> _recurrencePatterns = [];
     private readonly List<Alarm> _alarms = [];
+    private string _status = "IN-PROCESS";
 
     public TodoBuilder()
     {
@@ -50,6 +59,26 @@ public class TodoBuilder
         return this;
     }
 
+    public TodoBuilder WithStatus(StatusEnum status)
+    {
+        switch (status)
+        {
+            case StatusEnum.NeedsAction:
+                _status = "NEEDS-ACTION";
+                break;
+            case StatusEnum.InProcess:
+                _status = "IN-PROCESS";
+                break;
+            case StatusEnum.Cancelled:
+                _status = "CANCELLED";
+                break;
+            case StatusEnum.Completed:
+                _status = "COMPLETED";
+                break;
+        }
+        return this;
+    }
+
     public TodoBuilder AddRecurrenceRule(RecurrencePattern recurrencePattern)
     {
         _recurrencePatterns.Add(recurrencePattern);
@@ -78,6 +107,7 @@ public class TodoBuilder
             LastModified = _lastModified,
             RecurrenceRules = _recurrencePatterns,
             Categories = _categories,
+            Status = _status,
         };
         _alarms.ForEach(a => todo.Alarms.Add(a));
 

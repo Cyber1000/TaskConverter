@@ -2,9 +2,10 @@ using AutoMapper;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using TaskConverter.Commons.ConversionHelper;
+using TaskConverter.Commons.Utils;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
-using TaskConverter.Commons.Utils;
+using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
@@ -12,9 +13,13 @@ public class MapTodoFromIntermediateFormat : IMappingAction<Calendar, GTDDataMod
 {
     public void Process(Calendar source, GTDDataModel destination, ResolutionContext resolutionContext)
     {
+        var settingsProvider = resolutionContext.GetSettingsProvider();
+        var statusSymbol = settingsProvider.GetIntermediateFormatSymbol(KeyWordType.Status);
+
         var keyWordMetaDataList = resolutionContext.GetKeyWordMetaDataIntermediateFormatDictionary();
         var todos = GetTodos(source);
-        destination.Task = todos
+        destination.Task =
+            todos
                 .Select(todo =>
                 {
                     var keyWordMetaDataForCurrentTodo = todo.Categories.GetExistingValues(keyWordMetaDataList);
@@ -22,6 +27,18 @@ public class MapTodoFromIntermediateFormat : IMappingAction<Calendar, GTDDataMod
                     var tags = keyWordMetaDataForCurrentTodo.Where(k => k.KeyWordType == KeyWordType.Tag)?.Select(k => k.Id).ToList() ?? [];
                     var folder = keyWordMetaDataForCurrentTodo.Where(k => k.KeyWordType == KeyWordType.Folder)?.SingleOrDefault().Id ?? 0;
                     var context = keyWordMetaDataForCurrentTodo.Where(k => k.KeyWordType == KeyWordType.Context)?.SingleOrDefault().Id ?? 0;
+                    var status = keyWordMetaDataForCurrentTodo.Where(k => k.KeyWordType == KeyWordType.Status)?.SingleOrDefault();
+
+                    var statusName = status?.Name ?? string.Empty;
+                    var statusId = status?.Id ?? 0;
+                    statusName = statusName.RemovePrefix(statusSymbol);
+
+                    var statusEnum = Status.None;
+                    if (statusId > 0 && !Enum.TryParse(statusName, ignoreCase: true, out statusEnum))
+                        tags.Add(statusId);
+                    
+                    if (statusEnum == Status.None)
+                        statusEnum = todo.Status.MapStatus();
 
                     var foreignId = (todo.Parent as Todo)?.Uid;
 
@@ -31,6 +48,7 @@ public class MapTodoFromIntermediateFormat : IMappingAction<Calendar, GTDDataMod
                         Tag = tags,
                         Folder = folder,
                         Context = context,
+                        Status = statusEnum,
                     };
                     return resolutionContext.Mapper.Map(todo, model);
                 })

@@ -244,7 +244,8 @@ public class ConversionService : IConversionService<GTDDataModel>
                 dest => dest.RepeatFrom,
                 dest => dest.Floating,
                 dest => dest.HideUntil,
-                dest => dest.Starred
+                dest => dest.Starred,
+                dest => dest.Status!
             )
             .AfterMap<AfterMapTodoFromIntermediateFormat>()
             .IncludeBase<RecurringComponent, GTDBaseModel>();

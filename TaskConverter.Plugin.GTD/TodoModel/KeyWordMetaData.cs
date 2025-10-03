@@ -8,6 +8,7 @@ namespace TaskConverter.Plugin.GTD.TodoModel
         Context,
         Folder,
         Tag,
+        Status,
     }
 
     public readonly struct KeyWordMetaData(int id, string name, KeyWordType keyWordType, CalDateTime created, CalDateTime modified, Color? color, bool isVisible) : IEquatable<KeyWordMetaData>

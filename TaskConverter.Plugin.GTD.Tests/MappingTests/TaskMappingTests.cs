@@ -87,8 +87,10 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     {
         ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Folder, "+");
         ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Context, "@");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Status, "#");
         ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Folder, "");
         ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Context, "@");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Status, "#");
 
         var gtdDataModel = CreateGTDDataModelWithTask();
         gtdDataModel.Folder!.First().Title = "Test";
@@ -99,6 +101,48 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdTaskModel = gtdDataModel.Task![0];
 
         AssertTaskKeywords(gtdTaskModel, taskAppDataModel!);
+    }
+
+    [Theory]
+    [InlineData(Status.None, false, "NEEDS-ACTION", null)]
+    [InlineData(Status.NextAction, false, "IN-PROCESS", "#NextAction")]
+    [InlineData(Status.Active, false, "IN-PROCESS", "#Active")]
+    [InlineData(Status.Planning, false, "IN-PROCESS", "#Planning")]
+    [InlineData(Status.Delegated, false, "IN-PROCESS", "#Delegated")]
+    [InlineData(Status.Waiting, false, "NEEDS-ACTION", "#Waiting")]
+    [InlineData(Status.Hold, false, "NEEDS-ACTION", "#Hold")]
+    [InlineData(Status.Postponed, false, "NEEDS-ACTION", "#Postponed")]
+    [InlineData(Status.Someday, false, "NEEDS-ACTION", "#Someday")]
+    [InlineData(Status.Canceled, false, "CANCELLED", null)]
+    [InlineData(Status.Reference, false, "IN-PROCESS", "#Reference")]
+    public void Map_State_ShouldBeValid(Status status, bool isCompleted, string expectedStatus, string expectedCategory)
+    {
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Folder, "+");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Context, "@");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Status, "#");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Folder, "");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Context, "@");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Status, "#");
+
+        var gtdDataModel = CreateGTDDataModelWithTask();
+        var task = gtdDataModel.Task!.First();
+        task.Status = status;
+        task.Completed = isCompleted ? new LocalDateTime(2023, 02, 25, 10, 0, 0) : null;
+        var taskAppDataModel = TestConverter.MapToIntermediateFormat(gtdDataModel);
+        Assert.Equal(expectedStatus, taskAppDataModel.Todos.First().Status);
+
+        var categories = taskAppDataModel.Todos.First().Categories;
+        var properties = taskAppDataModel.Todos.First().Properties.ToDictionary(n => n.Name);
+
+        if (expectedCategory == null)
+            Assert.DoesNotContain(categories, c => c.StartsWith('#'));
+        else
+        {
+            Assert.Single(categories, c => c == expectedCategory);
+            Assert.True(properties.TryGetValue(IntermediateFormatPropertyNames.CategoryMetaData(expectedCategory), out var prop));
+            Assert.True(prop.Value is KeyWordMetaData existingMeta);
+            Assert.Equal(KeyWordType.Status, ((KeyWordMetaData)prop.Value).KeyWordType);
+        }
     }
 
     [Fact]
@@ -434,8 +478,10 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     {
         ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Folder, "+");
         ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Context, "@");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Status, "#");
         ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Folder, "");
         ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Context, "@");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Status, "#");
 
         var todo = Create.A.Todo().AddCategory("@home").AddCategory("+Ideen").AddCategory("Bestellen").Build();
         var calendar = Create.A.Calendar().WithTask(todo).Build();
@@ -450,12 +496,53 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         Assert.Equal("@home", gtdDataModel.Context?.First().Title);
     }
 
+    [Theory]
+    [InlineData("#NextAction", TodoBuilder.StatusEnum.InProcess, true, Status.NextAction)]
+    [InlineData("#Active", TodoBuilder.StatusEnum.InProcess, true, Status.Active)]
+    [InlineData("#Planning", TodoBuilder.StatusEnum.InProcess, true, Status.Planning)]
+    [InlineData("#Delegated", TodoBuilder.StatusEnum.InProcess, true, Status.Delegated)]
+    [InlineData("#Waiting", TodoBuilder.StatusEnum.InProcess, true, Status.Waiting)]
+    [InlineData("#Hold", TodoBuilder.StatusEnum.InProcess, true, Status.Hold)]
+    [InlineData("#Postponed", TodoBuilder.StatusEnum.InProcess, true, Status.Postponed)]
+    [InlineData("#Someday", TodoBuilder.StatusEnum.InProcess, true, Status.Someday)]
+    [InlineData("#Reference", TodoBuilder.StatusEnum.InProcess, true, Status.Reference)]
+    [InlineData("#Hello", TodoBuilder.StatusEnum.InProcess, false, Status.Active)]
+    [InlineData("#Hello", TodoBuilder.StatusEnum.NeedsAction, false, Status.Waiting)]
+    [InlineData("#Hello", TodoBuilder.StatusEnum.Cancelled, false, Status.Canceled)]
+    public void Map_TodoFromIntermediateFormat_StatusIsCorrectlyMappedFromStatusTag(string statusTag, TodoBuilder.StatusEnum todoStatus, bool isKnownState, Status expectedStatus)
+    {
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Folder, "+");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Context, "@");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Status, "#");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Folder, "");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Context, "@");
+        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Status, "#");
+
+        var todo = Create.A.Todo().AddCategory(statusTag).WithStatus(todoStatus).Build();
+        var calendar = Create.A.Calendar().WithTask(todo).Build();
+
+        var gtdDataModel = TestConverter.MapFromIntermediateFormat(calendar);
+
+        Assert.Equal(expectedStatus, gtdDataModel.Task?.First().Status);
+        if (isKnownState)
+        {
+            Assert.False(gtdDataModel.Tag?.Any(t => t.Title == statusTag));
+        }
+        else
+        {
+            var currentTag = gtdDataModel.Tag!.Single(t => t.Title == statusTag);
+            Assert.NotNull(currentTag);
+            Assert.True(gtdDataModel.Task?.First().Tag.Contains(currentTag.Id));
+        }
+    }
+
     private static void AssertBasicTaskProperties(GTDTaskModel gtdTaskModel, Todo taskAppTaskModel, GTDTaskModel gtdRemappedTaskModel)
     {
         Assert.Equal(gtdTaskModel.Id.ToString(), taskAppTaskModel.Uid);
         Assert.IsType<Calendar>(taskAppTaskModel.Parent);
         Assert.Equal(gtdTaskModel.Title, taskAppTaskModel.Summary);
-        Assert.Equal("NextAction", taskAppTaskModel.Status);
+        var expectedStatus = gtdTaskModel.MapStatus(gtdTaskModel.Completed != null);
+        Assert.Equal(expectedStatus, taskAppTaskModel.Status);
         Assert.True(bool.TryParse(taskAppTaskModel.Properties.Get<string>(IntermediateFormatPropertyNames.Starred), out var starred));
         Assert.Equal(gtdTaskModel.Starred, starred);
         Assert.Equal(0, taskAppTaskModel.Priority);

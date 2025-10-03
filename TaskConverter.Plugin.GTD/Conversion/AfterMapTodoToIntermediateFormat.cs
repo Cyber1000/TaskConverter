@@ -53,7 +53,7 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
 
     private static void MapStatus(GTDTaskModel source, Todo destination, ResolutionContext context)
     {
-        destination.Status = source.MapStatus();
+        destination.Status = source.MapStatus(source.Completed != null);
         // need to set completed here after setting Status, since Status-Map would overwrite this
         destination.Completed = context.Mapper.Map<CalDateTime>(source.Completed);
     }
