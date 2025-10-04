@@ -167,8 +167,16 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
         var gtdRemappedTaskModelWithoutParent = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
-        Assert.IsType<Todo>(taskAppTaskModel.Parent);
-        Assert.Equal("10", (taskAppTaskModel.Parent as Todo)!.Uid);
+        var parentProp = taskAppTaskModel.Properties.FirstOrDefault(p =>
+            string.Equals(p.Name, "RELATED-TO", StringComparison.OrdinalIgnoreCase)
+            && (
+                p.Parameters.Any(param => string.Equals(param.Name, "RELTYPE", StringComparison.OrdinalIgnoreCase) && string.Equals(param.Value, "PARENT", StringComparison.OrdinalIgnoreCase))
+                || !p.Parameters.Any(param => string.Equals(param.Name, "RELTYPE", StringComparison.OrdinalIgnoreCase))
+            )
+        );
+        Assert.NotNull(parentProp);
+
+        Assert.Equal("10", parentProp.Value as string);
         Assert.Equal(10, gtdRemappedTaskModelWithoutParent.Parent);
     }
 

@@ -36,15 +36,15 @@ public class MapTodoFromIntermediateFormat : IMappingAction<Calendar, GTDDataMod
                     var statusEnum = Status.None;
                     if (statusId > 0 && !Enum.TryParse(statusName, ignoreCase: true, out statusEnum))
                         tags.Add(statusId);
-                    
+
                     if (statusEnum == Status.None)
                         statusEnum = todo.Status.MapStatus();
 
-                    var foreignId = (todo.Parent as Todo)?.Uid;
+                    var parentId = GetParentId(todo);
 
                     var model = new GTDTaskModel
                     {
-                        Parent = foreignId.ToIntWithHashFallback(),
+                        Parent = parentId,
                         Tag = tags,
                         Folder = folder,
                         Context = context,
@@ -53,6 +53,20 @@ public class MapTodoFromIntermediateFormat : IMappingAction<Calendar, GTDDataMod
                     return resolutionContext.Mapper.Map(todo, model);
                 })
                 .ToList() ?? [];
+
+        static int GetParentId(Todo todo)
+        {
+            var parentProp = todo.Properties
+                .FirstOrDefault(p =>
+                    string.Equals(p.Name, "RELATED-TO", StringComparison.OrdinalIgnoreCase) &&
+                    (p.Parameters.Any(param =>
+                        string.Equals(param.Name, "RELTYPE", StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(param.Value, "PARENT", StringComparison.OrdinalIgnoreCase))
+                        || !p.Parameters.Any(param => string.Equals(param.Name, "RELTYPE", StringComparison.OrdinalIgnoreCase)))
+                );
+
+            return parentProp?.Value?.ToString().ToIntWithHashFallback() ?? 0;
+        }
     }
 
     private static List<Todo> GetTodos(Calendar source)

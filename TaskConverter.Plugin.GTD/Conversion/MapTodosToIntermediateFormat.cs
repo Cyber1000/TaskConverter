@@ -9,26 +9,22 @@ public class MapTodosToIntermediateFormat : IMappingAction<GTDDataModel, Calenda
 {
     public void Process(GTDDataModel source, Calendar destination, ResolutionContext context)
     {
-        var todoDict =
-            source.Task?.Select(sourceTask => (source: sourceTask, destination: context.Mapper.Map<Todo>(sourceTask)))
-            .Where(taskInfo => taskInfo.destination.Uid is not null)
-            .ToDictionary(taskInfo => taskInfo.destination.Uid!, taskInfo => taskInfo) ?? [];
+        var sourceTasks = source.Task ?? Enumerable.Empty<GTDTaskModel>();
 
-        foreach (var todo in todoDict.Values)
+        foreach (var sourceTask in sourceTasks)
         {
-            var parentId = todo.source.Parent;
-            if (parentId == 0)
+            var todo = context.Mapper.Map<Todo>(sourceTask);
+
+            if (sourceTask.Parent != 0)
             {
-                destination.Todos.Add(todo.destination);
+                var rel = new CalendarProperty("RELATED-TO", sourceTask.Parent.ToString())
+                {
+                    Parameters = { new CalendarParameter("RELTYPE", "PARENT") }
+                };
+                todo.Properties.Add(rel);
             }
-            else if (todoDict.TryGetValue(parentId.ToString(), out var parentTodo))
-            {
-                parentTodo.destination.Children.Add(todo.destination);
-            }
-            else
-            {
-                throw new Exception($"Parent {parentId} not found");
-            }
+
+            destination.Todos.Add(todo);
         }
     }
 }
