@@ -1,4 +1,4 @@
-namespace TaskConverter.Commons.ConversionHelper;
+namespace TaskConverter.Plugin.Base.ConversionHelper;
 
 public static class BoolConverterExtensions
 {

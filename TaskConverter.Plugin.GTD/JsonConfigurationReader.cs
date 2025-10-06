@@ -1,7 +1,7 @@
 using System.IO.Abstractions;
 using System.Text;
 using FluentValidation;
-using TaskConverter.Commons.Utils;
+using TaskConverter.Plugin.Base.Utils;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Validators;
 

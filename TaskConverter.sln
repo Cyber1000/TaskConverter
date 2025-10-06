@@ -9,9 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Plugin.GTD", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Plugin.GTD.Tests", "TaskConverter.Plugin.GTD.Tests\TaskConverter.Plugin.GTD.Tests.csproj", "{C8F5CFC8-7BA4-4054-B2DA-37066DF70BE8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Plugin.Base", "TaskConverter.Plugin.Base\TaskConverter.Plugin.Base.csproj", "{E52C1080-075C-45A2-9970-36DDA783F6E4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Commons", "TaskConverter.Commons\TaskConverter.Commons.csproj", "{E52C1080-075C-45A2-9970-36DDA783F6E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Commons", "TaskConverter.Commons\TaskConverter.Commons.csproj", "{733ACD22-6AA5-44B3-B2F5-46D3684341D8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Plugin.Base", "TaskConverter.Plugin.Base\TaskConverter.Plugin.Base.csproj", "{733ACD22-6AA5-44B3-B2F5-46D3684341D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,4 +1,4 @@
-using TaskConverter.Commons;
+using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.GTD.TodoModel;
 
 namespace TaskConverter.Plugin.GTD.Utils

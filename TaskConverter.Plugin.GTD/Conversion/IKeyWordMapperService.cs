@@ -1,6 +1,6 @@
 using Ical.Net;
 using NodaTime;
-using TaskConverter.Commons;
+using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 

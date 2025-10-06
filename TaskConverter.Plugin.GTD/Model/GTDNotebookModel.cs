@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using TaskConverter.Commons.ConversionHelper.Json;
+using TaskConverter.Plugin.Base.ConversionHelper.Json;
 
 namespace TaskConverter.Plugin.GTD.Model;
 

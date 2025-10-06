@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace TaskConverter.Commons.ConversionHelper.Json;
+namespace TaskConverter.Plugin.Base.ConversionHelper.Json;
 
 public class TaskInfoEnumConverter : JsonConverter<Enum>
 {

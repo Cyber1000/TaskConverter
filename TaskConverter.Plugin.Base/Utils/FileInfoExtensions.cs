@@ -1,7 +1,7 @@
 using System.IO.Abstractions;
 using System.IO.Compression;
 
-namespace TaskConverter.Commons.Utils;
+namespace TaskConverter.Plugin.Base.Utils;
 
 public static class FileInfoExtensions
 {

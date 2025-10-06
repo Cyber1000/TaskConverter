@@ -1,5 +1,5 @@
 using McMaster.NETCore.Plugins;
-using TaskConverter.Plugin.Base;
+using TaskConverter.Commons;
 
 namespace TaskConverter.Console.PluginHandling;
 

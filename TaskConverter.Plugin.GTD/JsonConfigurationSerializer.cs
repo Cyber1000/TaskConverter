@@ -1,8 +1,8 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using NodaTime;
-using TaskConverter.Commons.ConversionHelper.DateTime;
-using TaskConverter.Commons.ConversionHelper.Json;
+using TaskConverter.Plugin.Base.ConversionHelper.DateTime;
+using TaskConverter.Plugin.Base.ConversionHelper.Json;
 using TaskConverter.Plugin.GTD.ConversionHelper;
 
 namespace TaskConverter.Plugin.GTD

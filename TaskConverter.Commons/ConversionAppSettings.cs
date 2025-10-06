@@ -1,4 +1,4 @@
-namespace TaskConverter.Plugin.Base;
+namespace TaskConverter.Commons;
 
 public class ConversionAppSettings(Dictionary<string, string> appsettings)
 {
@@ -26,8 +26,7 @@ public class ConversionAppSettings(Dictionary<string, string> appsettings)
             if (defaultValue is not null)
                 return defaultValue;
 
-            throw new InvalidCastException(
-                $@"Value ""{rawValue}"" for key ""{key}"" could not be converted to {typeof(T).Name}.", ex);
+            throw new InvalidCastException($@"Value ""{rawValue}"" for key ""{key}"" could not be converted to {typeof(T).Name}.", ex);
         }
     }
 }

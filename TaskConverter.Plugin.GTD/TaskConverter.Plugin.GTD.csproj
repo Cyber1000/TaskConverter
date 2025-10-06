@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="SelfContained">
 
   <ItemGroup>
-    <ProjectReference Include="..\TaskConverter.Commons\TaskConverter.Commons.csproj" />
     <ProjectReference Include="..\TaskConverter.Plugin.Base\TaskConverter.Plugin.Base.csproj" />
+    <ProjectReference Include="..\TaskConverter.Commons\TaskConverter.Commons.csproj" />
   </ItemGroup>
 
   <ItemGroup>

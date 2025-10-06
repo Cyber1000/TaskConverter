@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace TaskConverter.Commons.ConversionHelper;
+namespace TaskConverter.Plugin.Base.ConversionHelper;
 
 public static class ColorConverterExtensions
 {
@@ -25,7 +25,7 @@ public static class ColorConverterExtensions
         {
             -1 => null,
             -2 => Color.Empty,
-            _ => Color.FromArgb(value)
+            _ => Color.FromArgb(value),
         };
     }
 }

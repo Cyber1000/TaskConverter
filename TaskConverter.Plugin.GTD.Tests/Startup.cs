@@ -2,7 +2,7 @@ using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
-using TaskConverter.Commons;
+using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.GTD.Conversion;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;

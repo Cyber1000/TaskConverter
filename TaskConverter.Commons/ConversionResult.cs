@@ -1,8 +1,8 @@
-namespace TaskConverter.Plugin.Base;
+namespace TaskConverter.Commons;
 
 public enum ConversionResult
 {
     NoTasks,
     CanConvert,
-    ConversionError
+    ConversionError,
 }

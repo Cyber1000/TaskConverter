@@ -1,9 +1,9 @@
 using AutoMapper;
 using Ical.Net;
+using TaskConverter.Plugin.Base.Utils;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 using TaskConverter.Plugin.GTD.Utils;
-using TaskConverter.Commons.Utils;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
@@ -20,9 +20,11 @@ public class MapKeyWordsFromIntermediateFormat : IMappingAction<Calendar, GTDDat
         var contexts = keyWordMetaDataList?.Values.Where(k => k.KeyWordType == KeyWordType.Context)?.Select(k => resolutionContext.Mapper.Map<GTDContextModel>(k)).ToList() ?? [];
 
         var statusEnumNames = new HashSet<string>(Enum.GetNames<Status>(), StringComparer.OrdinalIgnoreCase);
-        var filteredStatus = keyWordMetaDataList?.Values
-            .Where(k => k.KeyWordType == KeyWordType.Status && !statusEnumNames.Contains(k.Name.RemovePrefix(statusSymbol)))
-            .Select(k => resolutionContext.Mapper.Map<GTDTagModel>(k)).ToList() ?? [];
+        var filteredStatus =
+            keyWordMetaDataList
+                ?.Values.Where(k => k.KeyWordType == KeyWordType.Status && !statusEnumNames.Contains(k.Name.RemovePrefix(statusSymbol)))
+                .Select(k => resolutionContext.Mapper.Map<GTDTagModel>(k))
+                .ToList() ?? [];
 
         destination.Tag = tags.Union(filteredStatus).ToList();
         destination.Folder = folder;

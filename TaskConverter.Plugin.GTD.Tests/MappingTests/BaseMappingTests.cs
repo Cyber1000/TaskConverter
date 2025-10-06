@@ -2,7 +2,7 @@ using System.Drawing;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using NodaTime;
-using TaskConverter.Commons;
+using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.GTD.Conversion;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;

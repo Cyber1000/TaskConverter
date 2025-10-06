@@ -1,6 +1,6 @@
 using NodaTime;
-using TaskConverter.Commons;
-using TaskConverter.Commons.Utils;
+using TaskConverter.Plugin.Base;
+using TaskConverter.Plugin.Base.Utils;
 using TaskConverter.Plugin.GTD.Conversion;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;

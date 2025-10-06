@@ -1,5 +1,5 @@
 using NodaTime;
-using TaskConverter.Commons;
+using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.GTD.TodoModel;
 
 namespace TaskConverter.Plugin.GTD.Tests.Utils;
@@ -31,16 +31,16 @@ public class TestSettingsProvider : ISettingsProvider
         switch (settingName)
         {
             case "AllowIncompleteMappingIfMoreThanOneItem":
-                {
-                    object value = AllowIncompleteMappingIfMoreThanOneItem;
-                    return (T)Convert.ChangeType(value, typeof(T));
-                }
+            {
+                object value = AllowIncompleteMappingIfMoreThanOneItem;
+                return (T)Convert.ChangeType(value, typeof(T));
+            }
 
             case "PreferenceFilePath":
-                {
-                    object value = PreferenceFilePath;
-                    return (T)Convert.ChangeType(value, typeof(T));
-                }
+            {
+                object value = PreferenceFilePath;
+                return (T)Convert.ChangeType(value, typeof(T));
+            }
         }
         var intermediateSettingName = "IntermediateFormat.Symbol.";
         if (settingName.StartsWith(intermediateSettingName) && Enum.TryParse<KeyWordType>(settingName[intermediateSettingName.Length..], out var intermediateFormatKeyWordType))

@@ -1,6 +1,6 @@
-using TaskConverter.Commons.Utils;
+using TaskConverter.Plugin.Base.Utils;
 
-namespace TaskConverter.Commons.ConversionHelper;
+namespace TaskConverter.Plugin.Base.ConversionHelper;
 
 public static class StringConverterExtensions
 {

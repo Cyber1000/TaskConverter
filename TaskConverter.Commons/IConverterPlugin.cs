@@ -1,6 +1,6 @@
 using Ical.Net;
 
-namespace TaskConverter.Plugin.Base;
+namespace TaskConverter.Commons;
 
 public interface IConverterPlugin
 {

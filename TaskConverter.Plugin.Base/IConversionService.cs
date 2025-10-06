@@ -1,7 +1,6 @@
 using Ical.Net;
-using TaskConverter.Commons;
 
-namespace TaskConverter.Plugin.GTD.Conversion;
+namespace TaskConverter.Plugin.Base;
 
 public interface IConversionService<T>
     where T : class

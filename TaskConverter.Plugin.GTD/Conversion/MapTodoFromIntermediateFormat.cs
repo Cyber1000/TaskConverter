@@ -1,8 +1,8 @@
 using AutoMapper;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
-using TaskConverter.Commons.ConversionHelper;
-using TaskConverter.Commons.Utils;
+using TaskConverter.Plugin.Base.ConversionHelper;
+using TaskConverter.Plugin.Base.Utils;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 using TaskConverter.Plugin.GTD.Utils;
@@ -56,14 +56,13 @@ public class MapTodoFromIntermediateFormat : IMappingAction<Calendar, GTDDataMod
 
         static int GetParentId(Todo todo)
         {
-            var parentProp = todo.Properties
-                .FirstOrDefault(p =>
-                    string.Equals(p.Name, "RELATED-TO", StringComparison.OrdinalIgnoreCase) &&
-                    (p.Parameters.Any(param =>
-                        string.Equals(param.Name, "RELTYPE", StringComparison.OrdinalIgnoreCase) &&
-                        string.Equals(param.Value, "PARENT", StringComparison.OrdinalIgnoreCase))
-                        || !p.Parameters.Any(param => string.Equals(param.Name, "RELTYPE", StringComparison.OrdinalIgnoreCase)))
-                );
+            var parentProp = todo.Properties.FirstOrDefault(p =>
+                string.Equals(p.Name, "RELATED-TO", StringComparison.OrdinalIgnoreCase)
+                && (
+                    p.Parameters.Any(param => string.Equals(param.Name, "RELTYPE", StringComparison.OrdinalIgnoreCase) && string.Equals(param.Value, "PARENT", StringComparison.OrdinalIgnoreCase))
+                    || !p.Parameters.Any(param => string.Equals(param.Name, "RELTYPE", StringComparison.OrdinalIgnoreCase))
+                )
+            );
 
             return parentProp?.Value?.ToString().ToIntWithHashFallback() ?? 0;
         }

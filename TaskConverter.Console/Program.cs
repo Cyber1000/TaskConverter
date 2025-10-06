@@ -1,7 +1,7 @@
 using System.CommandLine;
+using TaskConverter.Commons;
 using TaskConverter.Console;
 using TaskConverter.Console.PluginHandling;
-using TaskConverter.Plugin.Base;
 
 enum Command
 {
@@ -17,34 +17,29 @@ class Programm
         var fromModelOption = new Option<string>("--from-model") { Required = true };
         var fromLocationOption = new Option<string>("--from-location", "File or Url to interact") { Required = true };
 
-        var rootCommand = new RootCommand("Command to map data between different todo/planning apps")
-        {
-            commandTypeOption,
-            fromModelOption,
-            fromLocationOption
-        };
+        var rootCommand = new RootCommand("Command to map data between different todo/planning apps") { commandTypeOption, fromModelOption, fromLocationOption };
 
         var commands = LoadPluginsAndGetCommands();
         fromModelOption.Description = $"Convert from Model. Valid plugins: {string.Join(", ", GetAvailablePlugins(commands))}";
 
         rootCommand.SetAction(parseResult =>
-            {
-                var command = parseResult.GetValue(commandTypeOption);
-                var model = parseResult.GetValue(fromModelOption)?.ToLowerInvariant() ?? string.Empty;
-                var location = parseResult.GetValue(fromLocationOption) ?? string.Empty;
+        {
+            var command = parseResult.GetValue(commandTypeOption);
+            var model = parseResult.GetValue(fromModelOption)?.ToLowerInvariant() ?? string.Empty;
+            var location = parseResult.GetValue(fromLocationOption) ?? string.Empty;
 
-                var errorWriter = Console.Error;
+            var errorWriter = Console.Error;
 
-                if (!ValidateFromModel(model, commands, errorWriter))
-                    return 1;
+            if (!ValidateFromModel(model, commands, errorWriter))
+                return 1;
 
-                var fromCommand = commands[model];
-                if (!ValidateFromLocation(location, fromCommand, errorWriter))
-                    return 1;
+            var fromCommand = commands[model];
+            if (!ValidateFromLocation(location, fromCommand, errorWriter))
+                return 1;
 
-                ExecuteCommand(command, fromCommand, errorWriter);
-                return 0;
-            });
+            ExecuteCommand(command, fromCommand, errorWriter);
+            return 0;
+        });
 
         var parseResult = rootCommand.Parse(args);
         return await parseResult.InvokeAsync();

@@ -1,6 +1,6 @@
 using NodaTime;
 
-namespace TaskConverter.Commons;
+namespace TaskConverter.Plugin.Base;
 
 public interface ISettingsProvider
 {

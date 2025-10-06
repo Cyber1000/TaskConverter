@@ -1,6 +1,6 @@
 using System.IO.Abstractions;
 using AutoMapper;
-using TaskConverter.Commons;
+using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 
@@ -13,12 +13,7 @@ public static class ResolutionContextExtensions
     private const string settingsProviderName = "SettingsProvider";
     private const string fileSystemName = "FileSystem";
 
-    public static void InitializeResolutionContextForMappingToIntermediateFormat(
-        this IMappingOperationOptions options,
-        GTDDataModel source,
-        ISettingsProvider settingsProvider,
-        IFileSystem fileSystem
-    )
+    public static void InitializeResolutionContextForMappingToIntermediateFormat(this IMappingOperationOptions options, GTDDataModel source, ISettingsProvider settingsProvider, IFileSystem fileSystem)
     {
         var keyWordMapperService = new KeyWordMapperService();
 

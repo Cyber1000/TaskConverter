@@ -1,9 +1,9 @@
 using Ical.Net;
 using Ical.Net.CalendarComponents;
 using NodaTime;
-using TaskConverter.Commons;
-using TaskConverter.Commons.ConversionHelper;
-using TaskConverter.Commons.Utils;
+using TaskConverter.Plugin.Base;
+using TaskConverter.Plugin.Base.ConversionHelper;
+using TaskConverter.Plugin.Base.Utils;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 using TaskConverter.Plugin.GTD.Utils;

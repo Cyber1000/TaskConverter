@@ -1,5 +1,5 @@
 using Ical.Net.CalendarComponents;
-using TaskConverter.Commons.ConversionHelper;
+using TaskConverter.Plugin.Base.ConversionHelper;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.TodoModel;
 

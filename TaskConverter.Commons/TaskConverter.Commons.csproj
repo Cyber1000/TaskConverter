@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <ProjectReference Include="..\TaskConverter.Plugin.Base\TaskConverter.Plugin.Base.csproj" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -7,10 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NodaTime" Version="3.2.2" />
-    <PackageReference Include="NodaTime.Serialization.SystemTextJson" Version="1.3.0" />
-    <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="22.0.16" />
-    <PackageReference Include="Ical.Net" Version="5.1.0" />
+      <PackageReference Include="Ical.Net" Version="5.1.0" />
   </ItemGroup>
 
 </Project>
