@@ -1,66 +1,26 @@
 using System.IO.Abstractions;
-using Ical.Net;
 using NodaTime;
 using TaskConverter.Commons;
 using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.GTD.Conversion;
+using TaskConverter.Plugin.GTD.Model;
 
 namespace TaskConverter.Plugin.GTD;
 
-public class GTDConverterPlugin : IConverterPlugin
+public class GTDConverterPlugin(IConversionAppSettings conversionAppSettings) : ConverterPluginBase<GTDDataModel>(conversionAppSettings)
 {
-    private JsonConfigurationReader? jsonReader = null;
-    private readonly FileSystem _fileSystem;
-    private readonly ConversionService _conversionService;
-    private readonly IJsonConfigurationSerializer _jsonConfigurationSerializer;
+    private readonly FileSystem _fileSystem = new();
 
-    public GTDConverterPlugin(IConversionAppSettings conversionAppData)
+    private readonly IJsonConfigurationSerializer _jsonConfigurationSerializer = new JsonConfigurationSerializer();
+
+    protected override IConversionService<GTDDataModel> CreateConversionService(IConversionAppSettings conversionAppSettings)
     {
-        _fileSystem = new FileSystem();
-        _jsonConfigurationSerializer = new JsonConfigurationSerializer();
         var clock = SystemClock.Instance;
-        var settingsProvider = new SettingsProvider(conversionAppData, Name);
-        _conversionService = new ConversionService(clock, settingsProvider, _fileSystem);
+        var settingsProvider = new SettingsProvider(conversionAppSettings, Name);
+        return new ConversionService(clock, settingsProvider, _fileSystem);
     }
 
-    public string Name => "GTD";
+    public override string Name => "GTD";
 
-    public bool SetLocation(string fromLocation)
-    {
-        try
-        {
-            jsonReader = new JsonConfigurationReader(_fileSystem.FileInfo.New(fromLocation), _fileSystem, _jsonConfigurationSerializer);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public (ConversionResult result, Exception? exception) CanConvertToIntermediateFormat()
-    {
-        if (jsonReader?.TaskInfo == null)
-            return (ConversionResult.NoTasks, null);
-
-        try
-        {
-            ConvertToIntermediateFormat();
-            return (ConversionResult.CanConvert, null);
-        }
-        catch (Exception ex)
-        {
-            return (ConversionResult.ConversionError, ex);
-        }
-    }
-
-    public Calendar? ConvertToIntermediateFormat()
-    {
-        return jsonReader?.TaskInfo == null ? null : _conversionService.MapToIntermediateFormat(jsonReader.TaskInfo);
-    }
-
-    public (bool isError, string validationError) ValidateSource()
-    {
-        return jsonReader?.ValidateRoundtrip() ?? (false, "");
-    }
+    protected override IReader<GTDDataModel?>? CreateReader(string fromLocation) => new JsonConfigurationReader(_fileSystem.FileInfo.New(fromLocation), _fileSystem, _jsonConfigurationSerializer);
 }

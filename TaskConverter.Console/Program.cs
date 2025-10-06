@@ -115,7 +115,7 @@ class Programm
     {
         try
         {
-            var (isError, validationError) = command.ValidateSource();
+            var (isError, validationError) = command.CheckSource();
             if (isError)
             {
                 errorConsole.WriteLine($"Output not equal to input - data doesn't match:{Environment.NewLine}{validationError}");

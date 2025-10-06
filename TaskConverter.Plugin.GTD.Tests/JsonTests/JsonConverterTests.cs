@@ -134,7 +134,7 @@ public class JsonConverterTests
         var recreatedJson = outFile.TextContents;
         AssertJsonEqual(originalJson, recreatedJson);
 
-        verifyAction(jsonReader.TaskInfo as T);
+        verifyAction(jsonReader.Result as T);
     }
 
     private static void AssertJsonEqual(string expectedJson, string actualJson)

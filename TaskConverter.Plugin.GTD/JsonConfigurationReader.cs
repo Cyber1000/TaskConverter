@@ -1,16 +1,18 @@
 using System.IO.Abstractions;
 using System.Text;
 using FluentValidation;
+using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.Base.Utils;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Validators;
 
 namespace TaskConverter.Plugin.GTD;
 
-public class JsonConfigurationReader
+//TODO HH: own writer
+public class JsonConfigurationReader : IReader<GTDDataModel?>
 {
     private string? RawJsonString;
-    public GTDDataModel? TaskInfo { get; private set; }
+    public GTDDataModel? Result { get; private set; }
     private readonly IFileSystem _fileSystem;
     private readonly IJsonConfigurationSerializer _jsonConfigurationSerializer;
 
@@ -29,12 +31,12 @@ public class JsonConfigurationReader
     {
         RawJsonString = jsonString;
 
-        TaskInfo = _jsonConfigurationSerializer.Deserialize<GTDDataModel>(jsonString);
-        if (TaskInfo == null)
+        Result = _jsonConfigurationSerializer.Deserialize<GTDDataModel>(jsonString);
+        if (Result == null)
             return;
 
         var validator = new GTDDataModelValidator();
-        var dataConsistencyResult = validator.Validate(TaskInfo);
+        var dataConsistencyResult = validator.Validate(Result);
 
         if (!dataConsistencyResult.IsValid)
         {
@@ -54,15 +56,15 @@ public class JsonConfigurationReader
 
     private string? GetJsonOutput()
     {
-        if (TaskInfo == null)
+        if (Result == null)
             return null;
 
-        return _jsonConfigurationSerializer.Serialize(TaskInfo);
+        return _jsonConfigurationSerializer.Serialize(Result);
     }
 
-    public (bool isError, string validationError) ValidateRoundtrip()
+    public (bool isError, string validationError) CheckSource()
     {
-        var roundtripValidator = new GTDRoundtripValidator(RawJsonString, TaskInfo, GetJsonOutput);
+        var roundtripValidator = new GTDRoundtripValidator(RawJsonString, Result, GetJsonOutput);
         return roundtripValidator.Validate();
     }
 }

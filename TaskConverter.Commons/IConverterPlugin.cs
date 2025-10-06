@@ -13,5 +13,5 @@ public interface IConverterPlugin
 
     Calendar? ConvertToIntermediateFormat();
 
-    public (bool isError, string validationError) ValidateSource();
+    public (bool isError, string validationError) CheckSource();
 }

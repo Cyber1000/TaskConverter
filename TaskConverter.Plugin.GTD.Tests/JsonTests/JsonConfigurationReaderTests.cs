@@ -345,7 +345,7 @@ public class JsonConfigurationReaderTests
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(json));
         var reader = new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, _jsonConfigurationSerializer);
 
-        var (isError, validationError) = reader.ValidateRoundtrip();
+        var (isError, validationError) = reader.CheckSource();
 
         Assert.False(isError);
         Assert.Empty(validationError);
@@ -362,7 +362,7 @@ public class JsonConfigurationReaderTests
 
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(originalJson));
         var reader = new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, testJsonConfigurationSerializer);
-        var (isError, validationError) = reader.ValidateRoundtrip();
+        var (isError, validationError) = reader.CheckSource();
 
         Assert.True(isError);
         Assert.Contains("\"original\": \"Test\"", validationError);
@@ -381,7 +381,7 @@ public class JsonConfigurationReaderTests
 
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(originalJson));
         var reader = new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, testJsonConfigurationSerializer);
-        var (isError, validationError) = reader.ValidateRoundtrip();
+        var (isError, validationError) = reader.CheckSource();
 
         Assert.True(isError);
         Assert.Contains("<xd:change match=\"1\" name=\"special\" /></xd:xmldiff>", validationError);
@@ -398,7 +398,7 @@ public class JsonConfigurationReaderTests
 
         _mockFileSystem.AddFile(originalFilePath, new MockFileData(originalJson));
         var reader = new JsonConfigurationReader(_mockFileSystem.FileInfo.New(originalFilePath), _mockFileSystem, testJsonConfigurationSerializer);
-        var ex = Record.Exception(() => reader.ValidateRoundtrip());
+        var ex = Record.Exception(() => reader.CheckSource());
 
         Assert.NotNull(ex);
         Assert.Equal("XML preferences section not found in JSON input.", ex.Message);
