@@ -1,4 +1,3 @@
-using TaskConverter.Commons;
 using configurationManager = System.Configuration.ConfigurationManager;
 
 namespace TaskConverter.Console;

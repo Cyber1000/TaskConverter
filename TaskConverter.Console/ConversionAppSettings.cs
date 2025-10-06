@@ -1,6 +1,8 @@
-namespace TaskConverter.Commons;
+using TaskConverter.Commons;
 
-public class ConversionAppSettings(Dictionary<string, string> appsettings)
+namespace TaskConverter.Console;
+
+public class ConversionAppSettings(Dictionary<string, string> appsettings) : IConversionAppSettings
 {
     private readonly Dictionary<string, string> _appsettings = appsettings ?? throw new ArgumentNullException(nameof(appsettings));
 

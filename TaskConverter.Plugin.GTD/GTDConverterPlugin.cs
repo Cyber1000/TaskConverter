@@ -10,12 +10,12 @@ public class GTDConverterPlugin : IConverterPlugin
 {
     private JsonConfigurationReader? jsonReader = null;
 
-    internal ConversionAppSettings ConversionAppData;
+    internal IConversionAppSettings ConversionAppData;
     private readonly FileSystem _fileSystem;
     private readonly ConversionService _conversionService;
     private readonly IJsonConfigurationSerializer _jsonConfigurationSerializer;
 
-    public GTDConverterPlugin(ConversionAppSettings conversionAppData)
+    public GTDConverterPlugin(IConversionAppSettings conversionAppData)
     {
         ConversionAppData = conversionAppData;
         _fileSystem = new FileSystem();
