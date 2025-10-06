@@ -118,7 +118,7 @@ class Programm
             var (isError, validationError) = command.ValidateSource();
             if (isError)
             {
-                errorConsole.WriteLine($"Output not equal to input - data doesn't match:{System.Environment.NewLine}{validationError}");
+                errorConsole.WriteLine($"Output not equal to input - data doesn't match:{Environment.NewLine}{validationError}");
             }
             else
             {

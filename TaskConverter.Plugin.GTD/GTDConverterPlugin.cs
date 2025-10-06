@@ -2,6 +2,7 @@ using System.IO.Abstractions;
 using Ical.Net;
 using NodaTime;
 using TaskConverter.Commons;
+using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.GTD.Conversion;
 
 namespace TaskConverter.Plugin.GTD;
@@ -9,19 +10,16 @@ namespace TaskConverter.Plugin.GTD;
 public class GTDConverterPlugin : IConverterPlugin
 {
     private JsonConfigurationReader? jsonReader = null;
-
-    internal IConversionAppSettings ConversionAppData;
     private readonly FileSystem _fileSystem;
     private readonly ConversionService _conversionService;
     private readonly IJsonConfigurationSerializer _jsonConfigurationSerializer;
 
     public GTDConverterPlugin(IConversionAppSettings conversionAppData)
     {
-        ConversionAppData = conversionAppData;
         _fileSystem = new FileSystem();
         _jsonConfigurationSerializer = new JsonConfigurationSerializer();
         var clock = SystemClock.Instance;
-        var settingsProvider = new SettingsProvider(this);
+        var settingsProvider = new SettingsProvider(conversionAppData, Name);
         _conversionService = new ConversionService(clock, settingsProvider, _fileSystem);
     }
 
