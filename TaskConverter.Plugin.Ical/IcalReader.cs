@@ -6,6 +6,8 @@ namespace TaskConverter.Plugin.Ical;
 
 public class IcalReader : IReader<List<Calendar>?>
 {
+    private IDirectoryInfo DirectoryInfo { get; }
+
     public List<Calendar> Result { get; } = [];
 
     public IcalReader(IFileSystem fileSystem, IDirectoryInfo directoryInfo)
@@ -17,11 +19,19 @@ public class IcalReader : IReader<List<Calendar>?>
             if (calendar != null)
                 Result.Add(calendar);
         }
+
+        DirectoryInfo = directoryInfo;
     }
 
     public (bool isError, string validationError) CheckSource()
     {
-        //TODO HH: fix
-        throw new NotImplementedException();
+        try
+        {
+            return (DirectoryInfo.GetFiles("*.ics").Length != 0) ? (false, string.Empty) : (true, "No ics-file found.");
+        }
+        catch (Exception ex)
+        {
+            return (true, ex.Message);
+        }
     }
 }

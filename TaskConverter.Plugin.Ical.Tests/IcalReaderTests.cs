@@ -33,4 +33,47 @@ public class IcalReaderTests
         Assert.Contains(reader.Result, c => c.Todos.Count == 1);
         Assert.Contains(reader.Result, c => c.Journals.Count == 1);
     }
+
+    [Fact]
+    public void Read_WithFiles_CanMap()
+    {
+        var calendar1 = Create.A.Calendar()
+            .AddTodo("task-123@example.com", "Test Task 1", DateTime.UtcNow.AddDays(5))
+            .Build()
+            .Serialize();
+
+        var calendar2 = Create.A.Calendar()
+            .AddJournal("journal-456@example.com", "Test Journal", "Details for journal")
+            .Build()
+            .Serialize();
+
+        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        {
+            { @"/TestFolder/file1.ics", new MockFileData(calendar1) },
+            { @"/TestFolder/file2.ics", new MockFileData(calendar2) }
+        });
+
+        var directoryInfo = mockFileSystem.DirectoryInfo.New(@"/TestFolder");
+        var reader = new IcalReader(mockFileSystem, directoryInfo);
+
+        var (isError, validationError) = reader.CheckSource();
+
+        Assert.False(isError);
+        Assert.Empty(validationError);
+    }
+
+    [Fact]
+    public void Read_WithoutFiles_CanNotMap()
+    {
+        var mockFileSystem = new MockFileSystem();
+        mockFileSystem.AddDirectory("/TestFolder");
+
+        var directoryInfo = mockFileSystem.DirectoryInfo.New("/TestFolder");
+        var reader = new IcalReader(mockFileSystem, directoryInfo);
+
+        var (isError, validationError) = reader.CheckSource();
+
+        Assert.True(isError);
+        Assert.Equal("No ics-file found.", validationError);
+    }
 }
