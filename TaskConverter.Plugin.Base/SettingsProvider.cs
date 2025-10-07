@@ -7,7 +7,6 @@ public class SettingsProvider(IConversionAppSettings conversionAppSettings, stri
 {
     private readonly IConversionAppSettings ConversionAppSettings = conversionAppSettings ?? throw new Exception("Plugin must not be null");
 
-    //TODO HH: gtd-specific?
     public DateTimeZone CurrentDateTimeZone =>
         DateTimeZoneProviders.Tzdb.GetZoneOrNull(ConversionAppSettings.GetAppSetting("TimeZoneId", "")) ?? DateTimeZoneProviders.Tzdb.GetSystemDefault();
 
