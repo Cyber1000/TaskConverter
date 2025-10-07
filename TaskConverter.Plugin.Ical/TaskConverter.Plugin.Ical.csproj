@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="SelfContained">
+
+  <ItemGroup>
+    <ProjectReference Include="..\TaskConverter.Commons\TaskConverter.Commons.csproj" />
+    <ProjectReference Include="..\TaskConverter.Plugin.Base\TaskConverter.Plugin.Base.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="22.0.16" />
+    <PackageReference Include="Ical.Net" Version="5.1.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RuntimeIdentifiers>linux-x64;win-x64;osx-x64</RuntimeIdentifiers>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SelfContained>False</SelfContained>
+  </PropertyGroup>
+
+</Project>

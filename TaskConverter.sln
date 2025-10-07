@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Commons", "Ta
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Plugin.Base", "TaskConverter.Plugin.Base\TaskConverter.Plugin.Base.csproj", "{733ACD22-6AA5-44B3-B2F5-46D3684341D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Plugin.Ical", "TaskConverter.Plugin.Ical\TaskConverter.Plugin.Ical.csproj", "{405DA8AA-871F-42C0-AD45-EC7B2F0E5903}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskConverter.Plugin.Ical.Tests", "TaskConverter.Plugin.Ical.Tests\TaskConverter.Plugin.Ical.Tests.csproj", "{9CAC2C99-AB00-461B-AE2F-713C0954A445}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,5 +50,13 @@ Global
 		{733ACD22-6AA5-44B3-B2F5-46D3684341D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{733ACD22-6AA5-44B3-B2F5-46D3684341D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{733ACD22-6AA5-44B3-B2F5-46D3684341D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{405DA8AA-871F-42C0-AD45-EC7B2F0E5903}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{405DA8AA-871F-42C0-AD45-EC7B2F0E5903}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{405DA8AA-871F-42C0-AD45-EC7B2F0E5903}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{405DA8AA-871F-42C0-AD45-EC7B2F0E5903}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CAC2C99-AB00-461B-AE2F-713C0954A445}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CAC2C99-AB00-461B-AE2F-713C0954A445}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CAC2C99-AB00-461B-AE2F-713C0954A445}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CAC2C99-AB00-461B-AE2F-713C0954A445}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
