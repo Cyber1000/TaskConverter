@@ -2,6 +2,7 @@ using System.IO.Abstractions.TestingHelpers;
 using System.Text;
 using System.Text.Json.JsonDiffPatch;
 using System.Xml;
+using Newtonsoft.Json;
 using NodaTime;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;
@@ -128,13 +129,15 @@ public class JsonConverterTests
         var originalJson = buildJson(Create.A.JsonData()).Build();
         var mockFileSystem = new MockFileSystem();
         mockFileSystem.AddFile("GTD.json", new MockFileData(originalJson));
-        var jsonReader = new JsonConfigurationReader(mockFileSystem.FileInfo.New("GTD.json"), mockFileSystem, new TestJsonConfigurationSerializer());
-        jsonReader.Write(mockFileSystem.FileInfo.New("outfile"));
+        var jsonReader = new JsonConfigurationReader(mockFileSystem, new TestJsonConfigurationSerializer());
+        var model = jsonReader.Read("GTD.json");
+        var jsonWriter = new JsonConfigurationWriter(mockFileSystem, new TestJsonConfigurationSerializer());
+        jsonWriter.Write("outfile", model);
         var outFile = mockFileSystem.GetFile("outfile");
         var recreatedJson = outFile.TextContents;
         AssertJsonEqual(originalJson, recreatedJson);
 
-        verifyAction(jsonReader.Result as T);
+        verifyAction(jsonReader.Read("GTD.json") as T);
     }
 
     private static void AssertJsonEqual(string expectedJson, string actualJson)

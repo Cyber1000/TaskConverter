@@ -2,16 +2,23 @@ using Ical.Net;
 
 namespace TaskConverter.Commons;
 
+public record CanConvertResult(bool Success, ConversionResultType ResultType, Exception? Exception);
+
+public record ConvertToResult(bool Success, ConversionResultType ResultType, Calendar? Result, Exception? Exception);
+
+public record ConvertFromResult(bool Success, ConversionResultType ResultType, Exception? Exception);
+
+public record SourceResult(bool Success, Exception? Exception);
+
 public interface IConverterPlugin
 {
     string Name { get; }
 
-    //TODO HH: only fromLocation?
-    bool SetLocation(string fromLocation);
+    CanConvertResult CanConvertToIntermediateFormat(string source);
 
-    (ConversionResult result, Exception? exception) CanConvertToIntermediateFormat();
+    ConvertToResult ConvertToIntermediateFormat(string source);
 
-    Calendar? ConvertToIntermediateFormat();
+    SourceResult CheckSource(string source);
 
-    public (bool isError, string validationError) CheckSource();
+    ConvertFromResult ConvertFromIntermediateFormat(string destination, Calendar sourceModel);
 }

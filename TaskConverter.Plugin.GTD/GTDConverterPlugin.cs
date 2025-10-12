@@ -22,5 +22,7 @@ public class GTDConverterPlugin(IConversionAppSettings conversionAppSettings) : 
 
     public override string Name => "GTD";
 
-    protected override IReader<GTDDataModel?>? CreateReader(string fromLocation) => new JsonConfigurationReader(_fileSystem.FileInfo.New(fromLocation), _fileSystem, _jsonConfigurationSerializer);
+    protected override IReader<GTDDataModel?>? CreateReader() => new JsonConfigurationReader(_fileSystem, _jsonConfigurationSerializer);
+
+    protected override IWriter<GTDDataModel?>? CreateWriter() => new JsonConfigurationWriter(_fileSystem, _jsonConfigurationSerializer);
 }

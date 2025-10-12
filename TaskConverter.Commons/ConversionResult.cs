@@ -1,8 +1,10 @@
 namespace TaskConverter.Commons;
 
-public enum ConversionResult
+public enum ConversionResultType
 {
-    NoTasks,
     CanConvert,
+    ReaderError,
+    WriterError,
+    NoTasks,
     ConversionError,
 }

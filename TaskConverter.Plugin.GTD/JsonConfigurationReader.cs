@@ -1,6 +1,6 @@
 using System.IO.Abstractions;
-using System.Text;
 using FluentValidation;
+using TaskConverter.Commons;
 using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.Base.Utils;
 using TaskConverter.Plugin.GTD.Model;
@@ -8,63 +8,51 @@ using TaskConverter.Plugin.GTD.Validators;
 
 namespace TaskConverter.Plugin.GTD;
 
-//TODO HH: own writer
-public class JsonConfigurationReader : IReader<GTDDataModel?>
+public class JsonConfigurationReader(IFileSystem FileSystem, IJsonConfigurationSerializer JsonConfigurationSerializer) : IReader<GTDDataModel?>
 {
-    private string? RawJsonString;
-    public GTDDataModel? Result { get; private set; }
-    private readonly IFileSystem _fileSystem;
-    private readonly IJsonConfigurationSerializer _jsonConfigurationSerializer;
-
-    public JsonConfigurationReader(IFileInfo inputFile, IFileSystem fileSystem, IJsonConfigurationSerializer jsonConfigurationSerializer)
+    public GTDDataModel? Read(string source)
     {
-        _fileSystem = fileSystem;
-        _jsonConfigurationSerializer = jsonConfigurationSerializer;
+        return ReadInternal(source).dataModel;
+    }
+
+    private (string rawJsonString, GTDDataModel? dataModel) ReadInternal(string source)
+    {
+        var inputFile = FileSystem.FileInfo.New(source);
+
         if (!inputFile.Exists)
             throw new Exception($"File {inputFile} doesn't exist");
 
-        var jsonString = inputFile.FullName.EndsWith(".zip") ? inputFile.ReadFromZip() : fileSystem.File.ReadAllText(inputFile.FullName);
-        Read(jsonString);
-    }
+        var jsonString = inputFile.FullName.EndsWith(".zip") ? inputFile.ReadFromZip() : FileSystem.File.ReadAllText(inputFile.FullName);
 
-    private void Read(string jsonString)
-    {
-        RawJsonString = jsonString;
+        var rawJsonString = jsonString;
 
-        Result = _jsonConfigurationSerializer.Deserialize<GTDDataModel>(jsonString);
-        if (Result == null)
-            return;
+        var result = JsonConfigurationSerializer.Deserialize<GTDDataModel>(jsonString);
+        if (result == null)
+            return (rawJsonString, null);
 
         var validator = new GTDDataModelValidator();
-        var dataConsistencyResult = validator.Validate(Result);
+        var dataConsistencyResult = validator.Validate(result);
 
         if (!dataConsistencyResult.IsValid)
         {
             throw new ValidationException(dataConsistencyResult.Errors);
         }
+        return (rawJsonString, result);
     }
 
-    public void Write(IFileInfo outputFile)
+    private string? GetJsonOutput(GTDDataModel? result)
     {
-        var output = GetJsonOutput();
-        if (output == null)
-            return;
-
-        var fileName = outputFile.FullName;
-        _fileSystem.File.WriteAllText(fileName, output, Encoding.UTF8);
-    }
-
-    private string? GetJsonOutput()
-    {
-        if (Result == null)
+        if (result == null)
             return null;
 
-        return _jsonConfigurationSerializer.Serialize(Result);
+        return JsonConfigurationSerializer.Serialize(result);
     }
 
-    public (bool isError, string validationError) CheckSource()
+    public SourceResult CheckSource(string source)
     {
-        var roundtripValidator = new GTDRoundtripValidator(RawJsonString, Result, GetJsonOutput);
+        var (rawJsonString, result) = ReadInternal(source);
+
+        var roundtripValidator = new GTDRoundtripValidator(rawJsonString, result, GetJsonOutput(result));
         return roundtripValidator.Validate();
     }
 }

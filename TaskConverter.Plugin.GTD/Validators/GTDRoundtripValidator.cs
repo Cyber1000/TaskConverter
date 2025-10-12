@@ -3,6 +3,7 @@ using System.Text.Json.JsonDiffPatch;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Xml;
+using TaskConverter.Commons;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Utils;
 
@@ -12,29 +13,30 @@ namespace TaskConverter.Plugin.GTD.Validators
     {
         private readonly string? _rawJsonString;
         private readonly GTDDataModel? _taskInfo;
-        private readonly Func<string?> _getJsonOutput;
+        private readonly string? _recreatedJsonText;
 
-        public GTDRoundtripValidator(string? rawJsonString, GTDDataModel? taskInfo, Func<string?> getJsonOutput)
+        public GTDRoundtripValidator(string? rawJsonString, GTDDataModel? taskInfo, string? recreatedJsonText)
         {
             _rawJsonString = rawJsonString;
             _taskInfo = taskInfo;
-            _getJsonOutput = getJsonOutput;
+            _recreatedJsonText = recreatedJsonText;
         }
 
         [GeneratedRegex(@"com\.dg\.gtd\.android\.lite_preferences"":\s*""([^""\\]*(?:\\.[^""\\]*)*)")]
         private static partial Regex PreferencesRegex();
 
-        public (bool isError, string validationError) Validate()
+        public SourceResult Validate()
         {
             if (_rawJsonString == null || _taskInfo == null)
-                return (false, "");
+                return new SourceResult(false, null);
 
-            var recreatedJsonText = _getJsonOutput();
+            var recreatedJsonText = _recreatedJsonText;
             var (jsonError, jsonDiffText) = ValidateJson(_rawJsonString, recreatedJsonText);
             var (xmlError, xmlDiffText) = ValidateXml(_rawJsonString, recreatedJsonText);
 
             var validationError = BuildValidationMessage(jsonError, jsonDiffText, xmlError, xmlDiffText);
-            return (jsonError || xmlError, validationError);
+            var isError = jsonError || xmlError;
+            return new SourceResult(!isError, isError ? new Exception(validationError) : null);
         }
 
         private (bool hasError, string diffText) ValidateJson(string original, string? recreated)

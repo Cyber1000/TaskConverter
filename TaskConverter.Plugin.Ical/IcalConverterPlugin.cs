@@ -17,6 +17,6 @@ public class IcalConverterPlugin(IConversionAppSettings conversionAppSettings) :
 
     public override string Name => "Ical";
 
-    //TODO HH: rename fromLocation?
-    protected override IReader<List<Calendar>?>? CreateReader(string fromLocation) => new IcalReader(_fileSystem, _fileSystem.DirectoryInfo.New(fromLocation));
+    protected override IReader<List<Calendar>?>? CreateReader() => new IcalReader(_fileSystem);
+    protected override IWriter<List<Calendar>?>? CreateWriter() => new IcalWriter(_fileSystem);
 }

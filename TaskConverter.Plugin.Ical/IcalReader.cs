@@ -1,37 +1,37 @@
 using System.IO.Abstractions;
 using Ical.Net;
+using TaskConverter.Commons;
 using TaskConverter.Plugin.Base;
 
 namespace TaskConverter.Plugin.Ical;
 
-public class IcalReader : IReader<List<Calendar>?>
+public class IcalReader(IFileSystem FileSystem) : IReader<List<Calendar>?>
 {
-    private IDirectoryInfo DirectoryInfo { get; }
-
-    public List<Calendar> Result { get; } = [];
-
-    public IcalReader(IFileSystem fileSystem, IDirectoryInfo directoryInfo)
+    public List<Calendar> Read(string source)
     {
-        foreach (var fileInfo in directoryInfo.GetFiles("*.ics"))
+        var result = new List<Calendar>();
+
+        foreach (var fileInfo in GetDirectoryInfo(FileSystem, source).GetFiles("*.ics"))
         {
-            var icsText = fileSystem.File.ReadAllText(fileInfo.FullName);
+            var icsText = FileSystem.File.ReadAllText(fileInfo.FullName);
             var calendar = Calendar.Load(icsText);
             if (calendar != null)
-                Result.Add(calendar);
+                result.Add(calendar);
         }
-
-        DirectoryInfo = directoryInfo;
+        return result;
     }
 
-    public (bool isError, string validationError) CheckSource()
+    public SourceResult CheckSource(string source)
     {
         try
         {
-            return (DirectoryInfo.GetFiles("*.ics").Length != 0) ? (false, string.Empty) : (true, "No ics-file found.");
+            return (GetDirectoryInfo(FileSystem, source).GetFiles("*.ics").Length != 0) ? new SourceResult(true, null) : new SourceResult(false, new Exception("No ics-file found."));
         }
         catch (Exception ex)
         {
-            return (true, ex.Message);
+            return new SourceResult(false, ex);
         }
     }
+
+    private static IDirectoryInfo GetDirectoryInfo(IFileSystem FileSystem, string source) => FileSystem.DirectoryInfo.New(source);
 }

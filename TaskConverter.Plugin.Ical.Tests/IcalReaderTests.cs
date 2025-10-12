@@ -10,56 +10,39 @@ public class IcalReaderTests
     [Fact]
     public void Read_Ical_ShouldBeValid()
     {
-        var calendar1 = Create.A.Calendar()
-            .AddTodo("task-123@example.com", "Test Task 1", DateTime.UtcNow.AddDays(5))
-            .Build()
-            .Serialize();
+        var calendar1 = Create.A.Calendar().AddTodo("task-123@example.com", "Test Task 1", DateTime.UtcNow.AddDays(5)).Build().Serialize();
 
-        var calendar2 = Create.A.Calendar()
-            .AddJournal("journal-456@example.com", "Test Journal", "Details for journal")
-            .Build()
-            .Serialize();
+        var calendar2 = Create.A.Calendar().AddJournal("journal-456@example.com", "Test Journal", "Details for journal").Build().Serialize();
 
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { @"/TestFolder/file1.ics", new MockFileData(calendar1) },
-            { @"/TestFolder/file2.ics", new MockFileData(calendar2) }
-        });
+        var mockFileSystem = new MockFileSystem(
+            new Dictionary<string, MockFileData> { { @"/TestFolder/file1.ics", new MockFileData(calendar1) }, { @"/TestFolder/file2.ics", new MockFileData(calendar2) } }
+        );
 
-        var directoryInfo = mockFileSystem.DirectoryInfo.New(@"/TestFolder");
-        var reader = new IcalReader(mockFileSystem, directoryInfo);
+        var reader = new IcalReader(mockFileSystem);
+        var result = reader.Read("/TestFolder");
 
-        Assert.Equal(2, reader.Result.Count);
-        Assert.Contains(reader.Result, c => c.Todos.Count == 1);
-        Assert.Contains(reader.Result, c => c.Journals.Count == 1);
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, c => c.Todos.Count == 1);
+        Assert.Contains(result, c => c.Journals.Count == 1);
     }
 
     [Fact]
     public void Read_WithFiles_CanMap()
     {
-        var calendar1 = Create.A.Calendar()
-            .AddTodo("task-123@example.com", "Test Task 1", DateTime.UtcNow.AddDays(5))
-            .Build()
-            .Serialize();
+        var calendar1 = Create.A.Calendar().AddTodo("task-123@example.com", "Test Task 1", DateTime.UtcNow.AddDays(5)).Build().Serialize();
 
-        var calendar2 = Create.A.Calendar()
-            .AddJournal("journal-456@example.com", "Test Journal", "Details for journal")
-            .Build()
-            .Serialize();
+        var calendar2 = Create.A.Calendar().AddJournal("journal-456@example.com", "Test Journal", "Details for journal").Build().Serialize();
 
-        var mockFileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { @"/TestFolder/file1.ics", new MockFileData(calendar1) },
-            { @"/TestFolder/file2.ics", new MockFileData(calendar2) }
-        });
+        var mockFileSystem = new MockFileSystem(
+            new Dictionary<string, MockFileData> { { @"/TestFolder/file1.ics", new MockFileData(calendar1) }, { @"/TestFolder/file2.ics", new MockFileData(calendar2) } }
+        );
 
-        var directoryInfo = mockFileSystem.DirectoryInfo.New(@"/TestFolder");
-        var reader = new IcalReader(mockFileSystem, directoryInfo);
+        var reader = new IcalReader(mockFileSystem);
 
-        var (isError, validationError) = reader.CheckSource();
+        var (success, exception) = reader.CheckSource("/TestFolder");
 
-        Assert.False(isError);
-        Assert.Empty(validationError);
+        Assert.True(success);
+        Assert.Null(exception);
     }
 
     [Fact]
@@ -68,12 +51,11 @@ public class IcalReaderTests
         var mockFileSystem = new MockFileSystem();
         mockFileSystem.AddDirectory("/TestFolder");
 
-        var directoryInfo = mockFileSystem.DirectoryInfo.New("/TestFolder");
-        var reader = new IcalReader(mockFileSystem, directoryInfo);
+        var reader = new IcalReader(mockFileSystem);
 
-        var (isError, validationError) = reader.CheckSource();
+        var (success, exception) = reader.CheckSource("/TestFolder");
 
-        Assert.True(isError);
-        Assert.Equal("No ics-file found.", validationError);
+        Assert.False(success);
+        Assert.Equal("No ics-file found.", exception?.Message);
     }
 }

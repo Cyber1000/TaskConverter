@@ -1,9 +1,10 @@
-namespace TaskConverter.Plugin.Base
-{
-    public interface IReader<T>
-    {
-        T Result { get; }
+using TaskConverter.Commons;
 
-        (bool isError, string validationError) CheckSource();
-    }
+namespace TaskConverter.Plugin.Base;
+
+public interface IReader<T>
+{
+    T Read(string source);
+
+    SourceResult CheckSource(string source);
 }
