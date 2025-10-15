@@ -11,10 +11,12 @@ namespace TaskConverter.Plugin.GTD.TodoModel
         Status,
     }
 
-    public readonly struct KeyWordMetaData(int id, string name, KeyWordType keyWordType, CalDateTime created, CalDateTime modified, Color? color, bool isVisible) : IEquatable<KeyWordMetaData>
+    public readonly struct KeyWordMetaData(int id, string name, string nameWithType, KeyWordType keyWordType, CalDateTime created, CalDateTime modified, Color? color, bool isVisible)
+        : IEquatable<KeyWordMetaData>
     {
         public int Id { get; } = id;
         public string Name { get; } = name;
+        public string NameWithType { get; } = nameWithType;
         public KeyWordType KeyWordType { get; } = keyWordType;
         public CalDateTime Created { get; } = created;
         public CalDateTime Modified { get; } = modified;

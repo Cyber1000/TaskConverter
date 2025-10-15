@@ -6,6 +6,16 @@ namespace TaskConverter.Plugin.GTD.Tests.Utils;
 
 public class TestSettingsProvider : ISettingsProvider
 {
+    public TestSettingsProvider()
+    {
+        SetIntermediateFormatSymbol(KeyWordType.Folder, "+");
+        SetIntermediateFormatSymbol(KeyWordType.Context, "@");
+        SetIntermediateFormatSymbol(KeyWordType.Status, "#");
+        SetGTDFormatSymbol(KeyWordType.Folder, "+");
+        SetGTDFormatSymbol(KeyWordType.Context, "@");
+        SetGTDFormatSymbol(KeyWordType.Status, "#");
+    }
+
     public Dictionary<KeyWordType, string> intermediateFormatSymbol = [];
 
     public Dictionary<KeyWordType, string> gtdFormatSymbol = [];

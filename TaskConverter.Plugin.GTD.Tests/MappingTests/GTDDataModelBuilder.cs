@@ -43,7 +43,7 @@ public class GTDDataModelBuilder
                 Children = 0,
                 Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
                 Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                Title = $"Folder {id}",
+                Title = $"+Folder {id}",
                 Color = -694050399,
                 Visible = false,
                 Ordinal = 0,
@@ -63,7 +63,7 @@ public class GTDDataModelBuilder
                 Children = 0,
                 Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
                 Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                Title = $"Context {id}",
+                Title = $"@Context {id}",
                 Color = -694050399,
                 Visible = false,
             }

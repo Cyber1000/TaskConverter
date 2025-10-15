@@ -12,8 +12,7 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, ISettingsProvider settingsProvider, IKeyWordMapperService keyWordMapperService)
-    : BaseMappingTests(testConverter, clock, settingsProvider)
+public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IKeyWordMapperService keyWordMapperService) : BaseMappingTests(testConverter, clock)
 {
     public enum HideTestCase
     {
@@ -85,16 +84,9 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     [Fact]
     public void Map_TaskKeywordsWithSameNames_ShouldMapCorrectly()
     {
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Folder, "+");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Context, "@");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Status, "#");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Folder, "");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Context, "@");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Status, "#");
-
         var gtdDataModel = CreateGTDDataModelWithTask();
-        gtdDataModel.Folder!.First().Title = "Test";
-        gtdDataModel.Context!.First().Title = "Test";
+        gtdDataModel.Folder!.First().Title = "+Test";
+        gtdDataModel.Context!.First().Title = "@Test";
         gtdDataModel.Tag!.First().Title = "Test";
 
         var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
@@ -103,27 +95,42 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         AssertTaskKeywords(gtdTaskModel, taskAppDataModel!);
     }
 
-    [Theory]
-    [InlineData(Status.None, false, "NEEDS-ACTION", null)]
-    [InlineData(Status.NextAction, false, "IN-PROCESS", "#NextAction")]
-    [InlineData(Status.Active, false, "IN-PROCESS", "#Active")]
-    [InlineData(Status.Planning, false, "IN-PROCESS", "#Planning")]
-    [InlineData(Status.Delegated, false, "IN-PROCESS", "#Delegated")]
-    [InlineData(Status.Waiting, false, "NEEDS-ACTION", "#Waiting")]
-    [InlineData(Status.Hold, false, "NEEDS-ACTION", "#Hold")]
-    [InlineData(Status.Postponed, false, "NEEDS-ACTION", "#Postponed")]
-    [InlineData(Status.Someday, false, "NEEDS-ACTION", "#Someday")]
-    [InlineData(Status.Canceled, false, "CANCELLED", null)]
-    [InlineData(Status.Reference, false, "IN-PROCESS", "#Reference")]
-    public void Map_State_ShouldBeValid(Status status, bool isCompleted, string expectedStatus, string expectedCategory)
+    [Fact]
+    public void Map_TaskKeywordsMapping_ShouldNotDuplicateSymbols()
     {
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Folder, "+");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Context, "@");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Status, "#");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Folder, "");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Context, "@");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Status, "#");
+        var gtdDataModel = CreateGTDDataModelWithTask();
+        gtdDataModel.Folder!.First().Title = "+Test";
+        gtdDataModel.Context!.First().Title = "@Test";
+        gtdDataModel.Tag!.First().Title = "Test";
 
+        var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
+        var gtdTaskModel = gtdDataModel.Task![0];
+
+        var keyWordMetaDataList = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentSettingsProvider).Values;
+        Assert.Equal("@Test", GetFirstNameOfKeyWord(KeyWordType.Context));
+        Assert.Equal("+Test", GetFirstNameOfKeyWord(KeyWordType.Folder));
+        Assert.Equal("Test", keyWordMetaDataList.Where(t => t.KeyWordType == KeyWordType.Tag).First().Name);
+
+        string GetFirstNameOfKeyWord(KeyWordType keyWordEnum)
+        {
+            return keyWordMetaDataList.FirstOrDefault(t => t.KeyWordType == keyWordEnum)!.Name;
+        }
+    }
+
+    [Theory]
+    [InlineData(Status.None, false, "NEEDS-ACTION", null, null)]
+    [InlineData(Status.NextAction, false, "IN-PROCESS", "#NextAction", "Status-NextAction")]
+    [InlineData(Status.Active, false, "IN-PROCESS", "#Active", "Status-Active")]
+    [InlineData(Status.Planning, false, "IN-PROCESS", "#Planning", "Status-Planning")]
+    [InlineData(Status.Delegated, false, "IN-PROCESS", "#Delegated", "Status-Delegated")]
+    [InlineData(Status.Waiting, false, "NEEDS-ACTION", "#Waiting", "Status-Waiting")]
+    [InlineData(Status.Hold, false, "NEEDS-ACTION", "#Hold", "Status-Hold")]
+    [InlineData(Status.Postponed, false, "NEEDS-ACTION", "#Postponed", "Status-Postponed")]
+    [InlineData(Status.Someday, false, "NEEDS-ACTION", "#Someday", "Status-Someday")]
+    [InlineData(Status.Canceled, false, "CANCELLED", null, null)]
+    [InlineData(Status.Reference, false, "IN-PROCESS", "#Reference", "Status-Reference")]
+    public void Map_State_ShouldBeValid(Status status, bool isCompleted, string expectedStatus, string expectedCategory, string expectedMetaData)
+    {
         var gtdDataModel = CreateGTDDataModelWithTask();
         var task = gtdDataModel.Task!.First();
         task.Status = status;
@@ -139,7 +146,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         else
         {
             Assert.Single(categories, c => c == expectedCategory);
-            Assert.True(properties.TryGetValue(IntermediateFormatPropertyNames.CategoryMetaData(expectedCategory), out var prop));
+            Assert.True(properties.TryGetValue(IntermediateFormatPropertyNames.CategoryMetaData(expectedMetaData), out var prop));
             Assert.True(prop.Value is KeyWordMetaData existingMeta);
             Assert.Equal(KeyWordType.Status, ((KeyWordMetaData)prop.Value).KeyWordType);
         }
@@ -415,7 +422,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     [Fact]
     public void Map_MultipleRecurrencesWithFalseAllowIncompleteMappingIfMoreThanOneItem_ThrowsException()
     {
-        ((TestSettingsProvider)TestConverter.SettingsProvider).AllowIncompleteMappingIfMoreThanOneItem = false;
+        CurrentSettingsProvider.AllowIncompleteMappingIfMoreThanOneItem = false;
 
         var todo = Create.A.Todo().AddRecurrenceRule(new RecurrencePattern(FrequencyType.Daily, 5)).AddRecurrenceRule(new RecurrencePattern(FrequencyType.Weekly, 10)).Build();
         var calendar = Create.A.Calendar().WithTask(todo).Build();
@@ -427,7 +434,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     [Fact]
     public void Map_MultipleRecurrencesWithTrueAllowIncompleteMappingIfMoreThanOneItem_DoesNotThrow()
     {
-        ((TestSettingsProvider)TestConverter.SettingsProvider).AllowIncompleteMappingIfMoreThanOneItem = true;
+        CurrentSettingsProvider.AllowIncompleteMappingIfMoreThanOneItem = true;
 
         var todo = Create.A.Todo().AddRecurrenceRule(new RecurrencePattern(FrequencyType.Daily, 5)).AddRecurrenceRule(new RecurrencePattern(FrequencyType.Weekly, 10)).Build();
         var calendar = Create.A.Calendar().WithTask(todo).Build();
@@ -439,7 +446,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     [Fact]
     public void Map_MultipleAlarmsWithFalseAllowIncompleteMappingIfMoreThanOneItem_ThrowsException()
     {
-        ((TestSettingsProvider)TestConverter.SettingsProvider).AllowIncompleteMappingIfMoreThanOneItem = false;
+        CurrentSettingsProvider.AllowIncompleteMappingIfMoreThanOneItem = false;
 
         var todo = Create.A.Todo().AddAlarm(new Alarm()).AddAlarm(new Alarm()).Build();
         var calendar = Create.A.Calendar().WithTask(todo).Build();
@@ -451,7 +458,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     [Fact]
     public void Map_MultipleAlarmsWithTrueAllowIncompleteMappingIfMoreThanOneItem_DoesNotThrow()
     {
-        ((TestSettingsProvider)TestConverter.SettingsProvider).AllowIncompleteMappingIfMoreThanOneItem = true;
+        CurrentSettingsProvider.AllowIncompleteMappingIfMoreThanOneItem = true;
 
         var todo = Create.A.Todo().AddAlarm(new Alarm()).AddAlarm(new Alarm()).Build();
         var calendar = Create.A.Calendar().WithTask(todo).Build();
@@ -484,13 +491,6 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     [Fact]
     public void Map_TodoFromIntermediateFormat_CategoryIsCorrectlyMapped()
     {
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Folder, "+");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Context, "@");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Status, "#");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Folder, "");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Context, "@");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Status, "#");
-
         var todo = Create.A.Todo().AddCategory("@home").AddCategory("+Ideen").AddCategory("Bestellen").Build();
         var calendar = Create.A.Calendar().WithTask(todo).Build();
 
@@ -500,7 +500,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         Assert.Single(gtdDataModel.Context!);
 
         Assert.Equal("Bestellen", gtdDataModel.Tag?.First().Title);
-        Assert.Equal("Ideen", gtdDataModel.Folder?.First().Title);
+        Assert.Equal("+Ideen", gtdDataModel.Folder?.First().Title);
         Assert.Equal("@home", gtdDataModel.Context?.First().Title);
     }
 
@@ -519,13 +519,6 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     [InlineData("#Hello", TodoBuilder.StatusEnum.Cancelled, false, Status.Canceled)]
     public void Map_TodoFromIntermediateFormat_StatusIsCorrectlyMappedFromStatusTag(string statusTag, TodoBuilder.StatusEnum todoStatus, bool isKnownState, Status expectedStatus)
     {
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Folder, "+");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Context, "@");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetIntermediateFormatSymbol(KeyWordType.Status, "#");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Folder, "");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Context, "@");
-        ((TestSettingsProvider)TestConverter.SettingsProvider).SetGTDFormatSymbol(KeyWordType.Status, "#");
-
         var todo = Create.A.Todo().AddCategory(statusTag).WithStatus(todoStatus).Build();
         var calendar = Create.A.Calendar().WithTask(todo).Build();
 
@@ -573,7 +566,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
 
     private void AssertTaskKeywords(GTDTaskModel gtdTaskModel, Calendar taskAppDataModel)
     {
-        var keyWordMetaDataList = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, settingsProvider).Values;
+        var keyWordMetaDataList = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentSettingsProvider).Values;
         Assert.Equal(gtdTaskModel.Context, GetFirstIdOfKeyWord(KeyWordType.Context));
         Assert.Equal(gtdTaskModel.Folder, GetFirstIdOfKeyWord(KeyWordType.Folder));
         Assert.Equal(gtdTaskModel.Tag.Select(t => t), keyWordMetaDataList.Where(t => t.KeyWordType == KeyWordType.Tag).Select(t => t.Id));

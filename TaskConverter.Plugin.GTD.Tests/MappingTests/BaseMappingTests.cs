@@ -11,12 +11,12 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, ISettingsProvider settingsProvider)
+public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock)
 {
     protected readonly IConversionService<GTDDataModel> TestConverter = testConverter;
     protected readonly IClock clock = clock;
-    protected readonly ISettingsProvider settingsProvider = settingsProvider;
-    protected DateTimeZone CurrentDateTimeZone => settingsProvider.CurrentDateTimeZone;
+    protected readonly TestSettingsProvider CurrentSettingsProvider = (TestSettingsProvider)testConverter.SettingsProvider;
+    protected DateTimeZone CurrentDateTimeZone => CurrentSettingsProvider.CurrentDateTimeZone;
 
     public static class TestConstants
     {

@@ -6,7 +6,7 @@ using TaskConverter.Plugin.GTD.Tests.Utils;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class PreferencesMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, ISettingsProvider settingsProvider) : BaseMappingTests(testConverter, clock, settingsProvider)
+public class PreferencesMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock) : BaseMappingTests(testConverter, clock)
 {
     [Fact]
     public void SettingsToIntermediateFormat_WithPreferencePath_ShouldWriteFile()

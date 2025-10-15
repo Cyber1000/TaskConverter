@@ -19,7 +19,7 @@ public class IcalWriter(IFileSystem FileSystem, IStringSerializer stringSerializ
 
             var fileUid = calendar.UniqueComponents.First().Uid ?? throw new Exception("No Uid found for calendar.");
             var filePath = FileSystem.Path.Combine(destination, $"{fileUid}.ics");
-            FileSystem.File.WriteAllText(filePath, serializedCalendar, Encoding.UTF8);
+            FileSystem.File.WriteAllText(filePath, serializedCalendar, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
         }
     }
 }

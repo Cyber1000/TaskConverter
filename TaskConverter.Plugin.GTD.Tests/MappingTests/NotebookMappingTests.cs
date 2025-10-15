@@ -8,8 +8,8 @@ using TaskConverter.Plugin.GTD.TodoModel;
 
 namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 
-public class NotebookMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, ISettingsProvider settingsProvider, IKeyWordMapperService keyWordMapperService)
-    : BaseMappingTests(testConverter, clock, settingsProvider)
+public class NotebookMappingTests(IConversionService<GTDDataModel> testConverter, IClock clock, IKeyWordMapperService keyWordMapperService)
+    : BaseMappingTests(testConverter, clock)
 {
     [Fact]
     public void Map_Notebook()
@@ -23,7 +23,7 @@ public class NotebookMappingTests(IConversionService<GTDDataModel> testConverter
 
         AssertMappedModelEquivalence(gtdNotebookModel, taskAppNotebookModel, gtdRemappedNotebookModel);
         Assert.Equal(gtdNotebookModel.Note, taskAppNotebookModel.Description?.GetStringArray());
-        var taskAppFolderModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, settingsProvider).Values.First(t => t.KeyWordType == KeyWordType.Folder);
+        var taskAppFolderModel = keyWordMapperService.GetKeyWordMetaDataIntermediateFormatDictionary(taskAppDataModel!, CurrentSettingsProvider).Values.First(t => t.KeyWordType == KeyWordType.Folder);
         Assert.Equal(gtdNotebookModel.FolderId, taskAppFolderModel.Id);
     }
 
