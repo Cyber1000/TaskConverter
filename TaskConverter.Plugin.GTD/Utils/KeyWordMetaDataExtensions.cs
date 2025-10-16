@@ -7,7 +7,6 @@ namespace TaskConverter.Plugin.GTD.Utils;
 
 public static class KeyWordMetaDataExtensions
 {
-    //TODO HH: tests
     public static string GetStringRepresentation(this KeyWordMetaData keyWordMetaData)
     {
         var obj = new
@@ -20,7 +19,8 @@ public static class KeyWordMetaDataExtensions
             Color = keyWordMetaData.Color.ToStringRepresentation(),
             IsVisible = keyWordMetaData.IsVisible.ToStringRepresentation(),
         };
-        return JsonSerializer.Serialize(obj);
+        string json = JsonSerializer.Serialize(obj);
+        return IcalEscape(json);
     }
 
     public static KeyWordMetaData? KeyWordMetaDataFromString(this string? json)
@@ -30,7 +30,8 @@ public static class KeyWordMetaDataExtensions
 
         try
         {
-            var dto = JsonSerializer.Deserialize<IntermediateKeyWordMetaData>(json);
+            string unescapedJson = IcalUnescape(json);
+            var dto = JsonSerializer.Deserialize<IntermediateKeyWordMetaData>(unescapedJson);
             if (dto == null)
                 return null;
 
@@ -51,6 +52,22 @@ public static class KeyWordMetaDataExtensions
         {
             return null;
         }
+    }
+
+    private static string IcalEscape(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return string.Empty;
+
+        return input.Replace(@"\", @"\\").Replace(";", @"\;").Replace(",", @"\,").Replace("\r\n", @"\n").Replace("\n", @"\n");
+    }
+
+    private static string IcalUnescape(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return string.Empty;
+
+        return input.Replace(@"\n", "\n").Replace(@"\,", ",").Replace(@"\;", ";").Replace(@"\\", @"\");
     }
 
     private static CalDateTime ParseCalDateTime(string? isoString)
