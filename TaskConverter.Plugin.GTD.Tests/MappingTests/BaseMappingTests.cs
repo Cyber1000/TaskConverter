@@ -3,6 +3,7 @@ using Ical.Net;
 using Ical.Net.CalendarComponents;
 using NodaTime;
 using TaskConverter.Plugin.Base;
+using TaskConverter.Plugin.Base.ConversionHelper;
 using TaskConverter.Plugin.GTD.Conversion;
 using TaskConverter.Plugin.GTD.Model;
 using TaskConverter.Plugin.GTD.Tests.Utils;
@@ -46,7 +47,7 @@ public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConv
         Assert.Equal(gtdModel.Created, recurringComponent.Created!.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdModel.Modified, recurringComponent.LastModified!.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdModel.Title, recurringComponent.Summary);
-        Assert.Equal(Color.FromArgb(gtdModel.Color), recurringComponent.Properties.Get<Color?>(IntermediateFormatPropertyNames.Color));
+        Assert.Equal(gtdModel.Color, recurringComponent.Properties.Get<string?>(IntermediateFormatPropertyNames.Color).ColorIntFromStringRepresentation());
         Assert.True(bool.TryParse(recurringComponent.Properties.Get<string>(IntermediateFormatPropertyNames.IsVisible), out var visible));
         Assert.Equal(gtdModel.Visible, visible);
     }

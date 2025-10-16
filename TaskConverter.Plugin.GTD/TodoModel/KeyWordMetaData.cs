@@ -1,5 +1,6 @@
 using System.Drawing;
 using Ical.Net.DataTypes;
+using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.TodoModel
 {
@@ -32,5 +33,9 @@ namespace TaskConverter.Plugin.GTD.TodoModel
         public static bool operator ==(KeyWordMetaData left, KeyWordMetaData right) => left.Equals(right);
 
         public static bool operator !=(KeyWordMetaData left, KeyWordMetaData right) => !left.Equals(right);
+
+        public override string ToString() => this.GetStringRepresentation();
+
+        public static KeyWordMetaData? FromString(string? json) => json.KeyWordMetaDataFromString();
     }
 }

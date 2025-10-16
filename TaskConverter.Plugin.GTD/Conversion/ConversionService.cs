@@ -133,13 +133,13 @@ public class ConversionService : IConversionService<GTDDataModel>
                 {
                     var color = src.Color.FromArgbWithFallback();
                     if (color != null)
-                        dest.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.Color, color));
+                        dest.AddProperty(IntermediateFormatPropertyNames.Color, color.ToStringRepresentation());
                     dest.AddProperty(IntermediateFormatPropertyNames.IsVisible, src.Visible.ToStringRepresentation());
                 }
             )
             .ReverseMapWithValidation()
             .IncludeBase<RecurringComponent, GTDBaseModel>()
-            .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Properties.Get<Color?>(IntermediateFormatPropertyNames.Color).ToArgbWithFallback()))
+            .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Properties.Get<string?>(IntermediateFormatPropertyNames.Color).ColorIntFromStringRepresentation()))
             .ForMember(dest => dest.Visible, opt => opt.MapFrom(src => src.Properties.Get<string>(IntermediateFormatPropertyNames.IsVisible).ToBool()));
 
         cfg.CreateMap<LocalDateTime, CalDateTime>().ConvertUsing(s => s.GetCalDateTime(timeZone));

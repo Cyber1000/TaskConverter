@@ -91,9 +91,11 @@ namespace TaskConverter.Plugin.GTD.Conversion
         private static KeyWordMetaData CreateOrGetMetaDataFromIntermediateFormat(Dictionary<string, ICalendarProperty> properties, string category, ISettingsProvider settingsProvider)
         {
             var (categoryNameWithType, _) = GetCategoryAndKeyWordTypeFromIntermediateFormat(category, settingsProvider, false);
-            if (properties.TryGetValue(IntermediateFormatPropertyNames.CategoryMetaData(categoryNameWithType), out var prop) && prop.Value is KeyWordMetaData existingMeta)
+            if (properties.TryGetValue(IntermediateFormatPropertyNames.CategoryMetaData(categoryNameWithType), out var prop) && prop.Value is string existingMeta)
             {
-                return existingMeta;
+                var keyWordMetaData = existingMeta.KeyWordMetaDataFromString();
+                if (keyWordMetaData.HasValue)
+                    return keyWordMetaData.Value;
             }
 
             var timeZone = settingsProvider.CurrentDateTimeZone;

@@ -19,7 +19,7 @@ public abstract class MapKeyWordsToIntermediateFormatBase<TSource, TDestination>
         foreach (var keyWordMetaData in keyWordMetaDataList)
         {
             destination.Categories.Add(keyWordMetaData.Name);
-            destination.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.CategoryMetaData(keyWordMetaData.NameWithType), keyWordMetaData));
+            destination.AddProperty(IntermediateFormatPropertyNames.CategoryMetaData(keyWordMetaData.NameWithType), keyWordMetaData.ToString());
         }
     }
 

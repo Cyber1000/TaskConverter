@@ -28,4 +28,16 @@ public static class ColorConverterExtensions
             _ => Color.FromArgb(value),
         };
     }
+
+    public static string ToStringRepresentation(this Color? value) => ToArgbWithFallback(value).ToString();
+
+    public static Color? ColorFromStringRepresentation(this string? value) => FromArgbWithFallback(ColorIntFromStringRepresentation(value));
+
+    public static int ColorIntFromStringRepresentation(this string? value)
+    {
+        if (value == null || !int.TryParse(value, out var colorInt))
+            return -1;
+
+        return colorInt;
+    }
 }

@@ -147,8 +147,9 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         {
             Assert.Single(categories, c => c == expectedCategory);
             Assert.True(properties.TryGetValue(IntermediateFormatPropertyNames.CategoryMetaData(expectedMetaData), out var prop));
-            Assert.True(prop.Value is KeyWordMetaData existingMeta);
-            Assert.Equal(KeyWordType.Status, ((KeyWordMetaData)prop.Value).KeyWordType);
+            Assert.True(prop.Value is string existingMeta);
+            var keyWordMetaData = ((string)prop.Value).KeyWordMetaDataFromString();
+            Assert.Equal(KeyWordType.Status, keyWordMetaData!.Value.KeyWordType);
         }
     }
 

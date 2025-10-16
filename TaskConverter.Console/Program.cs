@@ -17,10 +17,8 @@ class Programm
     {
         var commandTypeOption = new Option<Command>("--command-type") { Description="Execute different commands" };
         var fromModelOption = new Option<string>("--from-model") { Required = true };
-        //TODO HH: required, when commandtype=Map
         var toModelOption = new Option<string>("--to-model") { Required = false };
         var fromLocationOption = new Option<string>("--from-location") { Description="File or Url to interact", Required = true };
-        //TODO HH: required, when commandtype=Map
         var toLocationOption = new Option<string>("--to-location") { Description="File or Url to interact", Required = false };
 
         var rootCommand = new RootCommand("Command to map data between different todo/planning apps") { commandTypeOption, fromModelOption, toModelOption, fromLocationOption, toLocationOption };
