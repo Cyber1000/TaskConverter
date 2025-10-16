@@ -30,6 +30,8 @@ public static class ColorConverterExtensions
     }
 
     public static string ToStringRepresentation(this Color? value) => ToArgbWithFallback(value).ToString();
+    
+    public static string ToStringRepresentation(this Color value) => ToArgbWithFallback(value).ToString();
 
     public static Color? ColorFromStringRepresentation(this string? value) => FromArgbWithFallback(ColorIntFromStringRepresentation(value));
 
