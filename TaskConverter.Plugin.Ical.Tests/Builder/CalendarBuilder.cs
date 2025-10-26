@@ -14,7 +14,7 @@ public class CalendarBuilder
     private readonly List<Todo> _todos = [];
     private readonly List<Journal> _journals = [];
 
-    public CalendarBuilder AddTodo(string uid, string summary, DateTime due, string status = "NEEDS-ACTION")
+    public CalendarBuilder AddTodo(string uid, string summary, DateTime due, string status = ToDoParticipationStatus.NeedsAction)
     {
         _todos.Add(
             new Todo

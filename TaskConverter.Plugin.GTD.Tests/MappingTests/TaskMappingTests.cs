@@ -118,17 +118,17 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     }
 
     [Theory]
-    [InlineData(Status.None, false, "NEEDS-ACTION", null, null)]
-    [InlineData(Status.NextAction, false, "IN-PROCESS", "#NextAction", "Status-NextAction")]
-    [InlineData(Status.Active, false, "IN-PROCESS", "#Active", "Status-Active")]
-    [InlineData(Status.Planning, false, "IN-PROCESS", "#Planning", "Status-Planning")]
-    [InlineData(Status.Delegated, false, "IN-PROCESS", "#Delegated", "Status-Delegated")]
-    [InlineData(Status.Waiting, false, "NEEDS-ACTION", "#Waiting", "Status-Waiting")]
-    [InlineData(Status.Hold, false, "NEEDS-ACTION", "#Hold", "Status-Hold")]
-    [InlineData(Status.Postponed, false, "NEEDS-ACTION", "#Postponed", "Status-Postponed")]
-    [InlineData(Status.Someday, false, "NEEDS-ACTION", "#Someday", "Status-Someday")]
-    [InlineData(Status.Canceled, false, "CANCELLED", null, null)]
-    [InlineData(Status.Reference, false, "IN-PROCESS", "#Reference", "Status-Reference")]
+    [InlineData(Status.None, false, ToDoParticipationStatus.NeedsAction, null, null)]
+    [InlineData(Status.NextAction, false, ToDoParticipationStatus.InProcess, "#NextAction", "Status-NextAction")]
+    [InlineData(Status.Active, false, ToDoParticipationStatus.Accepted, "#Active", "Status-Active")]
+    [InlineData(Status.Planning, false, ToDoParticipationStatus.InProcess, "#Planning", "Status-Planning")]
+    [InlineData(Status.Delegated, false, ToDoParticipationStatus.Delegated, "#Delegated", "Status-Delegated")]
+    [InlineData(Status.Waiting, false, ToDoParticipationStatus.NeedsAction, "#Waiting", "Status-Waiting")]
+    [InlineData(Status.Hold, false, ToDoParticipationStatus.NeedsAction, "#Hold", "Status-Hold")]
+    [InlineData(Status.Postponed, false, ToDoParticipationStatus.NeedsAction, "#Postponed", "Status-Postponed")]
+    [InlineData(Status.Someday, false, ToDoParticipationStatus.Tentative, "#Someday", "Status-Someday")]
+    [InlineData(Status.Canceled, false, ToDoParticipationStatus.Declined, null, null)]
+    [InlineData(Status.Reference, false, ToDoParticipationStatus.InProcess, "#Reference", "Status-Reference")]
     public void Map_State_ShouldBeValid(Status status, bool isCompleted, string expectedStatus, string expectedCategory, string expectedMetaData)
     {
         var gtdDataModel = CreateGTDDataModelWithTask();
@@ -515,7 +515,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     [InlineData("#Postponed", TodoBuilder.StatusEnum.InProcess, true, Status.Postponed)]
     [InlineData("#Someday", TodoBuilder.StatusEnum.InProcess, true, Status.Someday)]
     [InlineData("#Reference", TodoBuilder.StatusEnum.InProcess, true, Status.Reference)]
-    [InlineData("#Hello", TodoBuilder.StatusEnum.InProcess, false, Status.Active)]
+    [InlineData("#Hello", TodoBuilder.StatusEnum.InProcess, false, Status.NextAction)]
     [InlineData("#Hello", TodoBuilder.StatusEnum.NeedsAction, false, Status.Waiting)]
     [InlineData("#Hello", TodoBuilder.StatusEnum.Cancelled, false, Status.Canceled)]
     public void Map_TodoFromIntermediateFormat_StatusIsCorrectlyMappedFromStatusTag(string statusTag, TodoBuilder.StatusEnum todoStatus, bool isKnownState, Status expectedStatus)
@@ -536,6 +536,30 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
             Assert.NotNull(currentTag);
             Assert.True(gtdDataModel.Task?.First().Tag.Contains(currentTag.Id));
         }
+    }
+
+    [Fact]
+    public void Map_TaskWithFixedAlarm_TriggerIsDateTime()
+    {
+        var reminder = 1608541200000;
+
+        var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithReminder(reminder)]);
+        var taskAppDataModel = TestConverter.MapToIntermediateFormat(gtdDataModel);
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+
+        Assert.Equal(typeof(CalDateTime), taskAppTaskModel.Alarms.First().Trigger!.GetValueType());
+    }
+
+    [Fact]
+    public void Map_TaskWithRelativeAlarm_TriggerIsDuration()
+    {
+        var reminder = 1000;
+
+        var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithReminder(reminder)]);
+        var taskAppDataModel = TestConverter.MapToIntermediateFormat(gtdDataModel);
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+
+        Assert.Equal(typeof(Ical.Net.DataTypes.Duration), taskAppTaskModel.Alarms.First().Trigger!.GetValueType());
     }
 
     private static void AssertBasicTaskProperties(GTDTaskModel gtdTaskModel, Todo taskAppTaskModel, GTDTaskModel gtdRemappedTaskModel)

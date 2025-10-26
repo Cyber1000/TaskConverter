@@ -15,11 +15,11 @@ class Programm
 {
     static async Task<int> Main(string[] args)
     {
-        var commandTypeOption = new Option<Command>("--command-type") { Description="Execute different commands" };
+        var commandTypeOption = new Option<Command>("--command-type") { Description = "Execute different commands" };
         var fromModelOption = new Option<string>("--from-model") { Required = true };
         var toModelOption = new Option<string>("--to-model") { Required = false };
-        var fromLocationOption = new Option<string>("--from-location") { Description="File or Url to interact", Required = true };
-        var toLocationOption = new Option<string>("--to-location") { Description="File or Url to interact", Required = false };
+        var fromLocationOption = new Option<string>("--from-location") { Description = "File or Url to interact", Required = true };
+        var toLocationOption = new Option<string>("--to-location") { Description = "File or Url to interact", Required = false };
 
         var rootCommand = new RootCommand("Command to map data between different todo/planning apps") { commandTypeOption, fromModelOption, toModelOption, fromLocationOption, toLocationOption };
 
@@ -121,15 +121,11 @@ class Programm
     {
         try
         {
-            var (isError, validationError) = command.CheckSource(source);
-            if (isError)
-            {
-                errorWriter.WriteLine($"Output not equal to input - data doesn't match:{Environment.NewLine}{validationError?.Message}");
-            }
-            else
-            {
+            var (isSuccess, validationError) = command.CheckSource(source);
+            if (isSuccess)
                 Console.WriteLine("Validation successful!");
-            }
+            else
+                errorWriter.WriteLine($"Errors on checking source:{Environment.NewLine}{validationError?.Message}");
         }
         catch (Exception ex)
         {

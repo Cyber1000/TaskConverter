@@ -1,3 +1,4 @@
+using Ical.Net;
 using Ical.Net.CalendarComponents;
 using Ical.Net.DataTypes;
 
@@ -15,7 +16,7 @@ public class TodoBuilder
         NeedsAction,
         InProcess,
         Cancelled,
-        Completed
+        Completed,
     }
 
     private string _summary = string.Empty;
@@ -25,7 +26,7 @@ public class TodoBuilder
     private readonly IList<string> _categories = [];
     private readonly List<RecurrencePattern> _recurrencePatterns = [];
     private readonly List<Alarm> _alarms = [];
-    private string _status = "IN-PROCESS";
+    private string _status = ToDoParticipationStatus.InProcess;
 
     public TodoBuilder()
     {
@@ -64,13 +65,13 @@ public class TodoBuilder
         switch (status)
         {
             case StatusEnum.NeedsAction:
-                _status = "NEEDS-ACTION";
+                _status = ToDoParticipationStatus.NeedsAction;
                 break;
             case StatusEnum.InProcess:
-                _status = "IN-PROCESS";
+                _status = ToDoParticipationStatus.InProcess;
                 break;
             case StatusEnum.Cancelled:
-                _status = "CANCELLED";
+                _status = ToDoParticipationStatus.Declined;
                 break;
             case StatusEnum.Completed:
                 _status = "COMPLETED";

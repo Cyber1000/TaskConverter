@@ -71,6 +71,10 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
 
     private static Alarm? CreateAlarmFromReminder(long reminder)
     {
+        if (reminder < 0)
+            return null;
+        Trigger? trigger = null;
+
         if (reminder > 43200)
         {
             if (reminder % 1000 != 0)
@@ -78,12 +82,16 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
                 throw new ArgumentException("Reminder must be a multiple of 1000");
             }
             var reminderDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(reminder);
-            return new Alarm { Trigger = new Trigger { DateTime = new CalDateTime(reminderDateTime) } };
+            trigger = new Trigger { DateTime = new CalDateTime(reminderDateTime) };
+            trigger.SetValueType("DATE-TIME");
         }
         else if (reminder >= 0)
-            return new Alarm { Trigger = new Trigger { Duration = Ical.Net.DataTypes.Duration.FromMinutes(-(int)reminder) } };
+        {
+            trigger = new Trigger { Duration = Ical.Net.DataTypes.Duration.FromMinutes(-(int)reminder) };
+            trigger.SetValueType("DURATION");
+        }
 
-        return null;
+        return new Alarm { Trigger = trigger };
     }
 
     private static List<RecurrencePattern> CreateRecurrenceRule(GTDRepeatInfoModel repeatInfo)
