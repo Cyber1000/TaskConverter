@@ -1,4 +1,5 @@
-using System.Drawing;
+//TODO HH: remove after ExceptionRules and RecurrenceId is removed from automapper
+#pragma warning disable CS0618
 using AutoMapper;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
@@ -96,6 +97,7 @@ public class ConversionService : IConversionService<GTDDataModel>
                 dest => dest.RecurrenceDates,
                 dest => dest.RecurrenceRules,
                 dest => dest.RecurrenceId!,
+                dest => dest.RecurrenceIdentifier!,
                 dest => dest.RelatedComponents,
                 dest => dest.Sequence,
                 dest => dest.Start!,
@@ -122,6 +124,7 @@ public class ConversionService : IConversionService<GTDDataModel>
                 dest => dest.RecurrenceDates,
                 dest => dest.RecurrenceRules,
                 dest => dest.RecurrenceId!,
+                dest => dest.RecurrenceIdentifier!,
                 dest => dest.RelatedComponents,
                 dest => dest.Sequence,
                 dest => dest.Start!,
@@ -211,6 +214,7 @@ public class ConversionService : IConversionService<GTDDataModel>
                 dest => dest.RecurrenceDates,
                 dest => dest.RecurrenceRules,
                 dest => dest.RecurrenceId!,
+                dest => dest.RecurrenceIdentifier!,
                 dest => dest.RelatedComponents,
                 dest => dest.Sequence,
                 dest => dest.Status!,
@@ -265,6 +269,7 @@ public class ConversionService : IConversionService<GTDDataModel>
                 dest => dest.RecurrenceDates,
                 dest => dest.RecurrenceRules,
                 dest => dest.RecurrenceId!,
+                dest => dest.RecurrenceIdentifier!,
                 dest => dest.RelatedComponents,
                 dest => dest.Sequence,
                 dest => dest.Start!,
@@ -295,3 +300,4 @@ public class ConversionService : IConversionService<GTDDataModel>
         cfg.CreateMap<KeyWordMetaData, GTDContextModel>().IgnoreMembers(dest => dest.Children, dest => dest.Parent);
     }
 }
+#pragma warning restore CS0618
