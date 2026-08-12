@@ -27,8 +27,12 @@
 
 ## Current Plugins
 
-- GTD: discontinued Android-App (https://play.google.com/store/apps/details?id=com.dg.gtd.android.lite&hl=de&gl=US)
+- GTD: DGT GTD, an Android app (https://play.google.com/store/apps/details?id=com.dg.gtd.android.lite&hl=de&gl=US)
   - --from-location/--to-location: can be the original backup file named GTD*{date}*{time}.json.zip or the unzipped version
+  - not supported: encrypted backups (`*.json.zip.enc`), the `GOAL` section, and the repeat modes
+    `BusinessDay`, `Weekend`, `With parent` and the three advanced ones (`Every <weekday>`,
+    `The <n>th <weekday> of each month`, `Last day of every <n> months`)
+  - `--to-location` always writes plain JSON, never a zip archive
 - Ical: saves to single ics-files
   - --from-location/--to-location: folder where to store/read the ics-Files
 
@@ -37,6 +41,50 @@
 - a plugin is inherited from IConverterPlugin (for reference see TaskConverter.Plugin.GTD) and converts to/from an intermediate format in TaskConverter.Model
    - this intermediate-format is ical-format (rfc5545)
 - --from-model and --from-location is bound to a plugin, converts this to ical-format and further converts this to --to-model and --to-location
+
+## The intermediate format
+
+The intermediate format is a lossless transport between plugins, not a calendar meant to look
+pretty in a foreign client. Where RFC 5545 cannot carry a field, an `X-DGT-*` property does, and
+the value carried always wins over anything derived from the standard properties. A calendar
+written elsewhere has none of them, so every reader falls back to plain iCalendar - that fallback
+is the only reason the derivations still exist.
+
+**Identity.** `UID` is `<type>-<id>`, e.g. `task-2970` or `notebook-5`. GTD ids are unique per
+entity type only, and the Ical plugin names its files after the UID, so an untyped id let a
+notebook overwrite a task. Parent links use `RELATED-TO;RELTYPE=PARENT` with the same scheme. A
+UID that does not match the scheme is hashed into an id, which keeps foreign calendars readable.
+
+**Keywords.** Folders, contexts, tags and statuses all become `CATEGORIES` entries, distinguished
+by a configurable symbol (`+` folder, `@` context, `#` status by default, tags carry none). The
+symbol differs between the two sides: `GTD.GTDFormat.Symbol.*` is what the app stores,
+`GTD.IntermediateFormat.Symbol.*` what the calendar carries. Everything the category itself cannot
+express - the original id, colour, timestamps, visibility - travels in one
+`X-DGT-CATEGORY-<Type>-<Name>` property per keyword. Property names are matched case
+insensitively, because a parser is free to return them uppercased.
+
+**Carried per task**
+
+| Property | Carries |
+|---|---|
+| `X-DGT-START` | start date; written even when empty, so an absent property means a foreign calendar and `DTSTART` is used instead. A repeating task has a `DTSTART` as the base of its recurrence, which is not a start date. |
+| `X-DGT-ALARM` | alarm; a task can have both an alarm and a reminder, and they share the single `VALARM` |
+| `X-DGT-HIDE`, `X-DGT-HIDE-UNTIL` | hide mode and hide date |
+| `X-DGT-DUE-DATE-MODIFIER`, `X-DGT-DUE-TIME-SET`, `X-DGT-DUE-FLOAT`, `X-DGT-DUE-DATE-PROJECT` | the due date details; modifier and floating are independent of each other |
+| `X-DGT-REPEAT-FROM` | whether a repetition counts from the due date or from completion |
+| `X-DGT-TASK-TYPE` | task, project or checklist |
+| `X-DGT-STARRED` | starred flag |
+| `X-DGT-CREATED-MS`, `X-DGT-MODIFIED-MS`, `X-DGT-COMPLETED-MS` | the millisecond fraction of the respective timestamp, since RFC 5545 stores whole seconds only |
+| `X-DGT-COLOR`, `X-DGT-ISVISIBLE` | colour and visibility of keywords and notebooks |
+
+`PRIORITY` uses the standard property: GTD's five levels map onto anchors 1, 3, 5, 7 and 0
+(undefined), and reading accepts the full range 0 to 9 that a foreign client may write.
+
+**Known differences after a full roundtrip.** A repetition comes back spelled canonically
+(`Norepeat` as an empty string, `Monthly` as `Every 1 month`) - equivalent to the app, but a
+`CheckSource` on the converted file will show it as a diff. Line endings inside notes are
+normalised to `\n`. A keyword that no task or notebook references has no category to live in and
+therefore disappears.
 
 # 3rd Party - Licenses
 
