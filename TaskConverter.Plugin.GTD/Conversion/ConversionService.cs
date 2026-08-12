@@ -198,6 +198,9 @@ public class ConversionService : IConversionService<GTDDataModel>
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Note != null ? src.Note.GetString() : null))
             .ForMember(dest => dest.Due, opt => opt.MapFrom(src => src.DueDate))
             .ForMember(dest => dest.Start, opt => opt.MapFrom(src => src.StartDate))
+            // overrides the ignore inherited from GTDBaseModel -> RecurringComponent, where a
+            // priority has no meaning; only a task carries one
+            .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority.MapPriority()))
             .IgnoreMembers(
                 dest => dest.Duration!,
                 dest => dest.DtStart!,
@@ -230,6 +233,9 @@ public class ConversionService : IConversionService<GTDDataModel>
             .ForMember(dest => dest.Hide, opt => opt.MapFrom(new MapHideFromIntermediateFormat(timeZone)))
             .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Description != null ? src.Description.GetStringArray() : null))
             .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.Properties.Get<CalDateTime>(IntermediateFormatPropertyNames.Start) ?? src.Start))
+            // without this the int is cast straight onto the enum, so PRIORITY:9 becomes an
+            // undefined Priority value and PRIORITY:0 becomes Low
+            .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority.MapPriority()))
             .IgnoreMembers(
                 dest => dest.DueDateProject!,
                 dest => dest.StartTimeSet,

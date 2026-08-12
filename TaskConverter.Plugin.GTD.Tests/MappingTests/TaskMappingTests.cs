@@ -571,7 +571,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         Assert.Equal(expectedStatus, taskAppTaskModel.Status);
         Assert.True(bool.TryParse(taskAppTaskModel.Properties.Get<string>(IntermediateFormatPropertyNames.Starred), out var starred));
         Assert.Equal(gtdTaskModel.Starred, starred);
-        Assert.Equal(0, taskAppTaskModel.Priority);
+        Assert.Equal(gtdTaskModel.Priority.MapPriority(), taskAppTaskModel.Priority);
         Assert.Equal(gtdTaskModel.Note, taskAppTaskModel.Description?.GetStringArray());
         Assert.True(bool.TryParse(taskAppTaskModel.Properties.Get<string>(IntermediateFormatPropertyNames.DueFloat), out var floating));
         Assert.Equal(gtdTaskModel.Floating, floating);
