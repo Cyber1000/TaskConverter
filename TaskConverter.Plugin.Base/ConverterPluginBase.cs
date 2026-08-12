@@ -31,12 +31,12 @@ public abstract class ConverterPluginBase<T> : IConverterPlugin
         if (!EnsureReaderIsSet())
             return new ConvertToResult(false, ConversionResultType.ReaderError, null, null);
 
-        var readerResult = Reader!.Read(source);
-        if (readerResult == null)
-            return new ConvertToResult(false, ConversionResultType.NoTasks, null, null);
-
         try
         {
+            var readerResult = Reader!.Read(source);
+            if (readerResult == null)
+                return new ConvertToResult(false, ConversionResultType.NoTasks, null, null);
+
             var calendar = _conversionService.MapToIntermediateFormat(readerResult);
             return new ConvertToResult(true, ConversionResultType.CanConvert, calendar, null);
         }
@@ -51,21 +51,28 @@ public abstract class ConverterPluginBase<T> : IConverterPlugin
         if (!EnsureReaderIsSet())
             return new SourceResult(false, new Exception("Reader could not be set."));
 
-        return Reader!.CheckSource(source);
+        try
+        {
+            return Reader!.CheckSource(source);
+        }
+        catch (Exception ex)
+        {
+            return new SourceResult(false, ex);
+        }
     }
 
     public ConvertFromResult ConvertFromIntermediateFormat(string destination, Calendar sourceModel)
     {
         if (!EnsureWriterIsSet())
-            return new ConvertFromResult(false, ConversionResultType.WriterError, new Exception("Reader could not be set."));
+            return new ConvertFromResult(false, ConversionResultType.WriterError, new Exception("Writer could not be set."));
 
-        var destinationModel = _conversionService.MapFromIntermediateFormat(sourceModel);
         try
         {
+            var destinationModel = _conversionService.MapFromIntermediateFormat(sourceModel);
             Writer!.Write(destination, destinationModel);
             return new ConvertFromResult(true, ConversionResultType.CanConvert, null);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return new ConvertFromResult(false, ConversionResultType.ConversionError, ex);
         }

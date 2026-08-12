@@ -85,7 +85,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     public void Map_TaskKeywordsWithSameNames_ShouldMapCorrectly()
     {
         var gtdDataModel = CreateGTDDataModelWithTask();
-        gtdDataModel.Folder!.First().Title = "+Test";
+        gtdDataModel.Folder!.First().Title = "Test";
         gtdDataModel.Context!.First().Title = "@Test";
         gtdDataModel.Tag!.First().Title = "Test";
 
@@ -99,7 +99,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     public void Map_TaskKeywordsMapping_ShouldNotDuplicateSymbols()
     {
         var gtdDataModel = CreateGTDDataModelWithTask();
-        gtdDataModel.Folder!.First().Title = "+Test";
+        gtdDataModel.Folder!.First().Title = "Test";
         gtdDataModel.Context!.First().Title = "@Test";
         gtdDataModel.Tag!.First().Title = "Test";
 
@@ -514,7 +514,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         Assert.Single(gtdDataModel.Context!);
 
         Assert.Equal("Bestellen", gtdDataModel.Tag?.First().Title);
-        Assert.Equal("+Ideen", gtdDataModel.Folder?.First().Title);
+        Assert.Equal("Ideen", gtdDataModel.Folder?.First().Title);
         Assert.Equal("@home", gtdDataModel.Context?.First().Title);
     }
 

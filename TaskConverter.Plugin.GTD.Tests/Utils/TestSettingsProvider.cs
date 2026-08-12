@@ -11,7 +11,7 @@ public class TestSettingsProvider : ISettingsProvider
         SetIntermediateFormatSymbol(KeyWordType.Folder, "+");
         SetIntermediateFormatSymbol(KeyWordType.Context, "@");
         SetIntermediateFormatSymbol(KeyWordType.Status, "#");
-        SetGTDFormatSymbol(KeyWordType.Folder, "+");
+        SetGTDFormatSymbol(KeyWordType.Folder, "");
         SetGTDFormatSymbol(KeyWordType.Context, "@");
         SetGTDFormatSymbol(KeyWordType.Status, "#");
     }

@@ -82,7 +82,9 @@ public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConv
         Assert.Equal(gtdModel.Id, keyWordMetaData.Id);
         Assert.Equal(gtdModel.Created, keyWordMetaData.Created.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdModel.Modified, keyWordMetaData.Modified.GetLocalDateTime(CurrentDateTimeZone));
-        Assert.Equal(gtdModel.Title, keyWordMetaData.Name);
+        // Name is the intermediate-format name, which carries the intermediate symbol - only equal to
+        // the GTD title while both symbols happen to be identical.
+        Assert.Equal(gtdModel.Title, KeyWordMapperService.MapKeyWordNameToGTDFormat(keyWordMetaData.Name, keyWordMetaData.KeyWordType, CurrentSettingsProvider));
         Assert.Equal(GetKeyWordType(gtdModel), keyWordMetaData.KeyWordType);
         Assert.Equal(Color.FromArgb(gtdModel.Color), keyWordMetaData.Color);
         Assert.Equal(gtdModel.Visible, keyWordMetaData.IsVisible);
