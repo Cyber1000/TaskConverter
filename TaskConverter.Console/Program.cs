@@ -147,7 +147,7 @@ class Programm
                 errorWriter.WriteLine("Error with writing the destination.");
                 break;
             case ConversionResultType.ConversionError:
-                errorWriter.WriteLine($"Error while mapping from intermediate format;{result.Exception}");
+                errorWriter.WriteLine($"Error while mapping from intermediate format: {DescribeError(result.Exception)}");
                 break;
         }
         return false;
@@ -164,12 +164,27 @@ class Programm
                 errorWriter.WriteLine("Error with reading the source.");
                 break;
             case ConversionResultType.ConversionError:
-                errorWriter.WriteLine($"Error while mapping to intermediate format;{exception}");
+                errorWriter.WriteLine($"Error while mapping to intermediate format: {DescribeError(exception)}");
                 break;
             case ConversionResultType.NoTasks:
                 errorWriter.WriteLine("There are no tasks in this file!");
                 break;
         }
         return false;
+    }
+
+    /// <summary>
+    /// The message of the innermost exception, which is the one that says what is wrong with the
+    /// data. Interpolating the exception itself buried it under twenty lines of stack trace.
+    /// </summary>
+    private static string DescribeError(Exception? exception)
+    {
+        if (exception == null)
+            return "unknown error.";
+
+        while (exception.InnerException != null)
+            exception = exception.InnerException;
+
+        return exception.Message;
     }
 }
