@@ -18,11 +18,27 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
         MapAlarm(source, destination);
         MapRecurrenceRule(source, destination, context);
         AddProperties(source, destination);
+
+        if (source.DueDateProject.HasValue)
+            destination.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.DueDateProject, context.Mapper.Map<CalDateTime>(source.DueDateProject)));
+
+        var alarm = context.Mapper.Map<CalDateTime>(source.Alarm);
+        if (alarm == null)
+            destination.AddProperty(IntermediateFormatPropertyNames.Alarm, string.Empty);
+        else
+            destination.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.Alarm, alarm));
     }
 
     private static void MapStartDate(GTDTaskModel source, Todo destination, ResolutionContext context)
     {
-        destination.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.Start, context.Mapper.Map<CalDateTime>(source.StartDate)));
+        // Written even when there is no start date, because a repeating task gets a DTSTART as the
+        // base of its recurrence. Only a present-but-empty property tells the way back that DTSTART
+        // is an anchor rather than a start date; an absent one means a foreign calendar.
+        var startDate = context.Mapper.Map<CalDateTime>(source.StartDate);
+        if (startDate == null)
+            destination.AddProperty(IntermediateFormatPropertyNames.Start, string.Empty);
+        else
+            destination.AddProperty(new CalendarProperty(IntermediateFormatPropertyNames.Start, startDate));
     }
 
     private static void MapAlarm(GTDTaskModel source, Todo destination)
@@ -71,6 +87,7 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
         destination.AddProperty(IntermediateFormatPropertyNames.Hide, source.Hide.ToString());
         destination.AddProperty(IntermediateFormatPropertyNames.DueDateModifier, source.DueDateModifier.ToString());
         destination.AddProperty(IntermediateFormatPropertyNames.DueTimeSet, source.DueTimeSet.ToString().ToLowerInvariant());
+        destination.AddProperty(IntermediateFormatPropertyNames.RepeatFrom, source.RepeatFrom.ToString());
 
         if (source.Completed.HasValue)
             MapPrecisionToIntermediateFormat.AddMillisecondsIfAny(destination, IntermediateFormatPropertyNames.CompletedMilliseconds, source.Completed.Value.Millisecond);

@@ -6,7 +6,7 @@ using TaskConverter.Plugin.GTD.Utils;
 
 namespace TaskConverter.Plugin.GTD.Conversion;
 
-public class MapAlarmFromIntermediateFormat(IClock clock, DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDTaskModel, LocalDateTime?>
+public class MapAlarmFromIntermediateFormat(DateTimeZone dateTimeZone) : IValueResolver<Todo, GTDTaskModel, LocalDateTime?>
 {
     public DateTimeZone DateTimeZone { get; } = dateTimeZone;
 
@@ -24,16 +24,20 @@ public class MapAlarmFromIntermediateFormat(IClock clock, DateTimeZone dateTimeZ
             else
                 throw new Exception("More than one Alarm. This is only allowed if AllowIncompleteMappingIfMoreThanOneItem is true.");
         }
-        var alarm = source.Alarms?.FirstOrDefault()?.Trigger;
+        // The carried value is authoritative: Alarm and Reminder share the single VALARM, so an
+        // absolute trigger may just as well belong to the reminder.
+        if (source.Properties.Contains(IntermediateFormatPropertyNames.Alarm))
+            return source.Properties.GetCalDateTime(IntermediateFormatPropertyNames.Alarm)?.GetLocalDateTime(DateTimeZone);
 
-        var currentDateTime = clock.GetCurrentInstant();
+        var alarm = source.Alarms?.FirstOrDefault()?.Trigger;
         if (alarm?.DateTime == null)
         {
             return null;
         }
 
-        var absoluteInstant = Instant.FromDateTimeUtc(alarm.DateTime.Value.ToUniversalTime());
-
-        return absoluteInstant <= currentDateTime ? absoluteInstant.InZone(DateTimeZone).LocalDateTime : null;
+        // An alarm is transported whether or not it has already passed. Comparing against the clock
+        // made the result depend on when the conversion ran: the same file converted differently
+        // tomorrow, and 18 tasks in the backup lost their alarm because it lies in the future.
+        return Instant.FromDateTimeUtc(alarm.DateTime.Value.ToUniversalTime()).InZone(DateTimeZone).LocalDateTime;
     }
 }

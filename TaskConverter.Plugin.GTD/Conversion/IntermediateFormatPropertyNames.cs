@@ -27,6 +27,12 @@ public static partial class IntermediateFormatPropertyNames
     public static string Hide => "X-DGT-HIDE";
     public static string DueDateModifier => "X-DGT-DUE-DATE-MODIFIER";
     public static string DueTimeSet => "X-DGT-DUE-TIME-SET";
+    public static string DueDateProject => "X-DGT-DUE-DATE-PROJECT";
+    public static string RepeatFrom => "X-DGT-REPEAT-FROM";
+
+    // Alarm and Reminder are two GTD fields sharing the single VALARM of a VTODO, so the trigger
+    // alone cannot tell them apart. Written even when empty, same reason as Start.
+    public static string Alarm => "X-DGT-ALARM";
 
     private static string GetSanitizedKeyWordName(string keyWordName) => SanitizeRegex().Replace(keyWordName, "");
 

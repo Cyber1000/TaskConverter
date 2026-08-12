@@ -18,6 +18,14 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
         MapRepetition(source, destination, context);
         MapTaskType(source, destination);
         MapCompletedPrecision(source, destination);
+        MapDueDateProject(source, destination, context);
+    }
+
+    private static void MapDueDateProject(Todo source, GTDTaskModel destination, ResolutionContext context)
+    {
+        var dueDateProject = source.Properties.GetCalDateTime(IntermediateFormatPropertyNames.DueDateProject);
+        if (dueDateProject != null)
+            destination.DueDateProject = dueDateProject.GetLocalDateTime(context.GetSettingsProvider().CurrentDateTimeZone);
     }
 
     private static void MapTaskType(Todo source, GTDTaskModel destination)
@@ -57,7 +65,11 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
     {
         var settingsProvider = context.GetSettingsProvider();
 
-        if (!source.RecurrenceRules?.Any() ?? true)
+        // 192 tasks in the backup carry a RepeatFrom without repeating at all, so comparing start and
+        // due date cannot reconstruct it. The comparison stays as a fallback for foreign calendars.
+        if (Enum.TryParse<GTDRepeatFrom>(source.Properties.Get<string>(IntermediateFormatPropertyNames.RepeatFrom), ignoreCase: true, out var carriedRepeatFrom))
+            destination.RepeatFrom = carriedRepeatFrom;
+        else if (!source.RecurrenceRules?.Any() ?? true)
             destination.RepeatFrom = GTDRepeatFrom.FromDueDate;
         else
             destination.RepeatFrom = source.Start?.Equals(source.Due) ?? true ? GTDRepeatFrom.FromDueDate : GTDRepeatFrom.FromCompletion;

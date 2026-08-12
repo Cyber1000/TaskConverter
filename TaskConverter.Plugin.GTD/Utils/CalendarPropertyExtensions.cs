@@ -25,6 +25,15 @@ public static class CalendarPropertyExtensions
     }
 
     /// <summary>
+    /// Distinguishes "carried as empty" from "not carried at all" - the latter means the calendar
+    /// comes from somewhere else and the plain iCalendar value has to be used instead.
+    /// </summary>
+    public static bool Contains(this CalendarPropertyList properties, string propertyName)
+    {
+        return properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
     /// Returns null when the property is absent, so the caller can tell "not carried" from "false".
     /// </summary>
     public static bool? GetBool(this CalendarPropertyList properties, string propertyName)

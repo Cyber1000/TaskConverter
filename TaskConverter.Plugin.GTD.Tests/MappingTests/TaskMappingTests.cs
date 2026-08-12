@@ -272,22 +272,28 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         Assert.Equal(-1, gtdRemappedTaskModel.Reminder);
     }
 
+    /// <summary>
+    /// An alarm is transported whether it has already passed or still lies ahead. It used to be
+    /// dropped when it was in the future, which made the result depend on when the conversion ran.
+    /// </summary>
     [Theory]
-    [InlineData(-1, true)]
-    [InlineData(0, true)]
-    [InlineData(1, false)]
-    public void Map_TaskWithAlarm(int addMinutes, bool shouldHaveAlarm)
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void Map_TaskWithAlarm(int addMinutes)
     {
-        var currentDateTime = clock.GetCurrentInstant();
-        var reminder = currentDateTime.Plus(NodaTime.Duration.FromMinutes(addMinutes)).ToUnixTimeMilliseconds();
+        var alarmInstant = clock.GetCurrentInstant().Plus(NodaTime.Duration.FromMinutes(addMinutes));
+        var gtdDataModel = CreateGTDDataModelWithTask();
+        gtdDataModel.Task!.First().Alarm = alarmInstant.InZone(CurrentDateTimeZone).LocalDateTime;
 
-        var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithReminder(reminder)]);
         var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdRemappedTaskModel = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
-        var expectedReminder = shouldHaveAlarm ? reminder : (long?)null;
-        Assert.Equal(shouldHaveAlarm, gtdRemappedTaskModel.Alarm.HasValue);
-        Assert.Equal(expectedReminder, gtdRemappedTaskModel.Alarm?.InZoneLeniently(CurrentDateTimeZone).ToInstant().ToUnixTimeMilliseconds());
+        Assert.True(gtdRemappedTaskModel.Alarm.HasValue);
+        Assert.Equal(
+            alarmInstant.ToUnixTimeMilliseconds(),
+            gtdRemappedTaskModel.Alarm?.InZoneLeniently(CurrentDateTimeZone).ToInstant().ToUnixTimeMilliseconds()
+        );
     }
 
     [Theory]
@@ -298,7 +304,9 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     [InlineData(RepeatTestCase.EveryDay, GTDRepeatFrom.FromCompletion, false, GTDRepeatFrom.FromCompletion, 1, FrequencyType.Daily, true)]
     [InlineData(RepeatTestCase.EveryDayLowerCase, GTDRepeatFrom.FromDueDate, true, GTDRepeatFrom.FromDueDate, 1, FrequencyType.Daily, true)]
     [InlineData(RepeatTestCase.NoRepeat, GTDRepeatFrom.FromDueDate, null, GTDRepeatFrom.FromDueDate, null, null, false)]
-    [InlineData(RepeatTestCase.NoRepeat, GTDRepeatFrom.FromCompletion, null, GTDRepeatFrom.FromDueDate, null, null, false)]
+    // RepeatFrom is carried, so it survives even without a repetition - which is how 192 tasks in
+    // the real backup look.
+    [InlineData(RepeatTestCase.NoRepeat, GTDRepeatFrom.FromCompletion, null, GTDRepeatFrom.FromCompletion, null, null, false)]
     public void Map_Repeat(
         RepeatTestCase repeatCase,
         GTDRepeatFrom repeatFrom,

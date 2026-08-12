@@ -24,7 +24,7 @@ public class ConversionService : IConversionService<GTDDataModel>
 
     public System.IO.Abstractions.IFileSystem FileSystem { get; }
 
-    public ConversionService(IClock clock, ISettingsProvider settingsProvider, System.IO.Abstractions.IFileSystem fileSystem)
+    public ConversionService(ISettingsProvider settingsProvider, System.IO.Abstractions.IFileSystem fileSystem)
     {
         FileSystem = fileSystem;
         SettingsProvider = settingsProvider;
@@ -36,7 +36,7 @@ public class ConversionService : IConversionService<GTDDataModel>
             {
                 CreateBasicMappings(cfg, timeZone);
 
-                CreateMainMappings(clock, cfg, timeZone);
+                CreateMainMappings(cfg, timeZone);
             },
             loggerFactory
         );
@@ -153,7 +153,7 @@ public class ConversionService : IConversionService<GTDDataModel>
         cfg.CreateMap<CalDateTime, LocalDateTime>().ConvertUsing(s => s.GetLocalDateTime(timeZone));
     }
 
-    private static void CreateMainMappings(IClock clock, IMapperConfigurationExpression cfg, DateTimeZone timeZone)
+    private static void CreateMainMappings(IMapperConfigurationExpression cfg, DateTimeZone timeZone)
     {
         cfg.CreateMap<GTDDataModel, Calendar>()
             .IgnoreMembers(
@@ -237,10 +237,18 @@ public class ConversionService : IConversionService<GTDDataModel>
                     )
             )
             .ForMember(dest => dest.Reminder, opt => opt.MapFrom(new MapReminderFromIntermediateFormat(timeZone)))
-            .ForMember(dest => dest.Alarm, opt => opt.MapFrom(new MapAlarmFromIntermediateFormat(clock, timeZone)))
+            .ForMember(dest => dest.Alarm, opt => opt.MapFrom(new MapAlarmFromIntermediateFormat(timeZone)))
             .ForMember(dest => dest.Hide, opt => opt.MapFrom(new MapHideFromIntermediateFormat(timeZone)))
             .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Description != null ? src.Description.GetStringArray() : null))
-            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.Properties.GetCalDateTime(IntermediateFormatPropertyNames.Start) ?? src.Start))
+            .ForMember(
+                dest => dest.StartDate,
+                opt =>
+                    opt.MapFrom(src =>
+                        src.Properties.Contains(IntermediateFormatPropertyNames.Start)
+                            ? src.Properties.GetCalDateTime(IntermediateFormatPropertyNames.Start)
+                            : src.Start
+                    )
+            )
             // without this the int is cast straight onto the enum, so PRIORITY:9 becomes an
             // undefined Priority value and PRIORITY:0 becomes Low
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority.MapPriority()))
