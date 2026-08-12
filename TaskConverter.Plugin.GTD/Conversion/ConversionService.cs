@@ -61,7 +61,7 @@ public class ConversionService : IConversionService<GTDDataModel>
     private static void CreateBasicMappings(IMapperConfigurationExpression cfg, DateTimeZone timeZone)
     {
         cfg.CreateMap<GTDBaseModel, UniqueComponent>()
-            .ForMember(dest => dest.Uid, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Uid, opt => opt.MapFrom(src => IntermediateFormatUid.ToUid(src)))
             .IgnoreMembers(
                 dest => dest.Attendees,
                 dest => dest.Comments,
@@ -79,7 +79,7 @@ public class ConversionService : IConversionService<GTDDataModel>
                 dest => dest.Group
             )
             .ReverseMapWithValidation()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Uid.ToIntWithHashFallback()))
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IntermediateFormatUid.ToId(src.Uid)))
             .ForMember(dest => dest.Uuid, opt => opt.MapFrom(src => string.Empty))
             .IgnoreMembers(dest => dest.Created, dest => dest.Modified, dest => dest.Title!);
 
@@ -107,8 +107,10 @@ public class ConversionService : IConversionService<GTDDataModel>
             .ForMember(dest => dest.Summary, opt => opt.MapFrom(src => src.Title))
             .ForMember(dest => dest.Created, opt => opt.MapFrom(src => src.Created))
             .ForMember(dest => dest.LastModified, opt => opt.MapFrom(src => src.Modified))
+            .AfterMap<MapPrecisionToIntermediateFormat>()
             .ReverseMapWithValidation()
-            .IncludeBase<UniqueComponent, GTDBaseModel>();
+            .IncludeBase<UniqueComponent, GTDBaseModel>()
+            .AfterMap<MapPrecisionFromIntermediateFormat>();
 
         cfg.CreateMap<GTDExtendedModel, RecurringComponent>()
             .IgnoreMembers(
@@ -232,7 +234,7 @@ public class ConversionService : IConversionService<GTDDataModel>
             .ForMember(dest => dest.Alarm, opt => opt.MapFrom(new MapAlarmFromIntermediateFormat(clock, timeZone)))
             .ForMember(dest => dest.Hide, opt => opt.MapFrom(new MapHideFromIntermediateFormat(timeZone)))
             .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Description != null ? src.Description.GetStringArray() : null))
-            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.Properties.Get<CalDateTime>(IntermediateFormatPropertyNames.Start) ?? src.Start))
+            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.Properties.GetCalDateTime(IntermediateFormatPropertyNames.Start) ?? src.Start))
             // without this the int is cast straight onto the enum, so PRIORITY:9 becomes an
             // undefined Priority value and PRIORITY:0 becomes Low
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority.MapPriority()))

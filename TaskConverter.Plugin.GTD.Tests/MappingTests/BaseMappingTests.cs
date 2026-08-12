@@ -67,7 +67,7 @@ public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConv
     protected void AssertCommonProperties<T>(T gtdModel, RecurringComponent recurringComponent)
         where T : GTDExtendedModel
     {
-        Assert.Equal(gtdModel.Id.ToString(), recurringComponent.Uid);
+        Assert.Equal(IntermediateFormatUid.ToUid(gtdModel), recurringComponent.Uid);
         Assert.Equal(gtdModel.Created, recurringComponent.Created!.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdModel.Modified, recurringComponent.LastModified!.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdModel.Title, recurringComponent.Summary);

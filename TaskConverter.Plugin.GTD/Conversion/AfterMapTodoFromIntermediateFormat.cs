@@ -16,6 +16,20 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
         MapFloatingDate(source, destination);
         MapStarred(source, destination);
         MapRepetition(source, destination, context);
+        MapTaskType(source, destination);
+        MapCompletedPrecision(source, destination);
+    }
+
+    private static void MapTaskType(Todo source, GTDTaskModel destination)
+    {
+        if (Enum.TryParse<TaskType>(source.Properties.Get<string>(IntermediateFormatPropertyNames.TaskType), ignoreCase: true, out var taskType))
+            destination.Type = taskType;
+    }
+
+    private static void MapCompletedPrecision(Todo source, GTDTaskModel destination)
+    {
+        if (destination.Completed.HasValue)
+            destination.Completed = destination.Completed.Value.PlusMilliseconds(MapPrecisionFromIntermediateFormat.GetMilliseconds(source, IntermediateFormatPropertyNames.CompletedMilliseconds));
     }
 
     private static void MapFloatingDate(Todo source, GTDTaskModel destination)
@@ -56,7 +70,7 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
 
     private static void MapHide(Todo source, GTDTaskModel destination)
     {
-        var hideUntil = source.Properties.Get<CalDateTime>(IntermediateFormatPropertyNames.HideUntil);
+        var hideUntil = source.Properties.GetCalDateTime(IntermediateFormatPropertyNames.HideUntil);
         if (hideUntil != null)
             destination.HideUntil = new DateTimeOffset(hideUntil.Value).ToUnixTimeMilliseconds();
     }

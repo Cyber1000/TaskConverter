@@ -67,6 +67,10 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
         }
         destination.AddProperty(IntermediateFormatPropertyNames.DueFloat, source.Floating.ToString().ToLowerInvariant());
         destination.AddProperty(IntermediateFormatPropertyNames.Starred, source.Starred.ToString().ToLowerInvariant());
+        destination.AddProperty(IntermediateFormatPropertyNames.TaskType, source.Type.ToString());
+
+        if (source.Completed.HasValue)
+            MapPrecisionToIntermediateFormat.AddMillisecondsIfAny(destination, IntermediateFormatPropertyNames.CompletedMilliseconds, source.Completed.Value.Millisecond);
     }
 
     private static Alarm? CreateAlarmFromReminder(long reminder)

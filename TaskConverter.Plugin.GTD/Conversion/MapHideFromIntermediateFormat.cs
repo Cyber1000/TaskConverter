@@ -20,7 +20,7 @@ public class MapHideFromIntermediateFormat(DateTimeZone dateTimeZone) : IValueRe
     public Hide Resolve(Todo source, GTDTaskModel destination, Hide destMember, ResolutionContext context)
     {
         var dueDate = source.Due;
-        var hideUntil = source.Properties.Get<CalDateTime>(IntermediateFormatPropertyNames.HideUntil);
+        var hideUntil = source.Properties.GetCalDateTime(IntermediateFormatPropertyNames.HideUntil);
         if (hideUntil == null)
             return Hide.DontHide;
 

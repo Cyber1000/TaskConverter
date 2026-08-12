@@ -33,12 +33,21 @@ public class MapTodoFromIntermediateFormat : IMappingAction<Calendar, GTDDataMod
                     var statusId = status?.Id ?? 0;
                     statusName = statusName.RemovePrefix(statusSymbol);
 
+                    // The writer omits the status category only for None and Canceled, so a missing
+                    // category is information, not a gap. Deriving the status from VTODO STATUS
+                    // instead turned every such task into Active or Waiting.
                     var statusEnum = Status.None;
-                    if (statusId > 0 && !Enum.TryParse(statusName, ignoreCase: true, out statusEnum))
+                    if (statusId == 0)
+                    {
+                        if (todo.Status.MapStatus() == Status.Canceled)
+                            statusEnum = Status.Canceled;
+                    }
+                    else if (!Enum.TryParse(statusName, ignoreCase: true, out statusEnum))
+                    {
+                        // a user defined keyword that merely starts with the status symbol
                         tags.Add(statusId);
-
-                    if (statusEnum == Status.None)
                         statusEnum = todo.Status.MapStatus();
+                    }
 
                     var parentId = GetParentId(todo);
 
@@ -64,7 +73,7 @@ public class MapTodoFromIntermediateFormat : IMappingAction<Calendar, GTDDataMod
                 )
             );
 
-            return parentProp?.Value?.ToString().ToIntWithHashFallback() ?? 0;
+            return IntermediateFormatUid.ToId(parentProp?.Value?.ToString());
         }
     }
 
