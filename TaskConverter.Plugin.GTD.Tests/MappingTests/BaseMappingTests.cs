@@ -1,6 +1,7 @@
 using System.Drawing;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
+using Ical.Net.Serialization;
 using NodaTime;
 using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.Base.ConversionHelper;
@@ -38,6 +39,29 @@ public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConv
         var gtdDataMappedRemappedModel = TestConverter.MapFromIntermediateFormat(taskAppDataModel);
 
         return (taskAppDataModel, gtdDataMappedRemappedModel);
+    }
+
+    /// <summary>
+    /// Same as <see cref="GetMappedInfo"/>, but the intermediate format passes through real
+    /// iCalendar text. Serializing and reparsing is not a no-op: ical.net returns property
+    /// names uppercased and re-escapes text values, so defects on that layer are invisible
+    /// to a mapping-only roundtrip.
+    /// </summary>
+    protected (Calendar? model, GTDDataModel? fromModel) GetMappedInfoThroughText(GTDDataModel gtdDataModel)
+    {
+        if (gtdDataModel == null)
+            return (null, null);
+
+        var reparsedModel = SerializeAndReparse(TestConverter.MapToIntermediateFormat(gtdDataModel));
+        var gtdDataMappedRemappedModel = TestConverter.MapFromIntermediateFormat(reparsedModel);
+
+        return (reparsedModel, gtdDataMappedRemappedModel);
+    }
+
+    protected static Calendar SerializeAndReparse(Calendar calendar)
+    {
+        var icsText = new CalendarSerializer().SerializeToString(calendar) ?? throw new Exception("Serialization returned null.");
+        return Calendar.Load(icsText) ?? throw new Exception("Reparsing the serialized calendar returned null.");
     }
 
     protected void AssertCommonProperties<T>(T gtdModel, RecurringComponent recurringComponent)

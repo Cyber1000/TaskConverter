@@ -84,7 +84,10 @@ namespace TaskConverter.Plugin.GTD.Conversion
             if (recurringComponent.Categories is null)
                 return Enumerable.Empty<KeyWordMetaData>();
 
-            var properties = recurringComponent.Properties.ToDictionary(p => p.Name);
+            // Property names are case insensitive per RFC 5545, and ical.net returns them uppercased
+            // when a calendar is parsed from text. A case sensitive lookup silently misses every
+            // metadata property and falls back to hash based ids.
+            var properties = recurringComponent.Properties.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
             return recurringComponent.Categories.Select(category => CreateOrGetMetaDataFromIntermediateFormat(properties, category, settingsProvider));
         }
 
@@ -104,6 +107,19 @@ namespace TaskConverter.Plugin.GTD.Conversion
             var color = -1;
             var (newCategory, keyWordType) = GetCategoryAndKeyWordTypeFromIntermediateFormat(category, settingsProvider);
             return new KeyWordMetaData(newCategory.ToIntWithHashFallback(), newCategory, $"{keyWordType}-{newCategory}", keyWordType, now, now, color.FromArgbWithFallback(), true);
+        }
+
+        /// <summary>
+        /// Translates a keyword name from intermediate-format naming back to GTD naming, i.e. swaps
+        /// the intermediate symbol for the GTD one. Both directions must apply this; skipping it
+        /// only stays unnoticed while both symbols happen to be identical.
+        /// </summary>
+        public static string MapKeyWordNameToGTDFormat(string name, KeyWordType keyWordType, ISettingsProvider settingsProvider)
+        {
+            if (keyWordType == KeyWordType.Tag)
+                return name;
+
+            return name.RemovePrefix(settingsProvider.GetIntermediateFormatSymbol(keyWordType)).AddPrefix(settingsProvider.GetGTDFormatSymbol(keyWordType));
         }
 
         private static (string, KeyWordType) GetCategoryAndKeyWordTypeFromIntermediateFormat(string category, ISettingsProvider settingsProvider, bool useSymbol = true)

@@ -17,7 +17,7 @@ public class MapJournalFromIntermediateFormat : IMappingAction<Calendar, GTDData
                 {
                     var keyWordMetaDataForCurrentJournal = journal.Categories.GetExistingValues(keyWordMetaDataList);
 
-                    var folder = keyWordMetaDataForCurrentJournal.Where(k => k.KeyWordType == KeyWordType.Folder)?.Single().Id ?? 0;
+                    var folder = keyWordMetaDataForCurrentJournal.Where(k => k.KeyWordType == KeyWordType.Folder).SingleOrDefault().Id;
 
                     var model = new GTDNotebookModel { FolderId = folder };
                     return resolutionContext.Mapper.Map(journal, model);

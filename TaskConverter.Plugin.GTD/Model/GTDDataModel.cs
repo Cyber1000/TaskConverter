@@ -9,14 +9,21 @@ public class GTDDataModel
     {
         get
         {
-            var items = Folder?.Cast<GTDBaseModel>() ?? new List<GTDBaseModel>()
-                .Concat(Tag?.Cast<GTDBaseModel>() ?? new List<GTDBaseModel>())
-                .Concat(Task?.Cast<GTDBaseModel>() ?? new List<GTDBaseModel>())
-                .Concat(Context?.Cast<GTDBaseModel>() ?? new List<GTDBaseModel>())
-                .Concat(Notebook?.Cast<GTDBaseModel>() ?? new List<GTDBaseModel>())
-                .Concat(TaskNote?.Cast<GTDBaseModel>() ?? new List<GTDBaseModel>());
+            var entries = new List<GTDBaseModel>();
+            AddRange(Folder);
+            AddRange(Context);
+            AddRange(Tag);
+            AddRange(Task);
+            AddRange(Notebook);
+            AddRange(TaskNote);
+            return entries;
 
-            return items?.ToList() ?? [];
+            void AddRange<T>(List<T>? items)
+                where T : GTDBaseModel
+            {
+                if (items != null)
+                    entries.AddRange(items);
+            }
         }
     }
 
