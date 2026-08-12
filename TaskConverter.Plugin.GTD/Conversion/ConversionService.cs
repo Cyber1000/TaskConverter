@@ -229,7 +229,13 @@ public class ConversionService : IConversionService<GTDDataModel>
             .AfterMap<MapKeyWordsOfTodoToIntermediateFormat>()
             .IncludeBase<GTDBaseModel, RecurringComponent>()
             .ReverseMapWithValidation()
-            .ForMember(dest => dest.DueTimeSet, opt => opt.MapFrom(src => src.Due != null && src.Due.GetLocalDateTime(timeZone).TimeOfDay > new LocalTime()))
+            .ForMember(
+                dest => dest.DueTimeSet,
+                opt =>
+                    opt.MapFrom(src =>
+                        src.Properties.GetBool(IntermediateFormatPropertyNames.DueTimeSet) ?? (src.Due != null && src.Due.GetLocalDateTime(timeZone).TimeOfDay > new LocalTime())
+                    )
+            )
             .ForMember(dest => dest.Reminder, opt => opt.MapFrom(new MapReminderFromIntermediateFormat(timeZone)))
             .ForMember(dest => dest.Alarm, opt => opt.MapFrom(new MapAlarmFromIntermediateFormat(clock, timeZone)))
             .ForMember(dest => dest.Hide, opt => opt.MapFrom(new MapHideFromIntermediateFormat(timeZone)))

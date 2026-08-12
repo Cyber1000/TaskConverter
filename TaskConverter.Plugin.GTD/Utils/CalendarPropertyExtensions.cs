@@ -24,6 +24,14 @@ public static class CalendarPropertyExtensions
         };
     }
 
+    /// <summary>
+    /// Returns null when the property is absent, so the caller can tell "not carried" from "false".
+    /// </summary>
+    public static bool? GetBool(this CalendarPropertyList properties, string propertyName)
+    {
+        return bool.TryParse(properties.Get<string>(propertyName), out var value) ? value : null;
+    }
+
     private static CalDateTime? ParseIcalDateTime(string text)
     {
         var isUtc = text.EndsWith('Z');

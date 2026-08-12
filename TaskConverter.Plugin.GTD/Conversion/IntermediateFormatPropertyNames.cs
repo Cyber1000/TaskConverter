@@ -21,6 +21,13 @@ public static partial class IntermediateFormatPropertyNames
     // VTODO has no equivalent of project, checklist and the other GTD task types
     public static string TaskType => "X-DGT-TASK-TYPE";
 
+    // These three used to be derived on the way back - Hide from comparing due date and hide date,
+    // DueDateModifier from Floating, DueTimeSet from the due date having a time. Real data
+    // disagrees with all three, so the value is carried and the derivation is only a fallback.
+    public static string Hide => "X-DGT-HIDE";
+    public static string DueDateModifier => "X-DGT-DUE-DATE-MODIFIER";
+    public static string DueTimeSet => "X-DGT-DUE-TIME-SET";
+
     private static string GetSanitizedKeyWordName(string keyWordName) => SanitizeRegex().Replace(keyWordName, "");
 
     [GeneratedRegex("[^a-zA-Z0-9_-]")]

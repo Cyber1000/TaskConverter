@@ -195,10 +195,12 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     {
         var dueDate = hasTime ? new LocalDateTime(2023, 02, 20, 10, 0, 0) : new LocalDateTime(2023, 02, 20, 0, 0, 0);
         var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithDueDate(dueDate)]);
+        gtdDataModel.Task!.First().DueTimeSet = hasTime;
 
         var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdRemappedTaskModel = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
+        Assert.Equal(dueDate, gtdRemappedTaskModel.DueDate);
         Assert.Equal(hasTime, gtdRemappedTaskModel.DueTimeSet);
     }
 
@@ -207,12 +209,15 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     [InlineData(false)]
     public void Map_TaskWithDueDateModifier(bool isFloating)
     {
+        var expectedModifier = isFloating ? DueDateModifier.OptionallyOn : DueDateModifier.DueBy;
         var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithFloating(isFloating)]);
+        gtdDataModel.Task!.First().DueDateModifier = expectedModifier;
 
         var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdRemappedTaskModel = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
-        Assert.Equal(isFloating ? DueDateModifier.OptionallyOn : DueDateModifier.DueBy, gtdRemappedTaskModel.DueDateModifier);
+        Assert.Equal(isFloating, gtdRemappedTaskModel.Floating);
+        Assert.Equal(expectedModifier, gtdRemappedTaskModel.DueDateModifier);
     }
 
     [Theory]

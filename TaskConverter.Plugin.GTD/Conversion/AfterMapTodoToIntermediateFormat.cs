@@ -68,6 +68,9 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
         destination.AddProperty(IntermediateFormatPropertyNames.DueFloat, source.Floating.ToString().ToLowerInvariant());
         destination.AddProperty(IntermediateFormatPropertyNames.Starred, source.Starred.ToString().ToLowerInvariant());
         destination.AddProperty(IntermediateFormatPropertyNames.TaskType, source.Type.ToString());
+        destination.AddProperty(IntermediateFormatPropertyNames.Hide, source.Hide.ToString());
+        destination.AddProperty(IntermediateFormatPropertyNames.DueDateModifier, source.DueDateModifier.ToString());
+        destination.AddProperty(IntermediateFormatPropertyNames.DueTimeSet, source.DueTimeSet.ToString().ToLowerInvariant());
 
         if (source.Completed.HasValue)
             MapPrecisionToIntermediateFormat.AddMillisecondsIfAny(destination, IntermediateFormatPropertyNames.CompletedMilliseconds, source.Completed.Value.Millisecond);

@@ -35,10 +35,14 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
     private static void MapFloatingDate(Todo source, GTDTaskModel destination)
     {
         if (bool.TryParse(source.Properties.Get<string>(IntermediateFormatPropertyNames.DueFloat), out var floating) && floating)
-        {
             destination.Floating = floating;
+
+        // In the data the two are independent: 124 tasks are floating without being OptionallyOn.
+        // Deriving one from the other is only a fallback for a calendar that carries neither.
+        if (Enum.TryParse<DueDateModifier>(source.Properties.Get<string>(IntermediateFormatPropertyNames.DueDateModifier), ignoreCase: true, out var carriedModifier))
+            destination.DueDateModifier = carriedModifier;
+        else if (destination.Floating)
             destination.DueDateModifier = DueDateModifier.OptionallyOn;
-        }
     }
 
     private static void MapStarred(Todo source, GTDTaskModel destination)
