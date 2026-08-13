@@ -47,6 +47,28 @@ public class JsonConfigurationWriterTests : JsonConfigurationBaseTests
         Assert.Contains("\"TASK\":", writtenContent);
     }
 
+    /// <summary>
+    /// The reader accepts a zip, so the writer has to produce one - otherwise a file named
+    /// .json.zip holds plain text and the app cannot read back what this tool wrote.
+    /// </summary>
+    [Fact]
+    public void WriteZipFile_ProducesAnArchiveTheReaderAccepts()
+    {
+        var resultZipFilePath = $"{resultFilePath}.zip";
+        var jsonReader = SetupTest(originalFilePath);
+        var model = jsonReader.Read(originalFilePath);
+        var jsonWriter = new JsonConfigurationWriter(_mockFileSystem, _jsonConfigurationSerializer);
+
+        jsonWriter.Write(resultZipFilePath, model);
+
+        var writtenBytes = _mockFileSystem.File.ReadAllBytes(resultZipFilePath);
+        Assert.Equal([0x50, 0x4B], writtenBytes[..2]);
+
+        var reReadModel = new JsonConfigurationReader(_mockFileSystem, _jsonConfigurationSerializer).Read(resultZipFilePath);
+        Assert.NotNull(reReadModel);
+        Assert.Equal(model!.Task!.Count, reReadModel!.Task!.Count);
+    }
+
     private JsonConfigurationReader SetupTest(string filePath)
     {
         var task = Create.A.JsonTask().Build();

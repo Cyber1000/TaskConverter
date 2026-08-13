@@ -4,12 +4,15 @@ namespace TaskConverter.Plugin.GTD.Model;
 
 public readonly struct GTDRepeatInfoModel
 {
-    private const string IntervalPeriodPattern = @"every (?<interval>\d+) (?<period>[^s]*)";
-    private const string PeriodlyPattern = @"(?<period>[^s]+)ly";
-    private const string DailyPattern = @"daily";
-    private const string BiPeriodPattern = @"bi(?<period>[^s]+)ly";
-    private const string QuarterlyPattern = @"quarterly";
-    private const string SemiannuallyPattern = @"semiannually";
+    // Anchored on purpose. Unanchored, "Last day of every 3 months" matched the substring
+    // "every 3 month" and was silently read as a plain three-month repetition, which is a
+    // different recurrence than the one the app means.
+    private const string IntervalPeriodPattern = @"^every (?<interval>\d+) (?<period>[^s]+)s?$";
+    private const string PeriodlyPattern = @"^(?<period>[^s]+)ly$";
+    private const string DailyPattern = @"^daily$";
+    private const string BiPeriodPattern = @"^bi(?<period>[^s]+)ly$";
+    private const string QuarterlyPattern = @"^quarterly$";
+    private const string SemiannuallyPattern = @"^semiannually$";
 
     private static readonly Func<string, (bool Success, int Interval, Period Period)>[] searchFunctions =
     [
@@ -21,13 +24,31 @@ public readonly struct GTDRepeatInfoModel
         (repeatInfo) => GetIntervalPeriod(repeatInfo, SemiannuallyPattern, 6, Period.Month)
     ];
 
+    private static readonly Dictionary<string, RepeatPattern> weekdaySetPatterns = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "BusinessDay", RepeatPattern.BusinessDay },
+        { "Business Day", RepeatPattern.BusinessDay },
+        { "Weekend", RepeatPattern.Weekend },
+    };
+
     public int Interval { get; }
 
     public Period Period { get; }
 
+    public RepeatPattern Pattern { get; }
+
     public GTDRepeatInfoModel(string repeatInfo)
     {
         ArgumentNullException.ThrowIfNull(repeatInfo);
+
+        // Before the interval patterns: "Weekend" contains no interval and no period, and would
+        // otherwise fall through to the exception.
+        if (weekdaySetPatterns.TryGetValue(repeatInfo.Trim(), out var weekdaySetPattern))
+        {
+            Pattern = weekdaySetPattern;
+            return;
+        }
+
         foreach (var searchFunction in searchFunctions)
         {
             var (success, interval, period) = searchFunction.Invoke(repeatInfo);
@@ -39,13 +60,18 @@ public readonly struct GTDRepeatInfoModel
             }
         }
 
-        throw new NotImplementedException($"Cannot cast \"{repeatInfo}\" to RepeatInfo");
+        throw new UnsupportedRepeatModeException(repeatInfo);
     }
 
     public GTDRepeatInfoModel(int interval, Period period)
     {
         Interval = interval;
         Period = period;
+    }
+
+    public GTDRepeatInfoModel(RepeatPattern pattern)
+    {
+        Pattern = pattern;
     }
 
     private static (bool Success, int Interval, Period Period) GetIntervalPeriod(
@@ -81,6 +107,9 @@ public readonly struct GTDRepeatInfoModel
 
     public override string ToString()
     {
+        if (Pattern != RepeatPattern.Interval)
+            return Pattern.ToString();
+
         return $"Every {Interval} {GetPeriodText(Interval, Period)}";
 
         static string GetPeriodText(int interval, Period period)

@@ -29,10 +29,11 @@
 
 - GTD: DGT GTD, an Android app (https://play.google.com/store/apps/details?id=com.dg.gtd.android.lite&hl=de&gl=US)
   - --from-location/--to-location: can be the original backup file named GTD*{date}*{time}.json.zip or the unzipped version
-  - not supported: encrypted backups (`*.json.zip.enc`), the `GOAL` section, and the repeat modes
-    `BusinessDay`, `Weekend`, `With parent` and the three advanced ones (`Every <weekday>`,
-    `The <n>th <weekday> of each month`, `Last day of every <n> months`)
-  - `--to-location` always writes plain JSON, never a zip archive
+  - not supported: encrypted backups (`*.json.zip.enc`), the `GOAL` section, and four repeat modes
+    - `With parent`, `Every <weekday>`, `The <n>th <weekday> of each month` and
+      `Last day of every <n> months` have no iCalendar equivalent and are refused by name
+  - `--to-location` writes a zip archive when it ends in `.zip`, plain JSON otherwise - the same
+    two forms the reader accepts
 - Ical: saves to single ics-files
   - --from-location/--to-location: folder where to store/read the ics-Files
 
@@ -80,11 +81,19 @@ insensitively, because a parser is free to return them uppercased.
 `PRIORITY` uses the standard property: GTD's five levels map onto anchors 1, 3, 5, 7 and 0
 (undefined), and reading accepts the full range 0 to 9 that a foreign client may write.
 
-**Known differences after a full roundtrip.** A repetition comes back spelled canonically
-(`Norepeat` as an empty string, `Monthly` as `Every 1 month`) - equivalent to the app, but a
-`CheckSource` on the converted file will show it as a diff. Line endings inside notes are
-normalised to `\n`. A keyword that no task or notebook references has no category to live in and
-therefore disappears.
+**Repetitions** map onto `RRULE`. An interval over a period becomes `FREQ`/`INTERVAL`, and the two
+weekday-set modes become a weekly rule with `BYDAY` (`MO,TU,WE,TH,FR` and `SA,SU`). A mode with no
+iCalendar equivalent is refused with a message naming it, rather than silently becoming something
+else - which is what used to happen to `Last day of every <n> months`, because the pattern matching
+the interval form was not anchored and matched the substring.
+
+**Known differences after a full roundtrip.** A repetition comes back in one spelling
+(`Norepeat` as an empty string, `Monthly` as `Every 1 month`) while the app writes both forms for
+the same meaning, so there is nothing to normalise towards: measured on a real backup, preferring
+the named form repairs 6 tasks and breaks 30. The values are equivalent to the app, but a
+`CheckSource` on the converted file shows them as a diff. Line endings inside notes are normalised
+to `\n`. A keyword that no task or notebook references has no category to live in and therefore
+disappears.
 
 # 3rd Party - Licenses
 

@@ -96,6 +96,10 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
         if (recurrencePattern == null)
             return null;
 
+        var weekdaySetPattern = recurrencePattern.ByDay.ToRepeatPattern();
+        if (weekdaySetPattern != RepeatPattern.Interval)
+            return new GTDRepeatInfoModel(weekdaySetPattern);
+
         var period = recurrencePattern.Frequency switch
         {
             FrequencyType.Daily => Period.Day,
