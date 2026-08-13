@@ -16,7 +16,7 @@ public class IcalWriterTests
     public void Write_ShouldNotThrow_WhenModelIsNull()
     {
         var mockFileSystem = PrepareDestination();
-        var writer = new IcalWriter(mockFileSystem, _calendarSerializer);
+        var writer = new IcalWriter(mockFileSystem, _calendarSerializer, new TestSettingsProvider());
 
         var ex = Record.Exception(() => writer.Write("/destination", null));
 
@@ -30,7 +30,7 @@ public class IcalWriterTests
         var mockFileSystem = PrepareDestination();
         var calendar = Create.A.Calendar().AddTodo("event1", "Test Task 1", DateTime.UtcNow.AddDays(5)).Build();
 
-        var writer = new IcalWriter(mockFileSystem, _calendarSerializer);
+        var writer = new IcalWriter(mockFileSystem, _calendarSerializer, new TestSettingsProvider());
         string destination = "/destination";
 
         writer.Write(destination, [calendar]);
@@ -49,7 +49,7 @@ public class IcalWriterTests
         var mockFileSystem = PrepareDestination();
         var calendar = Create.A.Calendar().AddTodo("event1", "Test Task 1", DateTime.UtcNow.AddDays(5)).Build();
 
-        var writer = new IcalWriter(mockFileSystem, new NullCalendarSerializer());
+        var writer = new IcalWriter(mockFileSystem, new NullCalendarSerializer(), new TestSettingsProvider());
         string destination = "/destination";
 
         var ex = Assert.Throws<Exception>(() => writer.Write(destination, [calendar]));
@@ -60,7 +60,7 @@ public class IcalWriterTests
     public void Write_ShouldThrowException_WhenUidIsNull()
     {
         var mockFileSystem = PrepareDestination();
-        var writer = new IcalWriter(mockFileSystem, _calendarSerializer);
+        var writer = new IcalWriter(mockFileSystem, _calendarSerializer, new TestSettingsProvider());
 
         var calendar = new Calendar();
         calendar.UniqueComponents.Add(new Todo { Uid = null });
