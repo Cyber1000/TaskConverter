@@ -36,6 +36,9 @@
     two forms the reader accepts
 - Ical: saves to single ics-files
   - --from-location/--to-location: folder where to store/read the ics-Files
+  - on a repeated run, files an earlier run wrote that are no longer in the source are reported.
+    Set `Ical.DeleteOrphanedFiles` to `true` to have them removed instead. Only files carrying this
+    converter's `PRODID` are ever considered, so anything else in the destination is left alone.
 
 # Info for Devs
 

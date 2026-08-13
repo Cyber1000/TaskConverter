@@ -10,16 +10,17 @@ public class IcalConverterPlugin(IConversionAppSettings conversionAppSettings) :
 {
     private readonly FileSystem _fileSystem = new();
     private readonly CalendarSerializer _calendarSerializer = new();
+    private ISettingsProvider _settingsProvider = null!;
 
     protected override IConversionService<List<Calendar>> CreateConversionService(IConversionAppSettings conversionAppSettings)
     {
-        var settingsProvider = new SettingsProvider(conversionAppSettings, Name);
-        return new ConversionService(settingsProvider);
+        _settingsProvider = new SettingsProvider(conversionAppSettings, Name);
+        return new ConversionService(_settingsProvider);
     }
 
     public override string Name => "Ical";
 
     protected override IReader<List<Calendar>?>? CreateReader() => new IcalReader(_fileSystem);
 
-    protected override IWriter<List<Calendar>?>? CreateWriter() => new IcalWriter(_fileSystem, _calendarSerializer);
+    protected override IWriter<List<Calendar>?>? CreateWriter() => new IcalWriter(_fileSystem, _calendarSerializer, _settingsProvider);
 }
