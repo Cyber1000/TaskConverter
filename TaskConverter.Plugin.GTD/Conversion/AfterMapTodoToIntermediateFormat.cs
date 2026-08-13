@@ -120,6 +120,9 @@ public class AfterMapTodoToIntermediateFormat : IMappingAction<GTDTaskModel, Tod
 
     private static List<RecurrencePattern> CreateRecurrenceRule(GTDRepeatInfoModel repeatInfo)
     {
+        if (repeatInfo.Pattern != RepeatPattern.Interval)
+            return [new(FrequencyType.Weekly, 1) { ByDay = repeatInfo.Pattern.ToByDay() }];
+
         var freq = repeatInfo.Period switch
         {
             Period.Day => FrequencyType.Daily,
