@@ -1,5 +1,4 @@
 using System.IO.Abstractions;
-using NodaTime;
 using TaskConverter.Commons;
 using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.GTD.Conversion;
@@ -15,9 +14,8 @@ public class GTDConverterPlugin(IConversionAppSettings conversionAppSettings) : 
 
     protected override IConversionService<GTDDataModel> CreateConversionService(IConversionAppSettings conversionAppSettings)
     {
-        var clock = SystemClock.Instance;
         var settingsProvider = new SettingsProvider(conversionAppSettings, Name);
-        return new ConversionService(clock, settingsProvider, _fileSystem);
+        return new ConversionService(settingsProvider, _fileSystem);
     }
 
     public override string Name => "GTD";

@@ -17,7 +17,7 @@ public class MapTodosToIntermediateFormat : IMappingAction<GTDDataModel, Calenda
 
             if (sourceTask.Parent != 0)
             {
-                var rel = new CalendarProperty("RELATED-TO", sourceTask.Parent.ToString())
+                var rel = new CalendarProperty("RELATED-TO", IntermediateFormatUid.ToUid(IntermediateFormatUid.TaskPrefix, sourceTask.Parent))
                 {
                     Parameters = { new CalendarParameter("RELTYPE", "PARENT") }
                 };

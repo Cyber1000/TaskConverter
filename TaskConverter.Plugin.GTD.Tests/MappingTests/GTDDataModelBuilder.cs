@@ -32,7 +32,7 @@ public class GTDDataModelBuilder
         return this;
     }
 
-    public GTDDataModelBuilder AddFolder(int id)
+    public GTDDataModelBuilder AddFolder(int id, string? title = null)
     {
         _folderList.Add(
             new()
@@ -43,7 +43,7 @@ public class GTDDataModelBuilder
                 Children = 0,
                 Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
                 Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                Title = $"+Folder {id}",
+                Title = title ?? $"Folder {id}",
                 Color = -694050399,
                 Visible = false,
                 Ordinal = 0,
@@ -71,7 +71,7 @@ public class GTDDataModelBuilder
         return this;
     }
 
-    public GTDDataModelBuilder AddTag(int id)
+    public GTDDataModelBuilder AddTag(int id, string? title = null)
     {
         _tagList.Add(
             new()
@@ -80,7 +80,7 @@ public class GTDDataModelBuilder
                 Uuid = "",
                 Created = new LocalDateTime(2023, 02, 20, 10, 0, 0),
                 Modified = new LocalDateTime(2023, 02, 21, 10, 0, 0),
-                Title = $"Tag {id}",
+                Title = title ?? $"Tag {id}",
                 Color = -1048832,
                 Visible = true,
             }

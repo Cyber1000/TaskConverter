@@ -16,15 +16,41 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
         MapFloatingDate(source, destination);
         MapStarred(source, destination);
         MapRepetition(source, destination, context);
+        MapTaskType(source, destination);
+        MapCompletedPrecision(source, destination);
+        MapDueDateProject(source, destination, context);
+    }
+
+    private static void MapDueDateProject(Todo source, GTDTaskModel destination, ResolutionContext context)
+    {
+        var dueDateProject = source.Properties.GetCalDateTime(IntermediateFormatPropertyNames.DueDateProject);
+        if (dueDateProject != null)
+            destination.DueDateProject = dueDateProject.GetLocalDateTime(context.GetSettingsProvider().CurrentDateTimeZone);
+    }
+
+    private static void MapTaskType(Todo source, GTDTaskModel destination)
+    {
+        if (Enum.TryParse<TaskType>(source.Properties.Get<string>(IntermediateFormatPropertyNames.TaskType), ignoreCase: true, out var taskType))
+            destination.Type = taskType;
+    }
+
+    private static void MapCompletedPrecision(Todo source, GTDTaskModel destination)
+    {
+        if (destination.Completed.HasValue)
+            destination.Completed = destination.Completed.Value.PlusMilliseconds(MapPrecisionFromIntermediateFormat.GetMilliseconds(source, IntermediateFormatPropertyNames.CompletedMilliseconds));
     }
 
     private static void MapFloatingDate(Todo source, GTDTaskModel destination)
     {
         if (bool.TryParse(source.Properties.Get<string>(IntermediateFormatPropertyNames.DueFloat), out var floating) && floating)
-        {
             destination.Floating = floating;
+
+        // In the data the two are independent: 124 tasks are floating without being OptionallyOn.
+        // Deriving one from the other is only a fallback for a calendar that carries neither.
+        if (Enum.TryParse<DueDateModifier>(source.Properties.Get<string>(IntermediateFormatPropertyNames.DueDateModifier), ignoreCase: true, out var carriedModifier))
+            destination.DueDateModifier = carriedModifier;
+        else if (destination.Floating)
             destination.DueDateModifier = DueDateModifier.OptionallyOn;
-        }
     }
 
     private static void MapStarred(Todo source, GTDTaskModel destination)
@@ -39,7 +65,11 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
     {
         var settingsProvider = context.GetSettingsProvider();
 
-        if (!source.RecurrenceRules?.Any() ?? true)
+        // 192 tasks in the backup carry a RepeatFrom without repeating at all, so comparing start and
+        // due date cannot reconstruct it. The comparison stays as a fallback for foreign calendars.
+        if (Enum.TryParse<GTDRepeatFrom>(source.Properties.Get<string>(IntermediateFormatPropertyNames.RepeatFrom), ignoreCase: true, out var carriedRepeatFrom))
+            destination.RepeatFrom = carriedRepeatFrom;
+        else if (!source.RecurrenceRules?.Any() ?? true)
             destination.RepeatFrom = GTDRepeatFrom.FromDueDate;
         else
             destination.RepeatFrom = source.Start?.Equals(source.Due) ?? true ? GTDRepeatFrom.FromDueDate : GTDRepeatFrom.FromCompletion;
@@ -56,7 +86,7 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
 
     private static void MapHide(Todo source, GTDTaskModel destination)
     {
-        var hideUntil = source.Properties.Get<CalDateTime>(IntermediateFormatPropertyNames.HideUntil);
+        var hideUntil = source.Properties.GetCalDateTime(IntermediateFormatPropertyNames.HideUntil);
         if (hideUntil != null)
             destination.HideUntil = new DateTimeOffset(hideUntil.Value).ToUnixTimeMilliseconds();
     }

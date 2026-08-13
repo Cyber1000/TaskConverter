@@ -1,6 +1,7 @@
 using System.Drawing;
 using Ical.Net;
 using Ical.Net.CalendarComponents;
+using Ical.Net.Serialization;
 using NodaTime;
 using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.Base.ConversionHelper;
@@ -40,10 +41,33 @@ public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConv
         return (taskAppDataModel, gtdDataMappedRemappedModel);
     }
 
+    /// <summary>
+    /// Same as <see cref="GetMappedInfo"/>, but the intermediate format passes through real
+    /// iCalendar text. Serializing and reparsing is not a no-op: ical.net returns property
+    /// names uppercased and re-escapes text values, so defects on that layer are invisible
+    /// to a mapping-only roundtrip.
+    /// </summary>
+    protected (Calendar? model, GTDDataModel? fromModel) GetMappedInfoThroughText(GTDDataModel gtdDataModel)
+    {
+        if (gtdDataModel == null)
+            return (null, null);
+
+        var reparsedModel = SerializeAndReparse(TestConverter.MapToIntermediateFormat(gtdDataModel));
+        var gtdDataMappedRemappedModel = TestConverter.MapFromIntermediateFormat(reparsedModel);
+
+        return (reparsedModel, gtdDataMappedRemappedModel);
+    }
+
+    protected static Calendar SerializeAndReparse(Calendar calendar)
+    {
+        var icsText = new CalendarSerializer().SerializeToString(calendar) ?? throw new Exception("Serialization returned null.");
+        return Calendar.Load(icsText) ?? throw new Exception("Reparsing the serialized calendar returned null.");
+    }
+
     protected void AssertCommonProperties<T>(T gtdModel, RecurringComponent recurringComponent)
         where T : GTDExtendedModel
     {
-        Assert.Equal(gtdModel.Id.ToString(), recurringComponent.Uid);
+        Assert.Equal(IntermediateFormatUid.ToUid(gtdModel), recurringComponent.Uid);
         Assert.Equal(gtdModel.Created, recurringComponent.Created!.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdModel.Modified, recurringComponent.LastModified!.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdModel.Title, recurringComponent.Summary);
@@ -58,7 +82,9 @@ public abstract class BaseMappingTests(IConversionService<GTDDataModel> testConv
         Assert.Equal(gtdModel.Id, keyWordMetaData.Id);
         Assert.Equal(gtdModel.Created, keyWordMetaData.Created.GetLocalDateTime(CurrentDateTimeZone));
         Assert.Equal(gtdModel.Modified, keyWordMetaData.Modified.GetLocalDateTime(CurrentDateTimeZone));
-        Assert.Equal(gtdModel.Title, keyWordMetaData.Name);
+        // Name is the intermediate-format name, which carries the intermediate symbol - only equal to
+        // the GTD title while both symbols happen to be identical.
+        Assert.Equal(gtdModel.Title, KeyWordMapperService.MapKeyWordNameToGTDFormat(keyWordMetaData.Name, keyWordMetaData.KeyWordType, CurrentSettingsProvider));
         Assert.Equal(GetKeyWordType(gtdModel), keyWordMetaData.KeyWordType);
         Assert.Equal(Color.FromArgb(gtdModel.Color), keyWordMetaData.Color);
         Assert.Equal(gtdModel.Visible, keyWordMetaData.IsVisible);

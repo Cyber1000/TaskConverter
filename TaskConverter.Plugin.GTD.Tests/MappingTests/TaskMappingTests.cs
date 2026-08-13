@@ -52,7 +52,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdTaskModel = gtdDataModel.Task![0];
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
         var gtdRemappedTaskModel = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
         AssertBasicTaskProperties(gtdTaskModel, taskAppTaskModel, gtdRemappedTaskModel);
@@ -65,7 +65,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
 
         var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
         var gtdTaskModel = gtdDataModel.Task![0];
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
 
         AssertTaskDates(gtdTaskModel, taskAppTaskModel);
     }
@@ -85,7 +85,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     public void Map_TaskKeywordsWithSameNames_ShouldMapCorrectly()
     {
         var gtdDataModel = CreateGTDDataModelWithTask();
-        gtdDataModel.Folder!.First().Title = "+Test";
+        gtdDataModel.Folder!.First().Title = "Test";
         gtdDataModel.Context!.First().Title = "@Test";
         gtdDataModel.Tag!.First().Title = "Test";
 
@@ -99,7 +99,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     public void Map_TaskKeywordsMapping_ShouldNotDuplicateSymbols()
     {
         var gtdDataModel = CreateGTDDataModelWithTask();
-        gtdDataModel.Folder!.First().Title = "+Test";
+        gtdDataModel.Folder!.First().Title = "Test";
         gtdDataModel.Context!.First().Title = "@Test";
         gtdDataModel.Tag!.First().Title = "Test";
 
@@ -159,7 +159,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdDataModel = CreateGTDDataModelWithTask();
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModelWithoutParent = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModelWithoutParent = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
         var gtdRemappedTaskModelWithoutParent = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
         Assert.IsType<Calendar>(taskAppTaskModelWithoutParent.Parent);
@@ -172,7 +172,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder(TestConstants.DefaultTaskId).WithParent(10), CreateGTDDataTaskModelBuilder(10)]);
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
         var gtdRemappedTaskModelWithoutParent = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
         var parentProp = taskAppTaskModel.Properties.FirstOrDefault(p =>
@@ -184,7 +184,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         );
         Assert.NotNull(parentProp);
 
-        Assert.Equal("10", parentProp.Value as string);
+        Assert.Equal(IntermediateFormatUid.ToUid(IntermediateFormatUid.TaskPrefix, 10), parentProp.Value as string);
         Assert.Equal(10, gtdRemappedTaskModelWithoutParent.Parent);
     }
 
@@ -195,10 +195,12 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     {
         var dueDate = hasTime ? new LocalDateTime(2023, 02, 20, 10, 0, 0) : new LocalDateTime(2023, 02, 20, 0, 0, 0);
         var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithDueDate(dueDate)]);
+        gtdDataModel.Task!.First().DueTimeSet = hasTime;
 
         var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdRemappedTaskModel = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
+        Assert.Equal(dueDate, gtdRemappedTaskModel.DueDate);
         Assert.Equal(hasTime, gtdRemappedTaskModel.DueTimeSet);
     }
 
@@ -207,12 +209,15 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     [InlineData(false)]
     public void Map_TaskWithDueDateModifier(bool isFloating)
     {
+        var expectedModifier = isFloating ? DueDateModifier.OptionallyOn : DueDateModifier.DueBy;
         var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithFloating(isFloating)]);
+        gtdDataModel.Task!.First().DueDateModifier = expectedModifier;
 
         var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdRemappedTaskModel = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
-        Assert.Equal(isFloating ? DueDateModifier.OptionallyOn : DueDateModifier.DueBy, gtdRemappedTaskModel.DueDateModifier);
+        Assert.Equal(isFloating, gtdRemappedTaskModel.Floating);
+        Assert.Equal(expectedModifier, gtdRemappedTaskModel.DueDateModifier);
     }
 
     [Theory]
@@ -233,7 +238,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithDueDate(dueDate).WithReminder(reminder)]);
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
         var gtdRemappedTaskModel = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
         Assert.Equal(unixDateTimeHasValue, taskAppTaskModel.Alarms.FirstOrDefault()?.Trigger!.DateTime != null);
@@ -258,7 +263,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithDueDate(null).WithReminder(30000)]);
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
         var gtdRemappedTaskModel = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
         Assert.Null(taskAppTaskModel.Alarms.FirstOrDefault()?.Trigger!.DateTime);
@@ -267,22 +272,28 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         Assert.Equal(-1, gtdRemappedTaskModel.Reminder);
     }
 
+    /// <summary>
+    /// An alarm is transported whether it has already passed or still lies ahead. It used to be
+    /// dropped when it was in the future, which made the result depend on when the conversion ran.
+    /// </summary>
     [Theory]
-    [InlineData(-1, true)]
-    [InlineData(0, true)]
-    [InlineData(1, false)]
-    public void Map_TaskWithAlarm(int addMinutes, bool shouldHaveAlarm)
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void Map_TaskWithAlarm(int addMinutes)
     {
-        var currentDateTime = clock.GetCurrentInstant();
-        var reminder = currentDateTime.Plus(NodaTime.Duration.FromMinutes(addMinutes)).ToUnixTimeMilliseconds();
+        var alarmInstant = clock.GetCurrentInstant().Plus(NodaTime.Duration.FromMinutes(addMinutes));
+        var gtdDataModel = CreateGTDDataModelWithTask();
+        gtdDataModel.Task!.First().Alarm = alarmInstant.InZone(CurrentDateTimeZone).LocalDateTime;
 
-        var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithReminder(reminder)]);
         var (_, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
         var gtdRemappedTaskModel = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
-        var expectedReminder = shouldHaveAlarm ? reminder : (long?)null;
-        Assert.Equal(shouldHaveAlarm, gtdRemappedTaskModel.Alarm.HasValue);
-        Assert.Equal(expectedReminder, gtdRemappedTaskModel.Alarm?.InZoneLeniently(CurrentDateTimeZone).ToInstant().ToUnixTimeMilliseconds());
+        Assert.True(gtdRemappedTaskModel.Alarm.HasValue);
+        Assert.Equal(
+            alarmInstant.ToUnixTimeMilliseconds(),
+            gtdRemappedTaskModel.Alarm?.InZoneLeniently(CurrentDateTimeZone).ToInstant().ToUnixTimeMilliseconds()
+        );
     }
 
     [Theory]
@@ -293,7 +304,9 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
     [InlineData(RepeatTestCase.EveryDay, GTDRepeatFrom.FromCompletion, false, GTDRepeatFrom.FromCompletion, 1, FrequencyType.Daily, true)]
     [InlineData(RepeatTestCase.EveryDayLowerCase, GTDRepeatFrom.FromDueDate, true, GTDRepeatFrom.FromDueDate, 1, FrequencyType.Daily, true)]
     [InlineData(RepeatTestCase.NoRepeat, GTDRepeatFrom.FromDueDate, null, GTDRepeatFrom.FromDueDate, null, null, false)]
-    [InlineData(RepeatTestCase.NoRepeat, GTDRepeatFrom.FromCompletion, null, GTDRepeatFrom.FromDueDate, null, null, false)]
+    // RepeatFrom is carried, so it survives even without a repetition - which is how 192 tasks in
+    // the real backup look.
+    [InlineData(RepeatTestCase.NoRepeat, GTDRepeatFrom.FromCompletion, null, GTDRepeatFrom.FromCompletion, null, null, false)]
     public void Map_Repeat(
         RepeatTestCase repeatCase,
         GTDRepeatFrom repeatFrom,
@@ -309,7 +322,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithRepeat(repeatNew, repeatFrom)]);
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
         var gtdRemappedTaskModel = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
         var taskAppRepeatInfo = taskAppTaskModel.RecurrenceRules.FirstOrDefault();
 
@@ -331,7 +344,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdTaskModel = gtdDataModel.Task!.First();
 
         var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
 
         Assert.Equal(gtdTaskModel.Completed.GetCalDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
     }
@@ -345,7 +358,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdTaskModel = gtdDataModel.Task!.First();
 
         var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
 
         Assert.Equal(gtdTaskModel.StartDate.GetCalDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
     }
@@ -359,7 +372,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdTaskModel = gtdDataModel.Task!.First();
 
         var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
 
         Assert.Equal(gtdTaskModel.Created.GetCalDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
     }
@@ -373,7 +386,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdTaskModel = gtdDataModel.Task!.First();
 
         var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
 
         Assert.Equal(gtdTaskModel.Completed.GetCalDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
     }
@@ -387,7 +400,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdTaskModel = gtdDataModel.Task!.First();
 
         var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
 
         Assert.Equal(gtdTaskModel.DueDate.GetCalDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
     }
@@ -401,7 +414,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdTaskModel = gtdDataModel.Task!.First();
 
         var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
 
         Assert.Equal(gtdTaskModel.StartDate.GetCalDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
     }
@@ -415,7 +428,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdTaskModel = gtdDataModel.Task!.First();
 
         var (taskAppDataModel, _) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
 
         Assert.Equal(gtdTaskModel.Created.GetCalDateTime(CurrentDateTimeZone), taskAppTaskModel?.Start);
     }
@@ -480,7 +493,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithDueDate(dueDate).WithHideUntil(hideInMilliseconds).WithHide(hide)]);
 
         var (taskAppDataModel, gtdDataMappedRemappedModel) = GetMappedInfo(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
         var gtdRemappedTaskModel = GetTaskById(gtdDataMappedRemappedModel, TestConstants.DefaultTaskId)!;
 
         var taskAppTaskModelHideUntil = taskAppTaskModel.Properties.Get<CalDateTime>(IntermediateFormatPropertyNames.HideUntil);
@@ -501,7 +514,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
         Assert.Single(gtdDataModel.Context!);
 
         Assert.Equal("Bestellen", gtdDataModel.Tag?.First().Title);
-        Assert.Equal("+Ideen", gtdDataModel.Folder?.First().Title);
+        Assert.Equal("Ideen", gtdDataModel.Folder?.First().Title);
         Assert.Equal("@home", gtdDataModel.Context?.First().Title);
     }
 
@@ -545,7 +558,7 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
 
         var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithReminder(reminder)]);
         var taskAppDataModel = TestConverter.MapToIntermediateFormat(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
 
         Assert.Equal(typeof(CalDateTime), taskAppTaskModel.Alarms.First().Trigger!.GetValueType());
     }
@@ -557,21 +570,21 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
 
         var gtdDataModel = CreateGTDDataModelWithTask([CreateGTDDataTaskModelBuilder().WithReminder(reminder)]);
         var taskAppDataModel = TestConverter.MapToIntermediateFormat(gtdDataModel);
-        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId.ToString())!;
+        var taskAppTaskModel = GetTodoById(taskAppDataModel, TestConstants.DefaultTaskId)!;
 
         Assert.Equal(typeof(Ical.Net.DataTypes.Duration), taskAppTaskModel.Alarms.First().Trigger!.GetValueType());
     }
 
     private static void AssertBasicTaskProperties(GTDTaskModel gtdTaskModel, Todo taskAppTaskModel, GTDTaskModel gtdRemappedTaskModel)
     {
-        Assert.Equal(gtdTaskModel.Id.ToString(), taskAppTaskModel.Uid);
+        Assert.Equal(IntermediateFormatUid.ToUid(gtdTaskModel), taskAppTaskModel.Uid);
         Assert.IsType<Calendar>(taskAppTaskModel.Parent);
         Assert.Equal(gtdTaskModel.Title, taskAppTaskModel.Summary);
         var expectedStatus = gtdTaskModel.MapStatus(gtdTaskModel.Completed != null);
         Assert.Equal(expectedStatus, taskAppTaskModel.Status);
         Assert.True(bool.TryParse(taskAppTaskModel.Properties.Get<string>(IntermediateFormatPropertyNames.Starred), out var starred));
         Assert.Equal(gtdTaskModel.Starred, starred);
-        Assert.Equal(0, taskAppTaskModel.Priority);
+        Assert.Equal(gtdTaskModel.Priority.MapPriority(), taskAppTaskModel.Priority);
         Assert.Equal(gtdTaskModel.Note, taskAppTaskModel.Description?.GetStringArray());
         Assert.True(bool.TryParse(taskAppTaskModel.Properties.Get<string>(IntermediateFormatPropertyNames.DueFloat), out var floating));
         Assert.Equal(gtdTaskModel.Floating, floating);
@@ -676,12 +689,12 @@ public class TaskMappingTests(IConversionService<GTDDataModel> testConverter, IC
             .WithTags([TestConstants.DefaultTagId, 8]);
     }
 
-    private static Todo? GetTodoById(Calendar? calendar, string todoId)
+    private static Todo? GetTodoById(Calendar? calendar, int taskId)
     {
         if (calendar == null)
             return null;
 
-        return FindTodoById(calendar, todoId);
+        return FindTodoById(calendar, IntermediateFormatUid.ToUid(IntermediateFormatUid.TaskPrefix, taskId));
 
         static Todo? FindTodoById(ICalendarObject calendarobject, string todoId)
         {

@@ -50,8 +50,7 @@ class Programm
             if (commandType == Command.Map && !ValidateLocation(toLocation, errorWriter, "ToLocation"))
                 return 1;
 
-            ExecuteCommand(commandType, fromCommand!, toCommand, fromLocation, toLocation, errorWriter);
-            return 0;
+            return ExecuteCommand(commandType, fromCommand!, toCommand, fromLocation, toLocation, errorWriter) ? 0 : 1;
         });
 
         var parseResult = rootCommand.Parse(args);
@@ -83,20 +82,15 @@ class Programm
         return true;
     }
 
-    private static void ExecuteCommand(Command commandType, IConverterPlugin fromCommand, IConverterPlugin? toCommand, string fromLocation, string? toLocation, TextWriter errorWriter)
+    private static bool ExecuteCommand(Command commandType, IConverterPlugin fromCommand, IConverterPlugin? toCommand, string fromLocation, string? toLocation, TextWriter errorWriter)
     {
-        switch (commandType)
+        return commandType switch
         {
-            case Command.CheckSource:
-                CheckSource(fromCommand, fromLocation, errorWriter);
-                break;
-            case Command.CanMap:
-                CanMap(fromCommand, fromLocation, errorWriter);
-                break;
-            case Command.Map:
-                Map(fromCommand, toCommand!, fromLocation, toLocation!, errorWriter);
-                break;
-        }
+            Command.CheckSource => CheckSource(fromCommand, fromLocation, errorWriter),
+            Command.CanMap => CanMap(fromCommand, fromLocation, errorWriter),
+            Command.Map => Map(fromCommand, toCommand!, fromLocation, toLocation!, errorWriter),
+            _ => throw new ArgumentOutOfRangeException(nameof(commandType), commandType, "Unknown command."),
+        };
     }
 
     private static List<string> GetAvailablePlugins(IDictionary<string, IConverterPlugin> commands) => commands.Select(c => c.Key).ToList();
@@ -111,47 +105,52 @@ class Programm
         return pluginLoader.GetAllCommands<IConverterPlugin>(SettingsHelper.GetAppSettings()).ToDictionary(c => c.Name.ToLowerInvariant(), c => c);
     }
 
-    private static void CanMap(IConverterPlugin command, string source, TextWriter errorWriter)
+    private static bool CanMap(IConverterPlugin command, string source, TextWriter errorWriter)
     {
         var conversionResultStatus = command.CanConvertToIntermediateFormat(source);
-        CheckMapping(errorWriter, conversionResultStatus.Success, conversionResultStatus.ResultType, conversionResultStatus.Exception);
+        if (!CheckMapping(errorWriter, conversionResultStatus.Success, conversionResultStatus.ResultType, conversionResultStatus.Exception))
+            return false;
+
+        Console.WriteLine("Source can be mapped to the intermediate format.");
+        return true;
     }
 
-    private static void CheckSource(IConverterPlugin command, string source, TextWriter errorWriter)
+    private static bool CheckSource(IConverterPlugin command, string source, TextWriter errorWriter)
     {
-        try
+        var (isSuccess, validationError) = command.CheckSource(source);
+        if (isSuccess)
         {
-            var (isSuccess, validationError) = command.CheckSource(source);
-            if (isSuccess)
-                Console.WriteLine("Validation successful!");
-            else
-                errorWriter.WriteLine($"Errors on checking source:{Environment.NewLine}{validationError?.Message}");
+            Console.WriteLine("Validation successful!");
+            return true;
         }
-        catch (Exception ex)
-        {
-            errorWriter.WriteLine($"Error in validating: {ex.Message}");
-        }
+
+        errorWriter.WriteLine($"Errors on checking source:{Environment.NewLine}{validationError?.Message}");
+        return false;
     }
 
-    private static void Map(IConverterPlugin fromCommand, IConverterPlugin toCommand, string fromLocation, string toLocation, TextWriter errorWriter)
+    private static bool Map(IConverterPlugin fromCommand, IConverterPlugin toCommand, string fromLocation, string toLocation, TextWriter errorWriter)
     {
         var (success, resultType, sourceModel, exception) = fromCommand.ConvertToIntermediateFormat(fromLocation);
-        if (CheckMapping(errorWriter, success, resultType, exception))
+        if (!CheckMapping(errorWriter, success, resultType, exception))
+            return false;
+
+        var result = toCommand.ConvertFromIntermediateFormat(toLocation, sourceModel!);
+        if (result.Success)
         {
-            var result = toCommand.ConvertFromIntermediateFormat(toLocation, sourceModel!);
-            if (!result.Success)
-            {
-                switch (result.ResultType)
-                {
-                    case ConversionResultType.WriterError:
-                        errorWriter.WriteLine("Error with writing the destination.");
-                        break;
-                    case ConversionResultType.ConversionError:
-                        errorWriter.WriteLine($"Error while mapping from intermediate format;{result.Exception}");
-                        break;
-                }
-            }
+            Console.WriteLine($"Mapped {fromCommand.Name} to {toCommand.Name}.");
+            return true;
         }
+
+        switch (result.ResultType)
+        {
+            case ConversionResultType.WriterError:
+                errorWriter.WriteLine("Error with writing the destination.");
+                break;
+            case ConversionResultType.ConversionError:
+                errorWriter.WriteLine($"Error while mapping from intermediate format: {DescribeError(result.Exception)}");
+                break;
+        }
+        return false;
     }
 
     private static bool CheckMapping(TextWriter errorWriter, bool success, ConversionResultType conversionResultType, Exception? exception)
@@ -162,18 +161,30 @@ class Programm
         switch (conversionResultType)
         {
             case ConversionResultType.ReaderError:
-                Console.WriteLine("Error with reading the source.");
-                break;
-            case ConversionResultType.CanConvert:
-                Console.WriteLine("File can be mapped to intermediate format.");
+                errorWriter.WriteLine("Error with reading the source.");
                 break;
             case ConversionResultType.ConversionError:
-                errorWriter.WriteLine($"Error while mapping to intermediate format;{exception}");
+                errorWriter.WriteLine($"Error while mapping to intermediate format: {DescribeError(exception)}");
                 break;
             case ConversionResultType.NoTasks:
                 errorWriter.WriteLine("There are no tasks in this file!");
                 break;
         }
         return false;
+    }
+
+    /// <summary>
+    /// The message of the innermost exception, which is the one that says what is wrong with the
+    /// data. Interpolating the exception itself buried it under twenty lines of stack trace.
+    /// </summary>
+    private static string DescribeError(Exception? exception)
+    {
+        if (exception == null)
+            return "unknown error.";
+
+        while (exception.InnerException != null)
+            exception = exception.InnerException;
+
+        return exception.Message;
     }
 }
