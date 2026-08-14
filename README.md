@@ -78,11 +78,16 @@ insensitively, because a parser is free to return them uppercased.
 | `X-DGT-REPEAT-FROM` | whether a repetition counts from the due date or from completion |
 | `X-DGT-TASK-TYPE` | task, project or checklist |
 | `X-DGT-STARRED` | starred flag |
+| `X-DGT-PRIORITY` | the exact GTD priority, since `Low` and `None` share the standard's 0 |
 | `X-DGT-CREATED-MS`, `X-DGT-MODIFIED-MS`, `X-DGT-COMPLETED-MS` | the millisecond fraction of the respective timestamp, since RFC 5545 stores whole seconds only |
 | `X-DGT-COLOR`, `X-DGT-ISVISIBLE` | colour and visibility of keywords and notebooks |
 
-`PRIORITY` uses the standard property: GTD's five levels map onto anchors 1, 3, 5, 7 and 0
-(undefined), and reading accepts the full range 0 to 9 that a foreign client may write.
+`PRIORITY` uses the standard property, but not naively. GTD's `Low` is the default of its enum and
+therefore means "never touched" rather than "low" - in a real backup 5144 of 5998 tasks carry it, and
+mapping those onto 7 made every one of them appear as an explicitly low priority task in the target
+app. `Low` and `None` both become 0 ("no priority"), `Med` 5, `High` 3, `Top` 1. That makes the two
+indistinguishable in the standard property, which is why `X-DGT-PRIORITY` carries the exact value.
+Reading accepts the full range 0 to 9 that a foreign client may write.
 
 **Repetitions** map onto `RRULE`. An interval over a period becomes `FREQ`/`INTERVAL`, and the two
 weekday-set modes become a weekly rule with `BYDAY` (`MO,TU,WE,TH,FR` and `SA,SU`). A mode with no

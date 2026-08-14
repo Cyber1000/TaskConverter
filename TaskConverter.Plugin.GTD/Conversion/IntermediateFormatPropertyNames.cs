@@ -34,6 +34,10 @@ public static partial class IntermediateFormatPropertyNames
     // alone cannot tell them apart. Written even when empty, same reason as Start.
     public static string Alarm => "X-DGT-ALARM";
 
+    // GTD's Low is the default of its enum, so it means "never touched"; it and None both become
+    // the standard's 0 ("no priority") and are only distinguishable here.
+    public static string Priority => "X-DGT-PRIORITY";
+
     private static string GetSanitizedKeyWordName(string keyWordName) => SanitizeRegex().Replace(keyWordName, "");
 
     [GeneratedRegex("[^a-zA-Z0-9_-]")]
