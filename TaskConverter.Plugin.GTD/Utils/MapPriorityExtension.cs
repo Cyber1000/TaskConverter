@@ -4,8 +4,13 @@ namespace TaskConverter.Plugin.GTD.Utils;
 
 /// <summary>
 /// GTD knows five priorities, RFC 5545 uses 0 for "undefined" and 1 (highest) to 9 (lowest).
-/// Each GTD value gets its own anchor inside that range, so our own values survive a roundtrip
-/// exactly, while any value a foreign client writes still maps onto something sensible.
+/// <para>
+/// Low maps to 0, not to 7: it is the default of the GTD enum and therefore means "never touched"
+/// rather than "low" - 5144 of 5998 tasks in a real backup carry it, and every one of them would
+/// otherwise show up in the target app as an explicitly low priority task. That makes Low and None
+/// indistinguishable here, which is why <see cref="IntermediateFormatPropertyNames.Priority"/>
+/// carries the exact value alongside.
+/// </para>
 /// </summary>
 public static class MapPriorityExtension
 {
@@ -15,7 +20,7 @@ public static class MapPriorityExtension
         { Priority.Top, 1 },
         { Priority.High, 3 },
         { Priority.Med, 5 },
-        { Priority.Low, 7 },
+        { Priority.Low, 0 },
     };
 
     public static int MapPriority(this Priority priority) => intermediatePriorityMapper.TryGetValue(priority, out var mapped) ? mapped : 0;

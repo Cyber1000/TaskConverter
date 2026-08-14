@@ -19,6 +19,17 @@ public class AfterMapTodoFromIntermediateFormat : IMappingAction<Todo, GTDTaskMo
         MapTaskType(source, destination);
         MapCompletedPrecision(source, destination);
         MapDueDateProject(source, destination, context);
+        MapPriority(source, destination);
+    }
+
+    /// <summary>
+    /// Low and None both become the standard's 0, so the carried value is the only way to tell them
+    /// apart. Without it - a calendar from a foreign client - the range mapping stands.
+    /// </summary>
+    private static void MapPriority(Todo source, GTDTaskModel destination)
+    {
+        if (Enum.TryParse<Priority>(source.Properties.Get<string>(IntermediateFormatPropertyNames.Priority), ignoreCase: true, out var carriedPriority))
+            destination.Priority = carriedPriority;
     }
 
     private static void MapDueDateProject(Todo source, GTDTaskModel destination, ResolutionContext context)
