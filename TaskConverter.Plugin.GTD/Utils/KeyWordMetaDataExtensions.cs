@@ -19,8 +19,7 @@ public static class KeyWordMetaDataExtensions
             Color = keyWordMetaData.Color.ToStringRepresentation(),
             IsVisible = keyWordMetaData.IsVisible.ToStringRepresentation(),
         };
-        string json = JsonSerializer.Serialize(obj);
-        return IcalEscape(json);
+        return JsonSerializer.Serialize(obj);
     }
 
     public static KeyWordMetaData? KeyWordMetaDataFromString(this string? json)
@@ -30,8 +29,7 @@ public static class KeyWordMetaDataExtensions
 
         try
         {
-            string unescapedJson = IcalUnescape(json);
-            var dto = JsonSerializer.Deserialize<IntermediateKeyWordMetaData>(unescapedJson);
+            var dto = JsonSerializer.Deserialize<IntermediateKeyWordMetaData>(json);
             if (dto == null)
                 return null;
 
@@ -52,22 +50,6 @@ public static class KeyWordMetaDataExtensions
         {
             return null;
         }
-    }
-
-    private static string IcalEscape(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-            return string.Empty;
-
-        return input.Replace(@"\", @"\\").Replace(";", @"\;").Replace(",", @"\,").Replace("\r\n", @"\n").Replace("\n", @"\n");
-    }
-
-    private static string IcalUnescape(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-            return string.Empty;
-
-        return input.Replace(@"\n", "\n").Replace(@"\,", ",").Replace(@"\;", ";").Replace(@"\\", @"\");
     }
 
     private static CalDateTime ParseCalDateTime(string? isoString)
