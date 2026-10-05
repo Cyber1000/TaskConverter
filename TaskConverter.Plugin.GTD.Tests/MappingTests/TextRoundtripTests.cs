@@ -1,3 +1,4 @@
+using Ical.Net.Serialization;
 using NodaTime;
 using TaskConverter.Plugin.Base;
 using TaskConverter.Plugin.GTD.Model;
@@ -13,6 +14,27 @@ namespace TaskConverter.Plugin.GTD.Tests.MappingTests;
 /// </summary>
 public class TextRoundtripTests(IConversionService<GTDDataModel> testConverter, IClock clock) : BaseMappingTests(testConverter, clock)
 {
+    [Fact]
+    public void MapThroughText_EscapesCommasSoAConformingParserKeepsTheWholeValue()
+    {
+        var gtdDataModel = Create
+            .A.GTDDataModel()
+            .AddFolder(TestConstants.DefaultFolderId)
+            .AddTaskList(() =>
+                [Create.A.GTDTaskModel(TestConstants.DefaultTaskId).WithFolder(TestConstants.DefaultFolderId).Build()]
+            )
+            .Build();
+
+        var icsText = new CalendarSerializer().SerializeToString(TestConverter.MapToIntermediateFormat(gtdDataModel))!;
+        var metaDataLine = UnfoldedLines(icsText).First(line => line.StartsWith("X-DGT-CATEGORY-", StringComparison.OrdinalIgnoreCase));
+
+        // RFC 5545 reads "\\," as an escaped backslash followed by a value separator, so a
+        // conforming parser - Radicale, and every CalDAV client behind it - cuts the metadata
+        // off at the first comma. Measured: a 1706 byte entry came back as 859.
+        Assert.DoesNotContain(@"\\,", metaDataLine);
+        Assert.Contains(@"\,", metaDataLine);
+    }
+
     [Fact]
     public void MapThroughText_KeepsKeyWordMetaData()
     {
@@ -105,4 +127,11 @@ public class TextRoundtripTests(IConversionService<GTDDataModel> testConverter, 
         Assert.Equal(sharedTitle, Assert.Single(remapped!.Folder!).Title);
         Assert.Equal(sharedTitle, Assert.Single(remapped.Tag!).Title);
     }
+    /// <summary>
+    /// iCalendar folds long lines by continuing them with a leading space. Property values have
+    /// to be put back together before anything can be asserted about their escaping.
+    /// </summary>
+    private static IEnumerable<string> UnfoldedLines(string icsText) =>
+        icsText.Replace("\r\n", "\n").Replace("\n ", "").Replace("\n\t", "").Split('\n');
+
 }
